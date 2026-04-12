@@ -113,11 +113,11 @@ const tableText = ref('No registered Schedule.')
 const submitForm = async () => {
     isSubmitting.value = true
     const submitResponse = await submitSchedule(schedules.value)
-    if (submitResponse.data?.success) {
-        schedules.value = submitResponse.data.schedules
-        toast(submitResponse.data?.message, 'success')
+    if (submitResponse?.success) {
+        schedules.value = submitResponse.schedules
+        toast(submitResponse?.message, 'success')
     } else {
-        toast(submitResponse.data?.message, 'error')
+        toast(submitResponse?.message, 'error')
     }
     isSubmitting.value = false
 }
@@ -132,21 +132,21 @@ async function loadScheduleData() {
     // Fetch schedule for the logged-in user and selected week/year
     const scheduleResponse = await fetchSchedule(selectedYear.value, selectedWeek.value)
 
-    if (scheduleResponse.data?.success) {
+    if (scheduleResponse?.success) {
         // Fetch all available shift codes
         const shiftsResponse = await fetchShiftList('employee')
-        initshifts.value = shiftsResponse.data
+        initshifts.value = shiftsResponse
 
         // Format the shift data into { label, value } structure
         // so it can be used directly in <SelectOption>
-        const shiftData = shiftsResponse?.data?.data ?? []
+        const shiftData = shiftsResponse?.data ?? []
         shifts.value = shiftData.map(element => ({
             label: (element.start_time && element.end_time) ? `${element.code}: ${element.start_time} - ${element.end_time}` : `${element.code === 'SY' ? 'NO WORK SCHEDULE' : 'RESTDAY/HOLIDAY'}`,
             value: element.id
         }))
 
         // Store fetched schedules
-        schedules.value = scheduleResponse.data.schedules
+        schedules.value = scheduleResponse.schedules
     } else {
         tableText.value = 'Failed to load schedules.'
     }
@@ -217,7 +217,7 @@ const isDefaultShift = (schedule) => {
         return false
     }
 
-    if (initshifts.value.data?.length > 0) {
+    if (initshifts.value?.data?.length > 0) {
         // Compare schedule's shift labels with default codes
         return schedule.every((day, idx) => {
             let match = initshifts.value.data.find(shift => shift.id === day.shift_code)
