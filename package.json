@@ -9,7 +9,6 @@
         "@iconify/vue": "^5.0.0",
         "@vitejs/plugin-vue": "^6.0.1",
         "autoprefixer": "^10.4.21",
-        "axios": "^1.10.0",
         "daisyui": "^5.0.46",
         "laravel-vite-plugin": "^2.0.0",
         "postcss": "^8.5.6",
