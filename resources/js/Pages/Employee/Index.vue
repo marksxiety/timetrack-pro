@@ -683,8 +683,8 @@ const showOvertimeFilingModal = async (year, month, day) => {
 
     let scheduleResponse = await fetchUserSchedule(year, month + 1, day)
 
-    if (scheduleResponse.data?.success) {
-        let scheduledata = scheduleResponse.data?.schedule
+    if (scheduleResponse?.success) {
+        let scheduledata = scheduleResponse?.schedule
 
         if (Object.keys(scheduledata).length > 0) {
             withShedule.value = true
