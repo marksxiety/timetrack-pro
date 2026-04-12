@@ -190,7 +190,7 @@ onMounted(async () => {
 
     // Format the shift data into { label, value } structure
     // so it can be used directly in <SelectOption>
-    const shiftData = shiftsResponse?.data?.data ?? []
+    const shiftData = shiftsResponse?.data ?? []
     shifts.value = shiftData.map(element => ({
         label: (element.start_time && element.end_time)
             ? element.code
@@ -200,13 +200,13 @@ onMounted(async () => {
 
     const scheduleResponse = await fetchEmployeeSchedule(selectedYear.value, selectedWeek.value)
 
-    if (scheduleResponse.data.success) {
+    if (scheduleResponse.success) {
         employeeSchedules.value = [{
-            week_schedule: scheduleResponse.data.info?.schedules,
-            week: scheduleResponse.data.info?.week,
-            year: scheduleResponse.data.info?.year,
-            week_start: scheduleResponse.data.info?.week_start,
-            week_end: scheduleResponse.data.info?.week_end,
+            week_schedule: scheduleResponse.info?.schedules,
+            week: scheduleResponse.info?.week,
+            year: scheduleResponse.info?.year,
+            week_start: scheduleResponse.info?.week_start,
+            week_end: scheduleResponse.info?.week_end,
         }]
 
     } else {
@@ -233,13 +233,13 @@ const handleAddWeek = async () => {
     alreadyLoaded.value = false
     addingWeek.value = true
     const scheduleResponse = await fetchEmployeeSchedule(selectedYear.value, selectedWeek.value)
-    if (scheduleResponse.data.success) {
+    if (scheduleResponse.success) {
         employeeSchedules.value.push({
-            week_schedule: scheduleResponse.data.info?.schedules,
-            week: scheduleResponse.data.info?.week,
-            year: scheduleResponse.data.info?.year,
-            week_start: scheduleResponse.data.info?.week_start,
-            week_end: scheduleResponse.data.info?.week_end,
+            week_schedule: scheduleResponse.info?.schedules,
+            week: scheduleResponse.info?.week,
+            year: scheduleResponse.info?.year,
+            week_start: scheduleResponse.info?.week_start,
+            week_end: scheduleResponse.info?.week_end,
         })
 
         employeeSchedules.value.sort((a, b) => {
@@ -349,7 +349,7 @@ const hanldesubmitSchedule = async () => {
 
     isSubmitting.value = true
     let submitResponse = await submitEmployeeSchedule(employeeSchedules.value)
-    if (submitResponse.data.success) {
+    if (submitResponse.success) {
         toast('Schedule submitted successfully', 'success')
     } else {
         toast('Schedule submission failed. Please try again.', 'error')
