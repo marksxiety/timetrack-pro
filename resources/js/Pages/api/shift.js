@@ -1,5 +1,4 @@
-import axios from "axios";
-
-export function fetchShiftList(auth) {
-    return axios.get(`/${auth}/shift/list`);
+export async function fetchShiftList(auth) {
+    const res = await fetch(`/${auth}/shift/list`);
+    return res.json();
 }
