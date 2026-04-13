@@ -333,7 +333,33 @@ class OvertimeRequestController extends Controller
         $overtimelist = [];
         $overtime = null;
         $message = '';
+        $stats = [
+            'total_overtime_hours' => 0,
+            'approved_requests' => 0,
+            'pending_requests' => 0,
+            'rejected_requests' => 0,
+        ];
         try {
+            $allOvertimes = OvertimeRequest::whereHas('schedule', function ($query) {
+                $query->where('user_id', Auth::id());
+            })->get();
+
+            foreach ($allOvertimes as $ot) {
+                $status = strtoupper($ot->status);
+                if ($status === 'APPROVED' || $status === 'FILED') {
+                    $stats['approved_requests']++;
+                    $stats['total_overtime_hours'] += (float) $ot->hours;
+                }
+                if ($status === 'PENDING') {
+                    $stats['pending_requests']++;
+                }
+                if ($status === 'DISAPPROVED') {
+                    $stats['rejected_requests']++;
+                }
+            }
+
+            $stats['total_overtime_hours'] = rtrim(rtrim(number_format($stats['total_overtime_hours'], 2), '0'), '.');
+
             $overtimes = OvertimeRequest::with(['schedule' => function ($query) {
                 $query->select('id', 'week', 'date', 'user_id', 'shift_id');
             }, 'schedule.shift' => function ($query) {
@@ -381,6 +407,7 @@ class OvertimeRequestController extends Controller
             'info' => [
                 'overtimelist' => $overtimelist
             ],
+            'stats' => $stats,
             'payload' => [
                 'year' => $year,
                 'month' => $month,

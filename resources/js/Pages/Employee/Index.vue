@@ -535,7 +535,6 @@ import TextArea from '../Components/TextArea.vue'
 import SelectOption from '../Components/SelectOption.vue'
 import Card from '../Components/Card.vue'
 import { fetchUserSchedule } from '../api/schedule.js'
-import { getEmployeeOvertimeStats } from '../utils/overtimeMapper.js'
 import fetchUpcomingHolidays from '../api/upcomingHolidays.js'
 import { getTimeOptions } from '../utils/dropdownOptions.js'
 import Stepper from '../Components/Stepper.vue'
@@ -562,6 +561,7 @@ const isEnhancing = ref(false)
 const props = defineProps({
     info: Object,
     payload: Object,
+    stats: Object,
     errors: Object,
     flash: Object,
     success: Boolean,
@@ -596,10 +596,10 @@ const holidays = ref([])
 
 
 // ========== Card Stats ==========
-const totalovertime = ref(0)
-const pendingovertime = ref(0)
-const approvedovertime = ref(0)
-const rejectedovertime = ref(0)
+const totalovertime = ref(props?.stats?.total_overtime_hours ?? 0)
+const pendingovertime = ref(props?.stats?.pending_requests ?? 0)
+const approvedovertime = ref(props?.stats?.approved_requests ?? 0)
+const rejectedovertime = ref(props?.stats?.rejected_requests ?? 0)
 
 // ========== Form(s) ==========
 const formFiling = useForm({
@@ -637,12 +637,11 @@ const formFilledOvertime = useForm({
 // ========== Lifecycle ==========
 onMounted(async () => {
     updateCurrentMonthYear(currentYear.value, currentMonth.value)
-    let { totalovertimehours, approvedrequests, pendingrequests, rejectedrequests } = getEmployeeOvertimeStats(recentRequests.value)
 
-    totalovertime.value = totalovertimehours
-    approvedovertime.value = approvedrequests
-    pendingovertime.value = pendingrequests
-    rejectedovertime.value = rejectedrequests
+    totalovertime.value = props?.stats?.total_overtime_hours ?? 0
+    approvedovertime.value = props?.stats?.approved_requests ?? 0
+    pendingovertime.value = props?.stats?.pending_requests ?? 0
+    rejectedovertime.value = props?.stats?.rejected_requests ?? 0
 
     if (props.flash?.message) {
         greetingMessage.value = props.flash?.message
@@ -916,12 +915,10 @@ const enhanceReason = async (context) => {
 watch(() => props.info?.overtimelist, (updatedRequests) => {
     recentRequests.value = [...updatedRequests]
 
-    let { totalovertimehours, approvedrequests, pendingrequests, rejectedrequests } = getEmployeeOvertimeStats(recentRequests.value)
-
-    totalovertime.value = totalovertimehours
-    approvedovertime.value = approvedrequests
-    pendingovertime.value = pendingrequests
-    rejectedovertime.value = rejectedrequests
+    totalovertime.value = props?.stats?.total_overtime_hours ?? 0
+    approvedovertime.value = props?.stats?.approved_requests ?? 0
+    pendingovertime.value = props?.stats?.pending_requests ?? 0
+    rejectedovertime.value = props?.stats?.rejected_requests ?? 0
 })
 
 watch(() => props.info?.payload, (updatedPayload) => {
