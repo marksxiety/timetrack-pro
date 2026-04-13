@@ -249,13 +249,13 @@ function rendertotalOvertimeViaTimeGraph(currTheme = theme.value) {
                 }))
             },
             {
-                name: 'ROA',
+                name: 'Weekly Limit',
                 type: 'line',
                 smooth: true,
                 data: data.map(d => d.roa)
             },
             {
-                name: 'Planned ROA',
+                name: 'Planned Limit',
                 type: 'line',
                 smooth: true,
                 lineStyle: {
@@ -393,7 +393,7 @@ function handleDataManipulationViaReportType(data) {
             computedEmployeeRankings.totalHours[idx] += element.hours
         })
 
-        // ---- ROA by week ----
+        // ---- Weekly Limit by week ----
         computedConsumedOvertime.roa = computedConsumedOvertime.weeks.map(week => {
             let match = data.required_hours.find(e => e.week === week)
             return match ? match.required_hours : 0
@@ -428,7 +428,7 @@ function handleDataManipulationViaReportType(data) {
             computedEmployeeRankings.totalHours[idx] += element.hours
         })
 
-        // ---- ROA by date (month-year) ----
+        // ---- Weekly Limit by date (month-year) ----
         computedConsumedOvertime.roa = computedConsumedOvertime.months.map(month => {
             let total = data.required_hours.reduce((sum, e) => {
                 if (!e.date) return sum
@@ -469,7 +469,7 @@ function handleDataManipulationViaReportType(data) {
             computedEmployeeRankings.totalHours[idx] += element.hours
         })
 
-        // ---- ROA by date (year) ----
+        // ---- Weekly Limit by date (year) ----
         computedConsumedOvertime.roa = computedConsumedOvertime.years.map(year => {
             let total = data.required_hours.reduce((sum, e) => {
                 if (!e.date) return sum
