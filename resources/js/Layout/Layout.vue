@@ -27,7 +27,7 @@
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('hours')" class="justify-between">
                             <Icon icon="tabler:clock-check" width="24" height="24" />
-                            Manage ROA
+                            Overtime Limits
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
