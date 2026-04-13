@@ -248,12 +248,12 @@
         <div class="stats stats-horizontal shadow flex-wrap">
             <Card title="Requests to File" :value="total_requests" description="For Approval" />
             <Card title="Total Overtime Hours" :value="total_requests_hours" description="Awaiting confirmation" />
-            <Card title="Registered ROA" :value="roa_hours"
-                :description="roa_hours <= 0 ? 'No ROA hours remaining — please file additional hours.' : 'You still have ROA hours available.'" />
+            <Card title="Weekly Overtime Limit" :value="roa_hours"
+                :description="roa_hours <= 0 ? 'No overtime limit hours remaining — please file additional hours.' : 'You still have overtime limit hours available.'" />
             <Card title="Remaining Hours" :value="remaining_hours" :description="remaining_hours === 0
                 ? 'No remaining hours'
                 : remaining_hours < 0
-                    ? 'ROA consumed exceeded — please file additional hours'
+                    ? 'Overtime limit consumed exceeded — please file additional hours'
                     : 'Remaining hours available'" />
         </div>
 
@@ -437,7 +437,7 @@ const closeManageRequestModal = () => {
 
 const updateOvertiemRequestStatus = (status) => {
     if (roa_hours.value === 0 && status === 'APPROVED') {
-        toast('No registered ROA yet.', 'error')
+        toast('No registered weekly overtime limit yet.', 'error')
         return
     }
 
