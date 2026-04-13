@@ -88,3 +88,11 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/setup/config', function () {
+    $path = base_path('setup/config.json');
+    if (!file_exists($path)) {
+        return response()->json([]);
+    }
+    return response()->json(json_decode(file_get_contents($path), true));
+});
