@@ -121,8 +121,7 @@ class OvertimeRequestController extends Controller
         // compute the hours and convert it to float
         $hours = $this->calculateOvertimeHours($submitted_start_time, $submitted_end_time);
 
-        // ensure that the filing has minimum hours (configurable via .env)
-        $minimumHours = (float) (env('VITE_MINIMUM_OVERTIME_HOURS', 1));
+        $minimumHours = (float) $this->getMinimumOvertimeHours();
         if ((float)$hours < $minimumHours) {
             $errors->add('start_time', "Overtime Request should be minimum of {$minimumHours} hour(s)");
             $errors->add('end_time', "Overtime Request should be minimum of {$minimumHours} hour(s)");
@@ -287,8 +286,8 @@ class OvertimeRequestController extends Controller
                 // compute the hours and convert it to float
                 $hours = $this->calculateOvertimeHours($submitted_start_time, $submitted_end_time);
 
-                // ensure that the filing has minimum hours (configurable via .env)
-                $minimumHours = (float) (env('VITE_MINIMUM_OVERTIME_HOURS', 1));
+                // ensure that the filing has minimum hours (configurable via setup/config.json)
+                $minimumHours = (float) $this->getMinimumOvertimeHours();
                 if ((float)$hours < $minimumHours) {
                     $errors->add('start_time', "Overtime Request should be minimum of {$minimumHours} hour(s)");
                     $errors->add('end_time', "Overtime Request should be minimum of {$minimumHours} hour(s)");
@@ -883,5 +882,15 @@ class OvertimeRequestController extends Controller
             'success' => $success,
             'message' => $message
         ]);
+    }
+
+    private function getMinimumOvertimeHours(): float
+    {
+        $path = base_path('setup/config.json');
+        if (file_exists($path)) {
+            $config = json_decode(file_get_contents($path), true);
+            return (float) ($config['minimum_overtime_hours'] ?? 1);
+        }
+        return 1.0;
     }
 }
