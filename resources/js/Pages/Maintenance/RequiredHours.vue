@@ -1,22 +1,21 @@
 <template>
     <Head title="Registered Hours Limit"  />
-    <div class="flex flex-col gap-8 h-screen px-6 py-4">
+    <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
         <div class="breadcrumbs text-sm">
-            <ul class="flex gap-2 items-center">
+            <ul>
                 <li>
-                    <Link :href="route('main')" class="hover:text-primary transition-colors">Home</Link>
+                    <Link :href="route('main')">Home</Link>
                 </li>
                 <li>
-                    <Link :href="route('hours')" class="hover:text-primary transition-colors">Authorized Hours
-                    Registration</Link>
+                    <Link :href="route('hours')">Authorized Hours Registration</Link>
                 </li>
             </ul>
         </div>
 
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-base-content">Manage Authorized Hours</h1>
+            <h1 class="text-2xl font-bold text-base-content">Manage Authorized Hours</h1>
         </div>
 
         <!-- Main Grid Content -->

@@ -11,7 +11,7 @@
                 :disabled="deleteform.processing">Cancel</button>
         </div>
     </Modal>
-    <div class="flex flex-col gap-8 h-full">
+    <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
         <div class="breadcrumbs text-sm">
             <ul>
@@ -26,7 +26,7 @@
 
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-base-content">Manage Shift Codes</h1>
+            <h1 class="text-2xl font-bold text-base-content">Manage Shift Codes</h1>
         </div>
 
         <!-- Grid Section -->

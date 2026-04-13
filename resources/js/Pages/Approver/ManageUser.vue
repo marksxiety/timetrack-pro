@@ -56,7 +56,7 @@
         </div>
     </Modal>
 
-    <div class="flex flex-col gap-6 h-screen pb-12">
+    <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
         <div class="breadcrumbs text-sm">
             <ul>
@@ -64,7 +64,7 @@
                     <Link :href="route('main')">Home</Link>
                 </li>
                 <li>
-                    <Link :href="route('schedule.manage')">Manage Users</Link>
+                    <Link :href="route('approver.manage.user')">Manage Users</Link>
                 </li>
             </ul>
         </div>

@@ -204,7 +204,7 @@
       </div>
     </div>
   </Modal>
-  <div class="flex flex-col gap-6 p-4 h-full">
+  <div class="flex flex-col gap-6">
     <!-- Breadcrumbs -->
     <div class="breadcrumbs text-sm">
       <ul>
@@ -235,7 +235,7 @@
 
     <!-- Page Title -->
     <div class="flex justify-between items-center">
-      <h1 class="text-3xl font-extrabold text-base-content">For Filing Overtime Requests</h1>
+      <h1 class="text-2xl font-bold text-base-content">For Filing Overtime Requests</h1>
     </div>
 
     <div class="stats stats-horizontal shadow flex-wrap">

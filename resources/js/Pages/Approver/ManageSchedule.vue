@@ -30,7 +30,7 @@
     </Modal>
 
 
-    <div class="flex flex-col gap-6 h-full pb-12">
+    <div class="flex flex-col gap-6">
         <div class="breadcrumbs text-sm">
             <ul>
                 <li>

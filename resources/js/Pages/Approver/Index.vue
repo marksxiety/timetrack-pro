@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-6 p-4 h-full">
+    <div class="flex flex-col gap-6">
         <!-- Stat Cards -->
         <div class="stats stats-horizontal shadow flex-wrap">
             <Card title="Total Filed" :value="card.total_filed" routename="overtime.filed"

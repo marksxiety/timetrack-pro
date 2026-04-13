@@ -393,7 +393,7 @@
             </div>
         </div>
     </Modal>
-    <div class="flex flex-col px-4 py-6 gap-6 h-full">
+    <div class="flex flex-col gap-6">
 
         <div class="stats shadow grid grid-cols-4">
             <Card title="Total Overtime Hours" :value="totalovertime + ' hrs'" />
