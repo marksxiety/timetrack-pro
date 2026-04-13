@@ -11,7 +11,11 @@ export async function fetchEmployeeSchedule(year, week) {
 export async function submitSchedule(info) {
     const res = await fetch("/schedule/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+        },
         body: JSON.stringify({ schedule: info }),
     });
     return res.json();
@@ -20,7 +24,11 @@ export async function submitSchedule(info) {
 export async function submitEmployeeSchedule(info) {
     const res = await fetch("/schedule/employee/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+        },
         body: JSON.stringify({ schedule: info }),
     });
     return res.json();
