@@ -65,7 +65,7 @@
                         </thead>
                         <tbody>
                             <tr v-if="!requests || requests.length === 0">
-                                <td colspan="6" class="text-center py-12">
+                                <td colspan="8" class="text-center py-12">
                                     <div class="flex flex-col items-center gap-3">
                                         <Icon icon="tabler:inbox-off" width="48" height="48"
                                             class="text-base-content/30" />
@@ -85,8 +85,7 @@
                                 </td>
                                 <td>
                                     <div class="flex items-center gap-1">
-                                        <Icon icon="tabler:clock" width="16" height="16"
-                                            class="text-base-content/60" />
+                                        <Icon icon="tabler:clock" width="16" height="16" class="text-base-content/60" />
                                         <span class="font-semibold">{{ req.hours }}</span>
                                     </div>
                                 </td>
