@@ -1,18 +1,10 @@
 <template>
     <Head title="Manage Profile"  />
     <div class="flex flex-col gap-6">
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Dashboard</Link>
-                </li>
-                <li>
-                    <Link :href="route('profile.employee')">
-                    Update Profile
-                    </Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Dashboard', route: 'main' },
+            { label: 'Update Profile', route: 'profile.employee', active: true },
+        ]" />
 
         <!-- Page Heading -->
 
@@ -90,6 +82,7 @@
 </template>
 
 <script setup>
+import Breadcrumbs from './Components/Breadcrumbs.vue'
 import { useForm, Link } from '@inertiajs/vue3'
 import TextInput from './Components/TextInput.vue'
 import SelectOption from './Components/SelectOption.vue'

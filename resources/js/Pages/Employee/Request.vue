@@ -1,14 +1,10 @@
 <template>
     <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Home</Link>
-                </li>
-                <li class="font-semibold">Overtime Request</li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Home', route: 'main' },
+            { label: 'Overtime Request', active: true },
+        ]" />
 
         <!-- Main Card -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
@@ -130,6 +126,7 @@
 </template>
 
 <script setup>
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { Link, useForm, router } from '@inertiajs/vue3'
 import { ref, computed, watch } from 'vue'
 import { weeks, statuses } from '../utils/dropdownOptions.js'

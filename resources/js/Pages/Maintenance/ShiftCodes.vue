@@ -13,16 +13,10 @@
     </Modal>
     <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Home</Link>
-                </li>
-                <li>
-                    <Link :href="route('shifts')">Shift Code Registration</Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Home', route: 'main' },
+            { label: 'Shift Code Registration', route: 'shifts', active: true },
+        ]" />
 
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
@@ -116,6 +110,7 @@
 <script setup>
 import TextInput from '../Components/TextInput.vue'
 import { ref, watch } from 'vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, router, Link } from '@inertiajs/vue3'
 import { inject } from 'vue'
 import Modal from '../Components/Modal.vue'

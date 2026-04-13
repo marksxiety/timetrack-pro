@@ -213,32 +213,12 @@
 
     <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main', { week: selectedWeek, year: selectedYear })">Dashboard</Link>
-                </li>
-                <li>
-                    <Link
-                        :href="route('overtime.pending', { status: 'PENDING', page: 'Approver/Pending', week: selectedWeek, year: selectedYear })"
-                        class="text-primary font-semibold underline">
-                    Pending
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                        :href="route('overtime.filing', { status: 'APPROVED', page: 'Approver/Filing', week: selectedWeek, year: selectedYear })">
-                    Filing
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                        :href="route('overtime.filing', { status: 'FILED', page: 'Approver/Filed', week: selectedWeek, year: selectedYear })">
-                    Filed
-                    </Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Dashboard', route: 'main', params: { week: selectedWeek, year: selectedYear } },
+            { label: 'Pending', route: 'overtime.pending', params: { status: 'PENDING', page: 'Approver/Pending', week: selectedWeek, year: selectedYear }, active: true },
+            { label: 'Filing', route: 'overtime.filing', params: { status: 'APPROVED', page: 'Approver/Filing', week: selectedWeek, year: selectedYear } },
+            { label: 'Filed', route: 'overtime.filing', params: { status: 'FILED', page: 'Approver/Filed', week: selectedWeek, year: selectedYear } },
+        ]" />
 
         <!-- Page Title -->
         <div class="flex justify-between items-center">
@@ -315,6 +295,7 @@ import TextArea from '../Components/TextArea.vue'
 import Stepper from '../Components/Stepper.vue'
 import { weeks, years, currentWeek } from '../utils/dropdownOptions.js'
 import Modal from '../Components/Modal.vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, router, Link } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 

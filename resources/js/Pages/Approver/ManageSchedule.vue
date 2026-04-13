@@ -31,16 +31,10 @@
 
 
     <div class="flex flex-col gap-6">
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Home</Link>
-                </li>
-                <li>
-                    <Link :href="route('schedule.manage')">Manage Schedule</Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Home', route: 'main' },
+            { label: 'Manage Schedule', route: 'schedule.manage', active: true },
+        ]" />
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
             <h1 class="text-2xl font-bold">Employee Schedule</h1>
@@ -144,6 +138,7 @@
 </template>
 <script setup>
 import { onMounted, ref, inject } from 'vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { Link } from '@inertiajs/vue3'
 import { Icon } from "@iconify/vue"
 

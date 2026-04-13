@@ -2,16 +2,10 @@
     <Head title="Registered Hours Limit"  />
     <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Home</Link>
-                </li>
-                <li>
-                    <Link :href="route('hours')">Authorized Hours Registration</Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Home', route: 'main' },
+            { label: 'Authorized Hours Registration', route: 'hours', active: true },
+        ]" />
 
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
@@ -95,6 +89,7 @@
 import TextInput from '../Components/TextInput.vue'
 import SelectOption from '../Components/SelectOption.vue'
 import { ref, inject, watch } from 'vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, usePage, Link } from '@inertiajs/vue3'
 import { years, weeks, currentWeek } from '../utils/dropdownOptions.js'
 

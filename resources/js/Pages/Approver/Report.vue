@@ -3,16 +3,10 @@
     <Head title="Report Generator" />
     <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Dashboard</Link>
-                </li>
-                <li>
-                    <Link :href="route('approver.generate.report')">Generate Report</Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Dashboard', route: 'main' },
+            { label: 'Generate Report', route: 'approver.generate.report', active: true },
+        ]" />
 
         <div v-if="reportLoaded" class="flex flex-col gap-6 w-full">
 
@@ -155,6 +149,7 @@
 
 <script setup>
 import { watch, ref, nextTick, reactive, computed } from 'vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, Link } from '@inertiajs/vue3'
 import reportImage from '../../images/generate-report.svg'
 import TextInput from '../Components/TextInput.vue'

@@ -58,16 +58,10 @@
 
     <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Home</Link>
-                </li>
-                <li>
-                    <Link :href="route('approver.manage.user')">Manage Users</Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Home', route: 'main' },
+            { label: 'Manage Users', route: 'approver.manage.user', active: true },
+        ]" />
 
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
@@ -206,6 +200,7 @@
     </div>
 </template>
 <script setup>
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { Link, useForm } from '@inertiajs/vue3'
 import { Icon } from "@iconify/vue"
 import { ref, inject } from "vue"
