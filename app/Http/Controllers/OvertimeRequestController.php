@@ -360,6 +360,43 @@ class OvertimeRequestController extends Controller
 
             $stats['total_overtime_hours'] = rtrim(rtrim(number_format($stats['total_overtime_hours'], 2), '0'), '.');
 
+            $recentRequestsList = [];
+            $recentOvertimes = OvertimeRequest::with(['schedule' => function ($query) {
+                $query->select('id', 'week', 'date', 'user_id', 'shift_id');
+            }, 'schedule.shift' => function ($query) {
+                $query->select('id', 'code', 'start_time', 'end_time');
+            }])
+                ->whereHas('schedule', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })
+                ->select('id', 'employee_schedule_id', 'start_time', 'end_time', 'hours', 'reason', 'remarks', 'status', 'created_at')
+                ->limit(5)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+
+            foreach ($recentOvertimes as $overtime) {
+                $recentRequestsList[] = [
+                    'week' => $overtime->schedule->week ?? 'N/A',
+                    'date' => $overtime->schedule->date ?? 'N/A',
+                    'employee_schedule_id' => $overtime->employee_schedule_id,
+                    'shift_code' => $overtime->schedule->shift->code ?? 'No Shift',
+                    'shift_start_time' => $overtime->schedule->shift && $overtime->schedule->shift->start_time
+                        ? Carbon::createFromFormat('H:i:s', $overtime->schedule->shift->start_time)->format('h:i A')
+                        : '--',
+                    'shift_end_time' => $overtime->schedule->shift && $overtime->schedule->shift->end_time
+                        ? Carbon::createFromFormat('H:i:s', $overtime->schedule->shift->end_time)->format('h:i A')
+                        : '--',
+                    'id' => $overtime->id,
+                    'start_time' => $overtime->start_time ? Carbon::createFromFormat('H:i:s', $overtime->start_time)->format('h:i A') : 'N/A',
+                    'end_time' => $overtime->end_time ? Carbon::createFromFormat('H:i:s', $overtime->end_time)->format('h:i A') : 'N/A',
+                    'hours' => $overtime->hours,
+                    'reason' => $overtime->reason,
+                    'remarks' => $overtime->remarks,
+                    'status' => $overtime->status,
+                    'created_at' => $overtime->created_at ? Carbon::parse($overtime->created_at)->setTimezone('Asia/Manila')->format('M j, Y h:i A') : 'N/A'
+                ];
+            }
+
             $overtimes = OvertimeRequest::with(['schedule' => function ($query) {
                 $query->select('id', 'week', 'date', 'user_id', 'shift_id');
             }, 'schedule.shift' => function ($query) {
@@ -405,7 +442,8 @@ class OvertimeRequestController extends Controller
 
         return inertia('Employee/Index', [
             'info' => [
-                'overtimelist' => $overtimelist
+                'overtimelist' => $overtimelist,
+                'recentRequestsList' => $recentRequestsList
             ],
             'stats' => $stats,
             'payload' => [
