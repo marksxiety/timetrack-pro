@@ -6,6 +6,15 @@
             { label: 'Overtime Request', active: true },
         ]" />
 
+        <!-- Stats Cards -->
+        <div class="stats shadow grid grid-cols-5">
+            <Card title="Total Hours" :value="filteredTotalHours + ' hrs'" />
+            <Card title="Filed Requests" :value="filteredFiled" />
+            <Card title="Pending Requests" :value="filteredPending" />
+            <Card title="Approved Requests" :value="filteredApproved" />
+            <Card title="Rejected Requests" :value="filteredRejected" />
+        </div>
+
         <!-- Main Card -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
             <div class="card-body p-6 lg:p-8">
@@ -133,6 +142,7 @@ import { weeks, statuses } from '../utils/dropdownOptions.js'
 import SelectOption from '../Components/SelectOption.vue'
 import TextInput from '../Components/TextInput.vue'
 import PaginationLinks from '../Components/PaginationLinks.vue'
+import Card from '../Components/Card.vue'
 import { Icon } from "@iconify/vue"
 
 const props = defineProps({
@@ -152,6 +162,26 @@ const searchValue = ref(props.payload?.search ?? '')
 
 const paginator = ref(props.info?.requests ?? { data: [], links: [] })
 const requests = ref(paginator.value.data ?? [])
+
+const filteredTotalHours = computed(() => {
+    return requests.value.reduce((sum, r) => sum + parseFloat(r.hours || 0), 0).toFixed(2)
+})
+
+const filteredFiled = computed(() => {
+    return requests.value.filter(r => r.status === 'FILED').length
+})
+
+const filteredPending = computed(() => {
+    return requests.value.filter(r => r.status === 'PENDING').length
+})
+
+const filteredApproved = computed(() => {
+    return requests.value.filter(r => r.status === 'APPROVED').length
+})
+
+const filteredRejected = computed(() => {
+    return requests.value.filter(r => ['DECLINED', 'DISAPPROVED', 'CANCELED'].includes(r.status)).length
+})
 
 // Watch for props changes and update local data
 watch(() => props.info?.requests, (newRequests) => {

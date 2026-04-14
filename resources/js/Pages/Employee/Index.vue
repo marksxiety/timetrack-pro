@@ -95,7 +95,8 @@
                                                         data-tip="The better you describe, the better AI can enhance it!">
                                                         <span tabindex="0" class="inline-block">
                                                             <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                                @click="enhanceReason('register')" :disabled="isEnhancing">
+                                                                @click="enhanceReason('register')"
+                                                                :disabled="isEnhancing">
                                                                 <span v-if="isEnhancing"
                                                                     class="loading loading-spinner loading-xs"></span>
                                                                 <Icon v-if="!isEnhancing" icon="mingcute:ai-line"
@@ -124,8 +125,7 @@
                                             </p>
 
                                             <!-- enhancing message -->
-                                            <p v-if="isEnhancing"
-                                                class="text-sm text-primary flex items-center gap-2">
+                                            <p v-if="isEnhancing" class="text-sm text-primary flex items-center gap-2">
                                                 <Icon icon="hugeicons:chat-gpt" width="16" height="16" />
                                                 Currently Enhancing.. The longer the reason, the more time it will take
                                             </p>
@@ -169,8 +169,8 @@
                                     <span class="font-medium">Close</span>
                                 </button>
                                 <Link :href="route('schedule')" class="btn btn-primary flex-1 gap-2">
-                                <Icon icon="material-symbols:add-circle-outline" width="20" height="20" />
-                                <span class="font-medium">Add Schedule</span>
+                                    <Icon icon="material-symbols:add-circle-outline" width="20" height="20" />
+                                    <span class="font-medium">Add Schedule</span>
                                 </Link>
                             </div>
                         </div>
@@ -326,10 +326,9 @@
                                         <TextArea type="text" v-model="formFilledOvertime.reason"
                                             :message="formFilledOvertime.errors?.reason"
                                             :readonly="formFilledOvertime.current_status !== 'PENDING'" />
-                                            
+
                                         <!-- enhancing message -->
-                                        <p v-if="isEnhancing"
-                                            class="text-sm text-primary flex items-center gap-2">
+                                        <p v-if="isEnhancing" class="text-sm text-primary flex items-center gap-2">
                                             <Icon icon="hugeicons:chat-gpt" width="16" height="16" />
                                             Currently Enhancing.. The longer the reason, the more time it will take
                                         </p>
@@ -395,131 +394,161 @@
     </Modal>
     <div class="flex flex-col gap-6">
 
-        <div class="stats shadow grid grid-cols-4">
-            <Card title="Total Overtime Hours" :value="totalovertime + ' hrs'" />
+        <div class="stats shadow grid grid-cols-5">
+            <Card title="Approved OT Hours" :value="totalovertime + ' hrs'" />
+            <Card title="Tentative OT Hours" :value="tentativeHours + ' hrs'" />
             <Card title="Approved Requests" :value="approvedovertime" />
             <Card title="Pending Requests" :value="pendingovertime" />
             <Card title="Rejected Requests" :value="rejectedovertime" />
         </div>
 
-        <div class="gap-4 grid grid-cols-5">
+        <div class="gap-4 grid grid-cols-12">
 
-            <div
-                class="col-span-3 flex flex-col justify-center p-4 sm:p-6 rounded-lg shadow bg-base-100 h-auto border border-base-300">
-                <header class="flex items-center justify-between mb-4 sm:mb-6">
-                    <button class="btn btn-circle btn-sm sm:btn-md btn-ghost" @click="handlePreviousMonth()">
-                        <Icon icon="ic:round-navigate-before" class="w-12 h-12 sm:w-12 sm:h-12" />
+            <div class="col-span-8 flex flex-col rounded-xl border border-base-300 bg-base-100 overflow-hidden">
+                <header class="flex items-center justify-between px-6 py-4 border-b border-base-300">
+                    <button class="btn btn-ghost btn-sm btn-square" @click="handlePreviousMonth()">
+                        <Icon icon="ic:round-navigate-before" width="20" height="20" />
                     </button>
 
-                    <p class="font-bold text-lg sm:text-2xl text-base-content">
+                    <h2 class="text-xl font-semibold tracking-tight">
                         {{ currentMonthYear }}
-                    </p>
+                    </h2>
 
-                    <button class="btn btn-circle btn-sm sm:btn-md btn-ghost" @click="handleNextMonth()">
-                        <Icon icon="ic:round-navigate-next" class="w-12 h-12 sm:w-12 sm:h-12" />
+                    <button class="btn btn-ghost btn-sm btn-square" @click="handleNextMonth()">
+                        <Icon icon="ic:round-navigate-next" width="20" height="20" />
                     </button>
                 </header>
 
-                <ul
-                    class="grid grid-cols-7 gap-2 text-center font-medium uppercase tracking-wide text-xs sm:text-sm text-base-content/70">
-                    <li>Sun</li>
-                    <li>Mon</li>
-                    <li>Tue</li>
-                    <li>Wed</li>
-                    <li>Thu</li>
-                    <li>Fri</li>
-                    <li>Sat</li>
-                </ul>
+                <div class="grid grid-cols-7">
+                    <div v-for="dayName in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="dayName"
+                        class="py-2.5 text-center text-xs font-medium text-base-content/50 uppercase tracking-wider">
+                        {{ dayName }}
+                    </div>
+                </div>
 
-                <ul class="grid grid-cols-7 gap-y-2 text-center mt-3 sm:mt-4 text-sm sm:text-lg font-semibold">
-                    <li v-for="(days, index) in calendardays" :key="index" :class="[
-                        ['next', 'prev'].includes(days.type) ? 'pointer-events-none opacity-40' : '',
-                        'flex justify-center items-center'
-                    ]">
+                <div class="grid grid-cols-7 flex-1">
+                    <div v-for="(days, index) in calendardays" :key="index"
+                        :class="[
+                            'min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-200/50 transition-colors cursor-pointer hover:bg-accent/50 hover:border-primary',
+                            index === 0 ? 'rounded-tl-xl' : '',
+                            index === 6 ? 'rounded-tr-xl' : '',
+                            index === 35 ? 'rounded-bl-xl' : '',
+                            index === 41 ? 'rounded-br-xl' : ''
+                        ]"
+                        @click="handleDateClick(days)">
+
                         <span :class="[
-                            'w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center rounded-md cursor-pointer',
+                            'text-sm font-medium inline-flex items-center justify-center w-7 h-7 rounded-full',
                             (actualDay === parseInt(days.day) &&
                                 actualYear === parseInt(days.year) &&
                                 actualMonth === parseInt(days.month))
                                 ? 'bg-primary text-primary-content'
-                                : 'hover:bg-base-300'
-                        ]" @click="showOvertimeFilingModal(currentYear, currentMonth, days.day)">
+                                : (days.type !== 'current' ? 'text-base-content/35' : 'text-base-content/70')
+                        ]">
                             {{ days.day }}
                         </span>
-                    </li>
-                </ul>
+
+                        <div v-if="getDateOvertimes(days)" class="mt-1 space-y-0.5">
+                            <span v-for="ot in getDateOvertimes(days).slice(0, 2)" :key="ot.id" :class="[
+                                'badge badge-xs font-medium max-w-full truncate',
+                                ot.status === 'APPROVED' ? 'badge-success' :
+                                    ot.status === 'PENDING' ? 'badge-warning' :
+                                        ['DISAPPROVED', 'CANCELED'].includes(ot.status) ? 'badge-error' :
+                                            'badge-info'
+                            ]">
+                                {{ ot.shift_code }}: {{ ot.hours }}hrs
+                            </span>
+                            <span v-if="getDateOvertimes(days).length > 2"
+                                class="text-[10px] text-base-content/40 leading-tight block pl-1">
+                                +{{ getDateOvertimes(days).length - 2 }} more
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="col-span-2 flex flex-col gap-4">
+            <div class="col-span-4 flex flex-col gap-4">
 
                 <!-- Upcoming Holidays -->
-                <div class="rounded-md p-4 shadow flex flex-col bg-base-100 h-80">
-                    <h2 class="text-lg font-bold mb-4">Upcoming Holidays</h2>
-                    <ul class="flex-1 space-y-2 overflow-y-auto mt-2 pb-2 text-sm">
-                        <li v-if="loadingHolidays">
-                            <p class="font-light italic text-center mt-5"><span class="loading loading-spinner"></span>
-                                Loading Upcoming Holidays...</p>
-                        </li>
-                        <li v-else-if="!loadingHolidays && holidays.length > 0" v-for="(h, idx) in holidays" :key="idx"
-                            class="card w-full shadow-md border border-base-200 rounded-md p-4 hover:shadow-md hover:border-primary duration-300 cursor-pointer">
-                            <div class="flex flex-row justify-between gap-8">
-                                <!-- <p class="text-sm opacity-70">{{ h.date }}</p> -->
-                                <div class="w-2/4">
-                                    <p class="text-lg font-semibold overflow-hidden text-ellipsis">{{ h.localName }}</p>
-                                    <p class="text-sm opacity-75">{{ h.name }}</p>
+                <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-80">
+                    <div class="px-4 py-3 border-b border-base-300">
+                        <h2 class="text-sm font-semibold tracking-tight flex items-center gap-2">
+                            <Icon icon="material-symbols:celebration-outline" width="18" height="18"
+                                class="text-base-content/50" />
+                            Upcoming Holidays
+                        </h2>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-2">
+                        <div v-if="loadingHolidays" class="flex items-center justify-center h-full">
+                            <span class="loading loading-spinner loading-sm"></span>
+                            <span class="text-xs ml-2 text-base-content/50">Loading...</span>
+                        </div>
+                        <template v-else-if="holidays.length > 0">
+                            <div v-for="(h, idx) in holidays" :key="idx"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group">
+                                <div
+                                    class="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary flex-shrink-0">
+                                    <span class="text-[10px] font-semibold uppercase leading-tight">{{ h.date?.split(' ')[0]?.substring(0, 3) }}</span>
+                                    <span class="text-lg font-bold leading-none">{{ h.date?.split(' ')[1] }}</span>
                                 </div>
-
-                                <div class="grid items-center">
-                                    <div class="badge badge-primary h-auto">{{ h.date }}</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                                        {{ h.localName }}</p>
+                                    <p class="text-xs text-base-content/50 truncate">{{ h.name }}</p>
                                 </div>
                             </div>
-                        </li>
-                        <li v-else-if="holidayMessage.length > 0">
-                            <p class="font-light italic text-center mt-5">{{ holidayMessage }}</p>
-                        </li>
-                        <li v-else="holidays.length === 0">
-                            <p class="font-light italic text-center mt-5">No Upcoming Holidays...</p>
-                        </li>
-                    </ul>
+                        </template>
+                        <div v-else class="flex items-center justify-center h-full">
+                            <p class="text-xs text-base-content/40">{{ holidayMessage || 'No Upcoming Holidays' }}</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- My Requests -->
-                <div class="rounded-md p-4 shadow flex flex-col bg-base-100 h-96">
-                    <div class="flex justify-between items-center mb-4 p-2">
-                        <h2 class="text-lg font-bold">My Recent Requests</h2>
+                <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-96">
+                    <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
+                        <h2 class="text-sm font-semibold tracking-tight flex items-center gap-2">
+                            <Icon icon="material-symbols:history" width="18" height="18" class="text-base-content/50" />
+                            My Recent Requests
+                        </h2>
                         <Link :href="route('overtime.requests.employee')"
-                            class="btn btn-sm btn-primary flex items-center gap-1">
-                        See More
-                        <Icon icon="ic:round-navigate-next" width="18" height="18" />
+                            class="btn btn-ghost btn-xs text-xs gap-1 text-base-content/50 hover:text-primary">
+                            See All
+                            <Icon icon="ic:round-navigate-next" width="14" height="14" />
                         </Link>
                     </div>
-                    <ul class="flex-1 space-y-2 overflow-y-auto pb-2 text-sm">
-                        <li v-if="recentRequests.length === 0">
-                            <p class="font-light italic text-center mt-5">No Recent Request...</p>
-                        </li>
-                        <li v-for="request in recentRequests" :key="request.id"
+                    <div class="flex-1 overflow-y-auto p-2">
+                        <div v-if="recentRequests.length === 0" class="flex items-center justify-center h-full">
+                            <p class="text-xs text-base-content/40">No Recent Requests</p>
+                        </div>
+                        <div v-for="request in recentRequests" :key="request.id"
                             @click="showOvertimeRequestModal(request)"
-                            class="card w-full shadow-md border border-base-200 rounded-md p-4 hover:shadow-md hover:border-primary duration-300 cursor-pointer">
-                            <div class="flex items-center justify-between">
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-sm opacity-70">{{ request.date }}</p>
-                                    <p class="text-lg font-semibold">
-                                        {{ request.start_time }} → {{ request.end_time }}
-                                    </p>
-                                    <p class="text-sm opacity-75">{{ request.hours }} hr(s)</p>
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group">
+                            <div class="w-1 h-8 rounded-full flex-shrink-0" :class="[
+                                request.status === 'APPROVED' ? 'bg-success' :
+                                    request.status === 'PENDING' ? 'bg-warning' :
+                                        ['DISAPPROVED', 'CANCELED'].includes(request.status) ? 'bg-error' :
+                                            'bg-info'
+                            ]"></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-medium truncate">{{ request.date }}</p>
+                                    <span :class="[
+                                        'badge badge-xs font-medium flex-shrink-0',
+                                        request.status === 'APPROVED' ? 'badge-success' :
+                                            request.status === 'PENDING' ? 'badge-warning' :
+                                                ['DISAPPROVED', 'CANCELED'].includes(request.status) ? 'badge-error' :
+                                                    'badge-info'
+                                    ]">{{ request.status }}</span>
                                 </div>
-                                <div>
-                                    <div :class="['badge', 'badge-outline',
-                                        request.status === 'PENDING' ? 'badge-warning' :
-                                            (request.status === 'APPROVED' ? 'badge-success' :
-                                                (['DISAPPROVED', 'CANCELED'].includes(request.status) ? 'badge-error' :
-                                                    (request.status === 'FILED' ? 'badge-primary' : '')))]">
-                                        {{ request.status }}
-                                    </div>
-                                </div>
+                                <p class="text-xs text-base-content/50 mt-0.5">
+                                    {{ request.shift_code }} &middot; {{ request.start_time }} &rarr; {{
+                                        request.end_time }}
+                                    &middot; {{ request.hours }}hrs
+                                </p>
                             </div>
-                        </li>
-                    </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -600,6 +629,29 @@ const totalovertime = ref(props?.stats?.total_overtime_hours ?? 0)
 const pendingovertime = ref(props?.stats?.pending_requests ?? 0)
 const approvedovertime = ref(props?.stats?.approved_requests ?? 0)
 const rejectedovertime = ref(props?.stats?.rejected_requests ?? 0)
+
+const overtimeMapByDate = computed(() => {
+    const map = {}
+    for (const req of recentRequests.value) {
+        if (!map[req.date]) map[req.date] = []
+        map[req.date].push(req)
+    }
+    return map
+})
+
+const tentativeHours = computed(() => {
+    const eligible = ['PENDING', 'APPROVED', 'FILED']
+    return recentRequests.value
+        .filter(r => eligible.includes(r.status))
+        .reduce((sum, r) => sum + parseFloat(r.hours || 0), 0)
+        .toFixed(2)
+})
+
+const getDateOvertimes = (day) => {
+    if (day.type !== 'current') return null
+    const dateStr = `${day.year}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`
+    return overtimeMapByDate.value[dateStr] || null
+}
 
 // ========== Form(s) ==========
 const formFiling = useForm({
@@ -734,6 +786,16 @@ const formatTimeStamp = (timestamp) => {
     return formatted
 }
 
+
+const handleDateClick = (day) => {
+    if (day.type === 'prev') {
+        handlePreviousMonth()
+    } else if (day.type === 'next') {
+        handleNextMonth()
+    } else {
+        showOvertimeFilingModal(currentYear.value, currentMonth.value, day.day)
+    }
+}
 
 const showOvertimeRequestModal = (data) => {
     formFilledOvertime.id = data.id
