@@ -628,7 +628,8 @@ const fetchingSchedule = ref(false)
 const withShedule = ref(true)
 
 // ========== Overtime Request ==========
-const recentRequests = ref([...props.info?.overtimelist] ?? [])
+const recentRequests = ref([...props.info?.recentRequestsList] ?? [])
+const monthOvertimes = ref([...props.info?.overtimelist] ?? [])
 const holidays = ref([])
 
 
@@ -640,7 +641,7 @@ const rejectedovertime = ref(props?.stats?.rejected_requests ?? 0)
 
 const overtimeMapByDate = computed(() => {
     const map = {}
-    for (const req of recentRequests.value) {
+    for (const req of monthOvertimes.value) {
         if (!map[req.date]) map[req.date] = []
         map[req.date].push(req)
     }
@@ -649,7 +650,7 @@ const overtimeMapByDate = computed(() => {
 
 const tentativeHours = computed(() => {
     const eligible = ['PENDING', 'APPROVED', 'FILED']
-    return recentRequests.value
+    return monthOvertimes.value
         .filter(r => eligible.includes(r.status))
         .reduce((sum, r) => sum + parseFloat(r.hours || 0), 0)
         .toFixed(2)
@@ -1010,12 +1011,15 @@ const enhanceReason = async (context) => {
 // ======== Watchers ===========
 
 watch(() => props.info?.overtimelist, (updatedRequests) => {
-    recentRequests.value = [...updatedRequests]
-
+    monthOvertimes.value = [...updatedRequests]
     totalovertime.value = props?.stats?.total_overtime_hours ?? 0
     approvedovertime.value = props?.stats?.approved_requests ?? 0
     pendingovertime.value = props?.stats?.pending_requests ?? 0
     rejectedovertime.value = props?.stats?.rejected_requests ?? 0
+})
+
+watch(() => props.info?.recentRequestsList, (updatedRequests) => {
+    recentRequests.value = [...updatedRequests]
 })
 
 watch(() => props.payload, (updatedPayload) => {
