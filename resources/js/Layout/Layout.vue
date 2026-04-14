@@ -100,8 +100,8 @@
                 </div>
             </div>
         </div>
-        <main class="flex-1 overflow-hidden bg-base-300">
-            <div class="w-4/5 mx-auto py-8 h-full">
+        <main class="flex-1 bg-base-300 overflow-y-auto">
+            <div class="w-4/5 mx-auto py-8 min-h-full" :class="slotClass">
                 <Toast ref="toastRef" />
                 <slot></slot>
             </div>
@@ -117,9 +117,14 @@ import { Icon } from "@iconify/vue"
 import { theme, setTheme } from '../Pages/utils/themeStore.js'
 
 const toastRef = ref()
+const slotClass = ref('overflow-hidden')
 
 provide('toast', (msg, type = 'info') => {
     toastRef.value?.showToast(msg, type)
+})
+
+provide('setSlotClass', (cls) => {
+    slotClass.value = cls
 })
 
 const props = defineProps({
