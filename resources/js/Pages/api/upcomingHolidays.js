@@ -25,6 +25,7 @@ export default async function fetchUpcomingHolidays() {
                 .filter((holiday) => new Date(holiday.date) >= new Date(currentDate))
                 .map((holiday) => ({
                     date: formatHolidayDate(holiday.date),
+                    rawDate: holiday.date,
                     localName: holiday.localName,
                     name: holiday.name,
                 }))

@@ -449,20 +449,26 @@
                             {{ days.day }}
                         </span>
 
-                        <div v-if="getDateOvertimes(days)" class="mt-1 space-y-0.5">
-                            <span v-for="ot in getDateOvertimes(days).slice(0, 2)" :key="ot.id" :class="[
-                                'badge badge-xs font-medium max-w-full truncate',
-                                ot.status === 'APPROVED' ? 'badge-success' :
-                                    ot.status === 'PENDING' ? 'badge-warning' :
-                                        ['DISAPPROVED', 'CANCELED'].includes(ot.status) ? 'badge-error' :
-                                            'badge-info'
-                            ]">
-                                {{ ot.shift_code }}: {{ ot.hours }}hrs
+                        <div v-if="getDateOvertimes(days) || getDateHoliday(days)" class="mt-1 space-y-0.5">
+                            <span v-if="getDateHoliday(days)" class="badge badge-xs badge-primary font-medium max-w-full truncate block"
+                                :title="getDateHoliday(days).name">
+                                {{ getDateHoliday(days).name }}
                             </span>
-                            <span v-if="getDateOvertimes(days).length > 2"
-                                class="text-[10px] text-base-content/40 leading-tight block pl-1">
-                                +{{ getDateOvertimes(days).length - 2 }} more
-                            </span>
+                            <template v-if="getDateOvertimes(days)">
+                                <span v-for="ot in getDateOvertimes(days).slice(0, 2)" :key="ot.id" :class="[
+                                    'badge badge-xs font-medium max-w-full truncate',
+                                    ot.status === 'APPROVED' ? 'badge-success' :
+                                        ot.status === 'PENDING' ? 'badge-warning' :
+                                            ['DISAPPROVED', 'CANCELED'].includes(ot.status) ? 'badge-error' :
+                                                'badge-info'
+                                ]">
+                                    {{ ot.shift_code }}: {{ ot.hours }}hrs
+                                </span>
+                                <span v-if="getDateOvertimes(days).length > 2"
+                                    class="text-[10px] text-base-content/40 leading-tight block pl-1">
+                                    +{{ getDateOvertimes(days).length - 2 }} more
+                                </span>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -649,10 +655,26 @@ const tentativeHours = computed(() => {
         .toFixed(2)
 })
 
+const holidayMapByDate = computed(() => {
+    const map = {}
+    for (const h of holidays.value) {
+        if (h.rawDate) {
+            map[h.rawDate] = h
+        }
+    }
+    return map
+})
+
 const getDateOvertimes = (day) => {
     if (day.type !== 'current') return null
     const dateStr = `${day.year}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`
     return overtimeMapByDate.value[dateStr] || null
+}
+
+const getDateHoliday = (day) => {
+    if (day.type !== 'current') return null
+    const dateStr = `${day.year}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`
+    return holidayMapByDate.value[dateStr] || null
 }
 
 // ========== Form(s) ==========
