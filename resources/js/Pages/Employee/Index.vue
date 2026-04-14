@@ -406,7 +406,7 @@
 
             <div class="col-span-8 flex flex-col rounded-xl border border-base-300 bg-base-100 overflow-hidden">
                 <header class="flex items-center justify-between px-6 py-4 border-b border-base-300">
-                    <button class="btn btn-ghost btn-sm btn-square" @click="handlePreviousMonth()">
+                    <button class="btn btn-ghost btn-sm btn-square" :disabled="isNavigating" @click="handlePreviousMonth()">
                         <Icon icon="ic:round-navigate-before" width="20" height="20" />
                     </button>
 
@@ -414,7 +414,7 @@
                         {{ currentMonthYear }}
                     </h2>
 
-                    <button class="btn btn-ghost btn-sm btn-square" @click="handleNextMonth()">
+                    <button class="btn btn-ghost btn-sm btn-square" :disabled="isNavigating" @click="handleNextMonth()">
                         <Icon icon="ic:round-navigate-next" width="20" height="20" />
                     </button>
                 </header>
@@ -429,13 +429,14 @@
                 <div class="grid grid-cols-7 flex-1">
                     <div v-for="(days, index) in calendardays" :key="index"
                         :class="[
-                            'min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-200/50 transition-colors cursor-pointer hover:bg-accent/50 hover:border-primary',
+                            'min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-200/50 transition-colors',
+                            days.type !== 'current' ? 'outside-month' : 'cursor-pointer hover:bg-accent/50 hover:border-primary',
                             index === 0 ? 'rounded-tl-xl' : '',
                             index === 6 ? 'rounded-tr-xl' : '',
                             index === 35 ? 'rounded-bl-xl' : '',
                             index === 41 ? 'rounded-br-xl' : ''
                         ]"
-                        @click="handleDateClick(days)">
+                        @click="days.type === 'current' && handleDateClick(days)">
 
                         <span :class="[
                             'text-sm font-medium inline-flex items-center justify-center w-7 h-7 rounded-full',
@@ -585,6 +586,7 @@ const loadingHolidays = ref(false)
 const timeOptions = computed(() => getTimeOptions())
 const holidayMessage = ref('')
 const isEnhancing = ref(false)
+const isNavigating = ref(false)
 
 // ========= Props =============
 const props = defineProps({
@@ -757,11 +759,17 @@ const showOvertimeFilingModal = async (year, month, day) => {
 }
 
 const handleMonthSelection = (year, month) => {
+    isNavigating.value = true
+    document.body.style.cursor = 'progress'
     router.get(route('main'), {
         year: year,
         month: month
     }, {
-        preserveState: true
+        preserveState: true,
+        onFinish: () => {
+            isNavigating.value = false
+            document.body.style.cursor = ''
+        }
     })
 }
 
@@ -788,6 +796,7 @@ const formatTimeStamp = (timestamp) => {
 
 
 const handleDateClick = (day) => {
+    if (isNavigating.value) return
     if (day.type === 'prev') {
         handlePreviousMonth()
     } else if (day.type === 'next') {
@@ -818,27 +827,31 @@ const showOvertimeRequestModal = (data) => {
 
 // ========== Calendar Navigation ==========
 const handlePreviousMonth = () => {
-    if (currentMonth.value === 0) {
-        currentMonth.value = 11
-        currentYear.value -= 1
+    if (isNavigating.value) return
+    let newYear = currentYear.value
+    let newMonth = currentMonth.value
+    if (newMonth === 0) {
+        newMonth = 11
+        newYear -= 1
     } else {
-        currentMonth.value -= 1
+        newMonth -= 1
     }
 
-    updateCurrentMonthYear(currentYear.value, currentMonth.value)
-    handleMonthSelection(currentYear.value, currentMonth.value + 1)
+    handleMonthSelection(newYear, newMonth + 1)
 }
 
 const handleNextMonth = () => {
-    if (currentMonth.value === 11) {
-        currentMonth.value = 0
-        currentYear.value += 1
+    if (isNavigating.value) return
+    let newYear = currentYear.value
+    let newMonth = currentMonth.value
+    if (newMonth === 11) {
+        newMonth = 0
+        newYear += 1
     } else {
-        currentMonth.value += 1
+        newMonth += 1
     }
 
-    updateCurrentMonthYear(currentYear.value, currentMonth.value)
-    handleMonthSelection(currentYear.value, currentMonth.value + 1)
+    handleMonthSelection(newYear, newMonth + 1)
 }
 
 
@@ -983,9 +996,12 @@ watch(() => props.info?.overtimelist, (updatedRequests) => {
     rejectedovertime.value = props?.stats?.rejected_requests ?? 0
 })
 
-watch(() => props.info?.payload, (updatedPayload) => {
-    currentYear.value = updatedPayload.year
-    currentMonth.value = updatedPayload.month
+watch(() => props.payload, (updatedPayload) => {
+    if (updatedPayload) {
+        currentYear.value = updatedPayload.year
+        currentMonth.value = updatedPayload.month - 1
+        updateCurrentMonthYear(currentYear.value, currentMonth.value)
+    }
 })
 
 </script>
@@ -996,5 +1012,15 @@ watch(() => props.info?.payload, (updatedPayload) => {
     word-break: break-word;
     width: 16rem;
     text-align: center;
+}
+
+.outside-month {
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        color-mix(in oklch, var(--color-base-content) 10%, transparent) 10px,
+        color-mix(in oklch, var(--color-base-content) 10%, transparent) 12px
+    );
 }
 </style>
