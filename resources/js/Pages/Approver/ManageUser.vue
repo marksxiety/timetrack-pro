@@ -83,7 +83,7 @@
         </div>
 
         <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-auto">
-            <div v-for="user in users" :key="user.id" class="card bg-base-100 shadow-xl">
+            <div v-for="user in users" :key="user.id" class="card bg-base-100 shadow-xs">
                 <!-- Avatar + Name -->
                 <div class="card-body">
                     <div class="flex items-center gap-4">
@@ -139,7 +139,7 @@
             </div>
         </div>
         <div v-else class="flex flex-col gap-4 overflow-auto">
-            <div v-for="user in users" :key="user.id" class="card bg-base-100 shadow-md">
+            <div v-for="user in users" :key="user.id" class="card bg-base-100 shadow-xs">
                 <div class="card-body p-4">
                     <!-- Accordion -->
                     <div class="collapse collapse-arrow border border-base-300 bg-base-100 rounded-lg">

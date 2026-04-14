@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col gap-6">
         <!-- Stat Cards -->
-        <div class="stats stats-horizontal shadow flex-wrap">
+        <div class="stats stats-horizontal shadow-xs flex-wrap">
             <Card title="Total Filed" :value="card.total_filed" routename="overtime.filed"
                 :parameters="{ status: 'FILED', page: 'Approver/Filed', week: selectedWeek, year: selectedYear }" />
             <Card title="For Filing" :value="card.total_approved" routename="overtime.filing"
@@ -19,7 +19,7 @@
 
         <!-- Weekly Overview -->
         <div class="grid grid-cols-2 gap-4">
-            <div class="col-span-1 card bg-base-100 shadow">
+            <div class="col-span-1 card bg-base-100 shadow-xs">
                 <div class="card-body">
                     <h2 class="card-title">Week {{ selectedWeek }} Overtime Overview</h2>
                     <p>
@@ -34,7 +34,7 @@
             </div>
 
             <!-- Weekly Hours Progress -->
-            <div class="col-span-1 card bg-base-100 shadow">
+            <div class="col-span-1 card bg-base-100 shadow-xs">
                 <div class="card-body">
                     <h2 class="card-title">Weekly Overtime Usage</h2>
                     <progress class="progress progress-primary w-full" :value="card.total_hours ?? 0"
@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        <div class="flex flex-col gap-4 p-4 bg-base-100 card shadow">
+        <div class="flex flex-col gap-4 p-4 bg-base-100 card shadow-xs">
             <div class="flex justify-end w-full">
                 <div class="flex flex-row gap-4 w-1/4">
                     <SelectOption :options="years" v-model="selectedYear" margin='' @change="handleWeekSelection()" />

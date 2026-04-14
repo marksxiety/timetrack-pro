@@ -71,7 +71,7 @@
         </div>
 
         <div v-else v-for="(sched, index) in employeeSchedules" :key="index"
-            class="bg-base-100 p-6 rounded-lg shadow-sm">
+            class="bg-base-100 p-6 rounded-lg shadow-xs">
 
             <!-- Top Section (fixed, does not scroll) -->
             <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">

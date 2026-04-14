@@ -11,7 +11,7 @@
 
         <div class="space-y-6">
           <!-- Employee Information -->
-          <div class="card border border-base-300 shadow-sm">
+          <div class="card border border-base-300 shadow-xs">
             <div class="card-body p-6">
               <h3 class="card-title text-base mb-4 flex items-center gap-2">
                 <Icon icon="material-symbols:person-outline" width="20" height="20" />
@@ -51,7 +51,7 @@
           </div>
 
           <!-- Registered Schedule -->
-          <div class="card border border-base-300 shadow-sm">
+          <div class="card border border-base-300 shadow-xs">
             <div class="card-body p-6">
               <h3 class="card-title text-base mb-4 flex items-center gap-2">
                 <Icon icon="material-symbols:schedule-outline" width="20" height="20" />
@@ -95,7 +95,7 @@
           </div>
 
           <!-- Overtime Request -->
-          <div class="card border border-base-300 shadow-sm">
+          <div class="card border border-base-300 shadow-xs">
             <div class="card-body p-6">
               <h3 class="card-title text-base mb-4 flex items-center gap-2">
                 <Icon icon="material-symbols:timer-outline" width="20" height="20" />
@@ -142,7 +142,7 @@
           </div>
 
           <!-- Reason -->
-          <div class="card border border-base-300 shadow-sm">
+          <div class="card border border-base-300 shadow-xs">
             <div class="card-body p-6">
               <h3 class="card-title text-base mb-3 flex items-center gap-2">
                 <Icon icon="material-symbols:description-outline" width="20" height="20" />
@@ -153,7 +153,7 @@
           </div>
 
           <!-- Remarks -->
-          <div class="card border border-base-300 shadow-sm">
+          <div class="card border border-base-300 shadow-xs">
             <div class="card-body p-6">
               <h3 class="card-title text-base mb-4 flex items-center gap-2">
                 <Icon icon="material-symbols:comment-outline" width="20" height="20" />
@@ -218,13 +218,13 @@
       <h1 class="text-2xl font-bold text-base-content">For Filing Overtime Requests</h1>
     </div>
 
-    <div class="stats stats-horizontal shadow flex-wrap">
+    <div class="stats stats-horizontal shadow-xs flex-wrap">
       <Card title="Requests to File" :value="total_requests" description="Approved but not yet filed" />
       <Card title="Total Overtime Hours" :value="total_requests_hours" description="Awaiting confirmation" />
     </div>
 
     <!-- Filing Table -->
-    <div class="card bg-base-100 shadow">
+    <div class="card bg-base-100 shadow-xs">
       <div class="card-body">
         <div class="flex justify-between mb-4">
           <h2 class="card-title">Approved Requests Awaiting Filing</h2>

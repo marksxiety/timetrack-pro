@@ -1,143 +1,184 @@
 <template>
 
     <Head title="Report Generator" />
-    <div class="flex flex-col gap-6">
-        <!-- Breadcrumbs -->
+
+    <div class="max-w-[1600px] mx-auto p-4 md:p-6 space-y-8">
         <Breadcrumbs :items="[
             { label: 'Dashboard', route: 'main' },
             { label: 'Generate Report', route: 'approver.generate.report', active: true },
         ]" />
 
-        <div v-if="reportLoaded" class="flex flex-col gap-6 w-full">
+        <div v-if="reportLoaded" class="animate-in fade-in duration-500 space-y-8">
 
-            <!-- Filters -->
-            <div class="flex flex-row gap-4 justify-end">
-                <TextInput type="date" v-model="selectedDateRange.start_date"
-                    :message="selectedDateRange.errors?.start_date" :disabled="isRegenerating" />
-                <TextInput type="date" v-model="selectedDateRange.end_date"
-                    :message="selectedDateRange.errors?.end_date" :disabled="isRegenerating" />
-
-                <div class="join w-full sm:w-auto">
-                    <input class="join-item btn flex-1" type="radio" name="options" aria-label="Weekly" value="weekly"
-                        v-model="selectedReportType" :disabled="isRegenerating" />
-                    <input class="join-item btn flex-1" type="radio" name="options" aria-label="Monthly" value="monthly"
-                        v-model="selectedReportType" :disabled="isRegenerating" />
-                    <input class="join-item btn flex-1" type="radio" name="options" aria-label="Yearly" value="yearly"
-                        v-model="selectedReportType" :disabled="isRegenerating" />
+            <div
+                class="navbar bg-base-100 border border-base-200 shadow-xs rounded-box px-4 py-2 flex flex-col md:flex-row gap-4 sticky top-4 z-10">
+                <div class="flex-1">
+                    <h1 class="text-xl font-bold px-2">Overtime Analysis</h1>
                 </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2">
+                        <TextInput type="date" v-model="selectedDateRange.start_date" class="input-sm"
+                            :disabled="isRegenerating" />
+                        <span class="text-base-content/50">to</span>
+                        <TextInput type="date" v-model="selectedDateRange.end_date" class="input-sm"
+                            :disabled="isRegenerating" />
+                    </div>
 
-                <button class="btn btn-primary btn-md w-full md:w-auto shadow-md" @click="handleRegenerateReport()"
-                    :disabled="isRegenerating">
-                    <span v-if="isRegenerating" class="loading loading-spinner loading-md"></span>
-                    REGENERATE
-                </button>
-            </div>
+                    <div class="join bg-base-200 p-1 rounded-lg">
+                        <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
+                            aria-label="Weekly" value="weekly" v-model="selectedReportType" />
+                        <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
+                            aria-label="Monthly" value="monthly" v-model="selectedReportType" />
+                        <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
+                            aria-label="Yearly" value="yearly" v-model="selectedReportType" />
+                    </div>
 
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 w-full">
-
-                <!-- Approved Overtime Hours -->
-                <div class="stat bg-base-100 text-success-content rounded-lg shadow">
-                    <div class="stat-title">Approved Overtime</div>
-                    <div class="stat-value text-success">{{ card.filed }}h</div>
-                    <div class="stat-desc">Filed Requests hours</div>
-                </div>
-                <!-- Tentative Overtime Hours (Approved + Pending) -->
-                <div class="stat bg-base-100 text-info-content rounded-lg shadow">
-                    <div class="stat-title">Tentative Overtime</div>
-                    <div class="stat-value text-info">{{ card.tentative }}h</div>
-                    <div class="stat-desc">Filed + Approved + Pending hours</div>
-                </div>
-
-                <!-- Total Filed Requests -->
-                <div class="stat bg-base-100 text-primary-content rounded-lg shadow">
-                    <div class="stat-title">Total Overtime Requests</div>
-                    <div class="stat-value text-primary">{{ card.requests }}</div>
-                    <div class="stat-desc">All requests from employees</div>
-                </div>
-
-                <!-- Pending Requests -->
-                <div class="stat bg-base-100 text-warning-content rounded-lg shadow">
-                    <div class="stat-title">Pending Requests</div>
-                    <div class="stat-value text-warning">{{ card.pending }}</div>
-                    <div class="stat-desc">Waiting for approval</div>
+                    <button class="btn btn-primary btn-sm md:btn-md" @click="handleRegenerateReport()"
+                        :disabled="isRegenerating">
+                        <span v-if="isRegenerating" class="loading loading-spinner loading-sm"></span>
+                        <Icon v-else icon="lucide:refresh-cw" class="w-4 h-4" />
+                        REGENERATE
+                    </button>
                 </div>
             </div>
 
-
-            <!-- Graphs -->
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-                <div class="col-span-2 card bg-base-100 shadow p-4 h-full">
-                    <h2 class="font-bold mb-2">Consumed Overtime</h2>
-                    <div class="h-full flex items-center justify-center text-gray-400">
-                        <div ref="totalOvertimeViaTimeGraph" class="min-h-[50vh] w-full"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="stats shadow-xs border border-base-200">
+                    <div class="stat">
+                        <div class="stat-figure text-success">
+                            <Icon icon="lucide:check-circle" width="32" />
+                        </div>
+                        <div class="stat-title font-medium">Approved</div>
+                        <div class="stat-value text-success text-2xl">{{ card.filed }}h</div>
+                        <div class="stat-desc text-xs mt-1">Confirmed OT hours</div>
                     </div>
                 </div>
-                <div class="col-span-1 card bg-base-100 shadow p-4 h-full">
-                    <h2 class="font-bold mb-2">Employee Rankings</h2>
-                    <div class="h-full flex items-center justify-center text-gray-400">
-                        <div ref="totalOvertimeViaEmployeeChart" class="min-h-[50vh] w-full"></div>
+
+                <div class="stats shadow-xs border border-base-200">
+                    <div class="stat">
+                        <div class="stat-figure text-info">
+                            <Icon icon="lucide:clock" width="32" />
+                        </div>
+                        <div class="stat-title font-medium">Tentative</div>
+                        <div class="stat-value text-info text-2xl">{{ card.tentative }}h</div>
+                        <div class="stat-desc text-xs mt-1">Pending + Approved</div>
+                    </div>
+                </div>
+
+                <div class="stats shadow-xs border border-base-200">
+                    <div class="stat">
+                        <div class="stat-figure text-primary">
+                            <Icon icon="lucide:file-text" width="32" />
+                        </div>
+                        <div class="stat-title font-medium">Total Requests</div>
+                        <div class="stat-value text-primary text-2xl">{{ card.requests }}</div>
+                        <div class="stat-desc text-xs mt-1">Total filings received</div>
+                    </div>
+                </div>
+
+                <div class="stats shadow-xs border border-base-200">
+                    <div class="stat">
+                        <div class="stat-figure text-warning">
+                            <Icon icon="lucide:alert-circle" width="32" />
+                        </div>
+                        <div class="stat-title font-medium">Pending</div>
+                        <div class="stat-value text-warning text-2xl">{{ card.pending }}</div>
+                        <div class="stat-desc text-xs mt-1">Awaiting action</div>
                     </div>
                 </div>
             </div>
 
-            <!-- AI Summary -->
-            <div class="card bg-base-100 shadow p-4 min-h-40 max-h-full">
-                <h2 class="font-bold mb-2">AI-Generated Summary</h2>
-
-                <div ref="aiContainer" class="h-full overflow-y-visible">
-                    <div v-if="AIresponse === ''" class="flex items-center justify-center h-full text-gray-400">
-                        <button class="btn btn-primary" @click="handleAnalyzeAI" :disabled="analyzingAI">
-                            <template v-if="analyzingAI">
-                                Generating
-                                <span class="loading loading-dots loading-xl ml-2"></span>
-                            </template>
-                            <template v-else>
-                                Generate
-                                <Icon icon="mingcute:ai-line" width="24" height="24" />
-                            </template>
-                        </button>
-
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 card bg-base-100 border border-base-200 shadow-xs overflow-hidden">
+                    <div class="card-body p-0">
+                        <div class="p-6 border-b border-base-200 flex justify-between items-center bg-base-50/50">
+                            <h2 class="card-title text-sm uppercase tracking-wider opacity-70">Consumed Overtime Trends
+                            </h2>
+                            <div class="badge badge-outline">Live Data</div>
+                        </div>
+                        <div class="p-6">
+                            <div ref="totalOvertimeViaTimeGraph" class="min-h-[400px] w-full"></div>
+                        </div>
                     </div>
-                    <VueMarkdown v-else :source="AIresponse" class="prose prose-slate max-w-none text-sm" />
+                </div>
+
+                <div class="card bg-base-100 border border-base-200 shadow-xs">
+                    <div class="card-body p-0">
+                        <div class="p-6 border-b border-base-200 bg-base-50/50">
+                            <h2 class="card-title text-sm uppercase tracking-wider opacity-70">Employee Rankings</h2>
+                        </div>
+                        <div class="p-6 text-center">
+                            <div ref="totalOvertimeViaEmployeeChart" class="min-h-[400px] w-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="card bg-gradient-to-br from-base-100 to-base-200 border-2 border-primary/10 shadow-xs overflow-hidden">
+                <div class="card-body">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="p-2 bg-primary/10 rounded-lg text-primary">
+                            <Icon icon="mingcute:ai-line" class="w-6 h-6" />
+                        </div>
+                        <h2 class="text-xl font-bold italic">AI Insight Engine</h2>
+                    </div>
+
+                    <div ref="aiContainer" class="min-h-32">
+                        <div v-if="AIresponse === ''" class="flex flex-col items-center justify-center py-10 space-y-4">
+                            <p class="text-base-content/60 max-w-md text-center">Let AI analyze the trends, identify
+                                outliers, and suggest resource optimizations based on this period's data.</p>
+                            <button class="btn btn-primary btn-wide shadow-lg group" @click="handleAnalyzeAI"
+                                :disabled="analyzingAI">
+                                <span v-if="analyzingAI" class="loading loading-dots loading-md"></span>
+                                <span v-else class="flex items-center gap-2">
+                                    GENERATE INSIGHTS
+                                    <Icon icon="lucide:sparkles" class="w-4 h-4 group-hover:animate-pulse" />
+                                </span>
+                            </button>
+                        </div>
+                        <div v-else class="bg-base-100 rounded-xl p-6 border border-base-200">
+                            <VueMarkdown :source="AIresponse"
+                                class="prose prose-slate max-w-none prose-headings:text-primary" />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Empty State -->
-        <div v-else class="flex flex-col items-center justify-center min-h-[80vh] bg-base-300 px-6 py-10">
-            <div class="card bg-base-100 shadow-sm rounded-md w-full max-w-5xl overflow-visible border border-base-200">
-                <div class="grid md:grid-cols-2 gap-8">
-                    <figure class="flex items-center justify-center bg-base-200 p-8 rounded-l-3xl">
-                        <img :src="reportImage" alt="report"
-                            class="object-contain w-full h-full max-h-[15rem] drop-shadow-md" />
-                    </figure>
-                    <div class="card-body flex flex-col justify-center">
-                        <h2 class="text-3xl font-extrabold text-primary tracking-tight">Generate Report</h2>
-                        <p class="text-base text-gray-500 mt-2">Choose a date range to generate your report.</p>
+        <div v-else class="flex items-center justify-center min-h-[70vh] p-4">
+            <div class="card lg:card-side bg-base-100 shadow-xs max-w-5xl border border-base-200">
+                <figure class="lg:w-1/2 bg-base-200/50 p-12 overflow-visible">
+                    <img :src="reportImage" alt="Report Illustration"
+                        class="w-full h-auto drop-shadow-2xl animate-float overflow-visible" />
+                </figure>
+                <div class="card-body lg:w-1/2 justify-center p-8 lg:p-12">
+                    <h2 class="text-4xl font-black mb-2">Ready to analyze?</h2>
+                    <p class="text-base-content/60 mb-8">Select a timeframe to aggregate employee overtime data and
+                        generate executive summaries.</p>
 
-                        <div v-if="isLoading" class="flex items-center gap-3 mt-4 text-primary">
-                            <span class="loading loading-spinner loading-md"></span>
-                            <span class="font-medium">{{ loadingMessage }}</span>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">Start Date</span></label>
+                            <TextInput type="date" v-model="selectedDateRange.start_date"
+                                :message="selectedDateRange.errors?.start_date" class="input-bordered" />
                         </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text font-bold">End Date</span></label>
+                            <TextInput type="date" v-model="selectedDateRange.end_date"
+                                :message="selectedDateRange.errors?.end_date" class="input-bordered" />
+                        </div>
+                    </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                            <TextInput name="Start Date:" type="date" v-model="selectedDateRange.start_date"
-                                :message="selectedDateRange.errors?.start_date" />
-                            <TextInput name="End Date:" type="date" v-model="selectedDateRange.end_date"
-                                :message="selectedDateRange.errors?.end_date" />
-                        </div>
-
-                        <div class="card-actions justify-end mt-8 gap-3 flex-wrap">
-                            <button class="btn btn-neutral w-full md:w-auto shadow-sm" @click="handleClearState"
-                                :disabled="isLoading">
-                                RESET
-                            </button>
-                            <button class="btn btn-primary w-full md:w-auto shadow-md" @click="handleGenerateReport"
-                                :disabled="isLoading">
-                                GENERATE
-                            </button>
-                        </div>
+                    <div class="card-actions flex-col mt-8 gap-3">
+                        <button class="btn btn-primary btn-block text-lg" @click="handleGenerateReport"
+                            :disabled="isLoading">
+                            <span v-if="isLoading" class="loading loading-spinner"></span>
+                            GENERATE REPORT
+                        </button>
+                        <button class="btn btn-ghost btn-block" @click="handleClearState" :disabled="isLoading">
+                            RESET FILTERS
+                        </button>
                     </div>
                 </div>
             </div>
@@ -145,6 +186,24 @@
 
     </div>
 </template>
+
+<style scoped>
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+</style>
 
 
 <script setup>
