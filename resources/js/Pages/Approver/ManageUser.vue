@@ -2,55 +2,79 @@
     <Head title="Manage Users"  />
     <Modal ref="displayUserModal">
         <div class="flex flex-col">
-            <h3 class="text-lg font-bold mb-4">Update User Profile</h3>
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Icon icon="material-symbols:person-edit-rounded" class="text-primary text-xl" />
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold">Update User Profile</h3>
+                    <p class="text-xs opacity-60">Modify user information and settings</p>
+                </div>
+            </div>
             <form @submit.prevent="updateUserProfile()">
-                <!-- Name -->
-
-
-                <!-- Email -->
-                <TextInput name="Email:" type="email" :message="selectedUser.errors.email" v-model="selectedUser.email"
-                    placeholder="" />
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-1">
-                <TextInput name="Name:" type="text" :message="selectedUser.errors.name" v-model="selectedUser.name"
-                    placeholder="" />
-                    </div>
-                    <div class="col-span-1">
-                        <SelectOption name="Unit: " :options="unitsList" v-model="selectedUser.organization_unit_id" margin="" minwidth="" />
+                <div class="card border border-base-300 shadow-xs mb-4">
+                    <div class="card-body p-4">
+                        <h4 class="card-title text-sm flex items-center gap-2 mb-3">
+                            <Icon icon="material-symbols:info-rounded" class="text-base" />
+                            Basic Information
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <TextInput name="Email" type="email" :message="selectedUser.errors.email"
+                                v-model="selectedUser.email" placeholder="" margin="" />
+                            <TextInput name="Name" type="text" :message="selectedUser.errors.name"
+                                v-model="selectedUser.name" placeholder="" margin="" />
+                        </div>
                     </div>
                 </div>
 
-                <!-- Active -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-1">
-                        <SelectOption name="Active: " :options="[
-                            { label: 'YES', value: 1 },
-                            { label: 'NO', value: 0 }
-                        ]" v-model="selectedUser.active" margin="" minwidth="" />
-                    </div>
-                    <div class="col-span-1">
-                        <SelectOption name="Role: " :options="[
-                            { label: 'Approver', value: 'approver' },
-                            { label: 'Employee', value: 'employee' }
-                        ]" v-model="selectedUser.role" margin="" minwidth="" />
+                <div class="card border border-base-300 shadow-xs mb-4">
+                    <div class="card-body p-4">
+                        <h4 class="card-title text-sm flex items-center gap-2 mb-3">
+                            <Icon icon="material-symbols:assignment-rounded" class="text-base" />
+                            Assignment & Access
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <SelectOption name="Unit" :options="unitsList"
+                                v-model="selectedUser.organization_unit_id" margin="" minwidth="" />
+                            <SelectOption name="Active" :options="[
+                                { label: 'YES', value: 1 },
+                                { label: 'NO', value: 0 }
+                            ]" v-model="selectedUser.active" margin="" minwidth="" />
+                            <SelectOption name="Role" :options="[
+                                { label: 'Approver', value: 'approver' },
+                                { label: 'Employee', value: 'employee' }
+                            ]" v-model="selectedUser.role" margin="" minwidth="" />
+                        </div>
                     </div>
                 </div>
 
-                <!-- Password update section (optional) -->
-                <div class="divider">Change Password</div>
-                <TextInput name="New Password" type="password" v-model="selectedUser.new_password"
-                    :message="selectedUser.errors.new_password" placeholder="" />
-                <TextInput name="Confrim New Password" type="password" v-model="selectedUser.new_password_confirmation"
-                    :message="selectedUser.errors.new_password_confirmation" placeholder="" />
+                <div class="card border border-base-300 shadow-xs mb-4">
+                    <div class="card-body p-4">
+                        <h4 class="card-title text-sm flex items-center gap-2 mb-3">
+                            <Icon icon="material-symbols:lock-reset" class="text-base" />
+                            Change Password
+                            <span class="badge badge-ghost badge-xs">Optional</span>
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <TextInput name="New Password" type="password"
+                                v-model="selectedUser.new_password"
+                                :message="selectedUser.errors.new_password" placeholder="" margin="" />
+                            <TextInput name="Confirm New Password" type="password"
+                                v-model="selectedUser.new_password_confirmation"
+                                :message="selectedUser.errors.new_password_confirmation" placeholder="" margin="" />
+                        </div>
+                    </div>
+                </div>
 
-                <!-- Buttons -->
-                <div class="flex justify-end gap-2 mt-4">
-                    <button type="button" class="btn btn-outline" :disabled="selectedUser.processing"
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" class="btn btn-ghost" :disabled="selectedUser.processing"
                         @click="closeUserModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" :disabled="selectedUser.processing"><span
-                            v-if="selectedUser.processing"
-                            class="loading loading-spinner loading-xs"></span>Update</button>
+                    <button type="submit" class="btn btn-primary" :disabled="selectedUser.processing">
+                        <span v-if="selectedUser.processing"
+                            class="loading loading-spinner loading-xs"></span>
+                        <Icon v-else icon="material-symbols:save-rounded" class="text-lg" />
+                        Update Profile
+                    </button>
                 </div>
             </form>
         </div>
