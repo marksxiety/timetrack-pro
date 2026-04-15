@@ -1,24 +1,25 @@
 <template>
-    <Head title="Manage Users"  />
+
+    <Head title="Manage Users" />
     <Modal ref="displayUserModal">
         <div class="flex flex-col">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Icon icon="material-symbols:person-edit-rounded" class="text-primary text-xl" />
+            <div class="flex items-center gap-2 mb-4">
+                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Icon icon="material-symbols:person-edit-rounded" class="text-primary text-lg" />
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold">Update User Profile</h3>
-                    <p class="text-xs opacity-60">Modify user information and settings</p>
+                    <h3 class="text-base font-bold">Update User Profile</h3>
+                    <p class="text-[11px] opacity-50">Modify user information and settings</p>
                 </div>
             </div>
             <form @submit.prevent="updateUserProfile()">
-                <div class="card border border-base-300 shadow-xs mb-4">
-                    <div class="card-body p-4">
-                        <h4 class="card-title text-sm flex items-center gap-2 mb-3">
-                            <Icon icon="material-symbols:info-rounded" class="text-base" />
+                <div class="card border border-base-300 shadow-xs mb-3">
+                    <div class="card-body p-3">
+                        <h4 class="card-title text-xs flex items-center gap-1.5 mb-2">
+                            <Icon icon="material-symbols:info-rounded" class="text-sm" />
                             Basic Information
                         </h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <TextInput name="Email" type="email" :message="selectedUser.errors.email"
                                 v-model="selectedUser.email" placeholder="" margin="" />
                             <TextInput name="Name" type="text" :message="selectedUser.errors.name"
@@ -27,15 +28,15 @@
                     </div>
                 </div>
 
-                <div class="card border border-base-300 shadow-xs mb-4">
-                    <div class="card-body p-4">
-                        <h4 class="card-title text-sm flex items-center gap-2 mb-3">
-                            <Icon icon="material-symbols:assignment-rounded" class="text-base" />
+                <div class="card border border-base-300 shadow-xs mb-3">
+                    <div class="card-body p-3">
+                        <h4 class="card-title text-xs flex items-center gap-1.5 mb-2">
+                            <Icon icon="material-symbols:assignment-rounded" class="text-sm" />
                             Assignment & Access
                         </h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <SelectOption name="Unit" :options="unitsList"
-                                v-model="selectedUser.organization_unit_id" margin="" minwidth="" />
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <SelectOption name="Unit" :options="unitsList" v-model="selectedUser.organization_unit_id"
+                                margin="" minwidth="" />
                             <SelectOption name="Active" :options="[
                                 { label: 'YES', value: 1 },
                                 { label: 'NO', value: 0 }
@@ -48,16 +49,15 @@
                     </div>
                 </div>
 
-                <div class="card border border-base-300 shadow-xs mb-4">
-                    <div class="card-body p-4">
-                        <h4 class="card-title text-sm flex items-center gap-2 mb-3">
-                            <Icon icon="material-symbols:lock-reset" class="text-base" />
+                <div class="card border border-base-300 shadow-xs mb-3">
+                    <div class="card-body p-3">
+                        <h4 class="card-title text-xs flex items-center gap-1.5 mb-2">
+                            <Icon icon="material-symbols:lock-reset" class="text-sm" />
                             Change Password
                             <span class="badge badge-ghost badge-xs">Optional</span>
                         </h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <TextInput name="New Password" type="password"
-                                v-model="selectedUser.new_password"
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <TextInput name="New Password" type="password" v-model="selectedUser.new_password"
                                 :message="selectedUser.errors.new_password" placeholder="" margin="" />
                             <TextInput name="Confirm New Password" type="password"
                                 v-model="selectedUser.new_password_confirmation"
@@ -66,12 +66,11 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" class="btn btn-ghost" :disabled="selectedUser.processing"
+                <div class="flex justify-end gap-2 pt-1">
+                    <button type="button" class="btn btn-ghost btn-sm" :disabled="selectedUser.processing"
                         @click="closeUserModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" :disabled="selectedUser.processing">
-                        <span v-if="selectedUser.processing"
-                            class="loading loading-spinner loading-xs"></span>
+                    <button type="submit" class="btn btn-primary btn-sm" :disabled="selectedUser.processing">
+                        <span v-if="selectedUser.processing" class="loading loading-spinner loading-xs"></span>
                         <Icon v-else icon="material-symbols:save-rounded" class="text-lg" />
                         Update Profile
                     </button>
@@ -80,7 +79,7 @@
         </div>
     </Modal>
 
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-3">
         <!-- Breadcrumbs -->
         <Breadcrumbs :items="[
             { label: 'Home', route: 'main' },
@@ -88,146 +87,97 @@
         ]" />
 
         <!-- Page Heading -->
-        <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold">List of Users</h1>
-
-            <div class="flex gap-4">
-                <button class="btn btn-primary" :class="{ 'btn-outline': viewMode !== 'grid' }"
-                    @click="viewMode = 'grid'">
-                    <Icon icon="mingcute:grid-line" width="24" height="24" />
-                    Grid View
-                </button>
-
-                <button class="btn btn-primary" :class="{ 'btn-outline': viewMode !== 'list' }"
-                    @click="viewMode = 'list'">
-                    <Icon icon="ion:list" width="24" height="24" />
-                    List View
-                </button>
-            </div>
+        <div>
+            <h1 class="text-lg font-bold">Manage Users</h1>
+            <p class="text-xs opacity-50 mt-0.5">Update user information, change passwords, and manage roles and unit
+                assignments.</p>
         </div>
 
-        <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 overflow-auto">
-            <div v-for="user in users" :key="user.id" class="card bg-base-100 shadow-xs">
-                <!-- Avatar + Name -->
-                <div class="card-body">
-                    <div class="flex items-center gap-4">
-                        <!-- Avatar -->
-                        <div class="avatar">
-                            <div class="w-16 h-16 rounded-full overflow-hidden bg-base-200">
-                                <!-- If avatar URL exists, show the image -->
+        <!-- Summary Cards -->
+        <div class="stats stats-horizontal shadow-xs flex-wrap">
+            <Card title="Total Users" :value="users.length" />
+            <Card title="Active" :value="activeUsers" />
+            <Card title="Inactive" :value="inactiveUsers" />
+        </div>
+
+        <!-- User Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div v-for="user in users" :key="user.id"
+                class="group relative card bg-base-100 border border-base-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 overflow-hidden">
+
+                <div
+                    class="absolute top-0 left-0 w-full h-1 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left">
+                </div>
+
+                <div class="card-body p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="relative shrink-0">
+                            <div :class="[
+                                'w-14 h-14 rounded-2xl flex items-center justify-center overflow-hidden bg-base-200 border-2 transition-colors duration-300',
+                                user.active ? 'border-success/20 group-hover:border-success/50' : 'border-base-300'
+                            ]">
                                 <img v-if="user.avatar_url" :src="user.avatar_url" alt="Avatar"
                                     class="w-full h-full object-cover" />
+                                <Icon v-else icon="solar:user-bold-duotone" class="w-8 h-8 opacity-40" />
+                            </div>
+                            <div :class="[
+                                'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-base-100',
+                                user.active ? 'bg-success' : 'bg-error'
+                            ]"></div>
+                        </div>
 
-                                <!-- If no avatar, wrap the icon in a flex container -->
-                                <div v-else-if="!user.avatar_url && user.name"
-                                    class="w-full h-full flex items-center justify-center">
-                                    <Icon icon="iconamoon:profile-circle-fill" class="w-10 h-10" />
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h2
+                                        class="font-bold text-sm text-base-content group-hover:text-primary transition-colors duration-300 truncate">
+                                        {{ user.name }}
+                                    </h2>
+                                    <p class="text-[11px] font-medium opacity-60 truncate">{{ user.email }}</p>
                                 </div>
+                            </div>
 
-                                <!-- If even name is missing, fallback -->
-                                <div v-else
-                                    class="w-full h-full flex items-center justify-center bg-neutral text-neutral-content">
-                                    <span class="text-xl font-bold">?</span>
-                                </div>
+                            <div class="mt-2">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-base-200 text-base-content/70 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                    {{ user.role }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="my-4 border-t border-base-200/60"></div>
+
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between text-[11px]">
+                            <div class="flex items-center gap-1.5 opacity-60">
+                                <Icon icon="solar:card-2-linear" class="text-sm" />
+                                <span>ID: {{ user.employeeid ?? '—' }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 opacity-60">
+                                <Icon icon="solar:calendar-date-linear" class="text-sm" />
+                                <span>{{ new Date(user.created_at).toLocaleDateString() }}</span>
                             </div>
                         </div>
 
-
-                        <!-- Name + Email -->
-                        <div>
-                            <h2 class="card-title text-lg">{{ user.name }}</h2>
-                            <p class="text-sm">{{ user.email }}</p>
-                        </div>
-                    </div>
-
-                    <!-- User Details -->
-                    <div class="mt-4 space-y-1 text-sm">
-                        <p><span class="font-medium">Employee ID:</span> {{ user.employeeid }}</p>
-                        <p><span class="font-medium">Role:</span> {{ user.role }}</p>
-                        <p>
-                            <span class="font-medium">Active: </span>
-                            <span :class="user.active ? 'text-success font-medium' : 'text-error font-medium'">
-                                {{ user.active ? 'Yes' : 'No' }}
-                            </span>
-                        </p>
-                        <p><span class="font-medium">Created:</span> {{ new Date(user.created_at).toLocaleDateString()
-                        }}</p>
-                    </div>
-                    <div class="flex justify-end flex-row w-full gap-2">
-                        <button type="submit" class="btn btn-xs btn-warning btn-outline"
-                            @click="handleSelectedUser(user)">
-                            <Icon icon="mdi:pencil" class="w-4 h-4 mr-1" /> EDIT
+                        <button @click="handleSelectedUser(user)"
+                            class="btn btn-sm btn-ghost bg-base-200/50 hover:bg-primary hover:text-primary-content border-none mt-2 w-full transition-all duration-300 group-hover:shadow-md">
+                            <Icon icon="solar:pen-new-square-linear" class="w-4 h-4" />
+                            Edit Member
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        <div v-else class="flex flex-col gap-4 overflow-auto">
-            <div v-for="user in users" :key="user.id" class="card bg-base-100 shadow-xs">
-                <div class="card-body p-4">
-                    <!-- Accordion -->
-                    <div class="collapse collapse-arrow border border-base-300 bg-base-100 rounded-lg">
-                        <input type="checkbox" />
-
-                        <!-- Summary -->
-                        <div class="collapse-title text-lg font-medium flex items-center gap-3">
-                            <!-- Avatar -->
-                            <div class="avatar">
-                                <div class="w-10 h-10 rounded-full overflow-hidden bg-base-200">
-                                    <img v-if="user.avatar_url" :src="user.avatar_url" alt="Avatar"
-                                        class="w-full h-full object-cover" />
-                                    <div v-else-if="!user.avatar_url && user.name"
-                                        class="w-full h-full flex items-center justify-center">
-                                        <Icon icon="iconamoon:profile-circle-fill" class="w-6 h-6" />
-                                    </div>
-                                    <div v-else
-                                        class="w-full h-full flex items-center justify-center bg-neutral text-neutral-content">
-                                        <span class="text-sm font-bold">?</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Name + Email -->
-                            <div class="flex flex-col">
-                                <span>{{ user.name }}</span>
-                                <span class="text-sm text-gray-500">{{ user.email }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Details -->
-                        <div class="collapse-content text-sm space-y-2">
-                            <p><span class="font-medium">Employee ID:</span> {{ user.employeeid }}</p>
-                            <p><span class="font-medium">Role:</span> {{ user.role }}</p>
-                            <p>
-                                <span class="font-medium">Active:</span>
-                                <span :class="user.active ? 'text-success font-medium' : 'text-error font-medium'">
-                                    {{ user.active ? 'Yes' : 'No' }}
-                                </span>
-                            </p>
-                            <p><span class="font-medium">Created:</span> {{ new
-                                Date(user.created_at).toLocaleDateString() }}</p>
-
-                            <!-- Actions -->
-                            <div class="flex justify-end gap-2 pt-3">
-                                <button type="button" class="btn btn-xs btn-warning btn-outline"
-                                    @click="handleSelectedUser(user)">
-                                    <Icon icon="mdi:pencil" class="w-4 h-4 mr-1" /> Edit
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
     </div>
 </template>
+
 <script setup>
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
+import Card from '../Components/Card.vue'
 import { Link, useForm } from '@inertiajs/vue3'
 import { Icon } from "@iconify/vue"
-import { ref, inject } from "vue"
+import { ref, inject, computed } from "vue"
 import Modal from '../Components/Modal.vue'
 import TextInput from '../Components/TextInput.vue'
 import SelectOption from '../Components/SelectOption.vue'
@@ -248,11 +198,14 @@ const props = defineProps({
 const unitsList = ref([])
 
 props.units.forEach(unit => {
-  unitsList.value.push({
-    label: unit.unit_path,
-    value: unit.id
-  })
+    unitsList.value.push({
+        label: unit.unit_path,
+        value: unit.id
+    })
 })
+
+const activeUsers = computed(() => props.users.filter(u => u.active).length)
+const inactiveUsers = computed(() => props.users.filter(u => !u.active).length)
 
 const selectedUser = useForm({
     id: null,
@@ -262,7 +215,6 @@ const selectedUser = useForm({
     role: null,
     name: null,
     employeeid: null,
-    role: null,
     new_password: null,
     new_password_confirmation: null,
 })
@@ -275,7 +227,6 @@ const handleSelectedUser = (data) => {
     selectedUser.role = data.role
     selectedUser.name = data.name
     selectedUser.employeeid = data.employeeid
-    selectedUser.role = data.role
 
     displayUserModal.value?.open()
 }
@@ -291,13 +242,11 @@ const updateUserProfile = () => {
         onSuccess: () => {
             closeUserModal()
             selectedUser.reset()
-            toast('Profile updated successfull', 'success')
-        }, onError: () => {
+            toast('Profile updated successfully', 'success')
+        },
+        onError: () => {
             toast('Updating profile failed. Please try again', 'error')
         }
     })
 }
-
-// default view mode
-const viewMode = ref("grid")
 </script>
