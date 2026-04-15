@@ -2,7 +2,7 @@
 
     <Head title="Report Generator" />
 
-    <div class="max-w-[1600px] mx-auto p-4 md:p-6 space-y-8">
+    <div class="flex flex-col gap-6">
         <Breadcrumbs :items="[
             { label: 'Dashboard', route: 'main' },
             { label: 'Generate Report', route: 'approver.generate.report', active: true },
@@ -216,7 +216,7 @@ import { theme } from '../utils/themeStore.js'
 import { getTailwindColor } from '../utils/tailwindColorIdentifier.js'
 import * as echarts from 'echarts'
 import { Icon } from "@iconify/vue"
-import { analyzeWithAI } from "../services/openai.js"
+import { analyzeWithAI } from "../services/ai.js"
 import VueMarkdown from 'vue-markdown-render'
 
 const isLoading = ref(false)
