@@ -115,7 +115,7 @@
                                         Time
                                     </span>
                                     <span class="font-semibold">{{ overtime.start_time }} → {{ overtime.end_time
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div class="flex flex-col">
                                     <span class="text-xs opacity-60 mb-1 flex items-center gap-1">
@@ -250,7 +250,7 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto min-h-[10vh] max-h-[50vh]">
+                <div class="overflow-x-auto min-h-48 max-h-[50vh]">
                     <table class="table table-zebra w-full">
                         <thead class="sticky top-0 bg-base-300 z-10 rounded">
                             <tr>

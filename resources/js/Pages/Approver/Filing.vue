@@ -234,7 +234,7 @@
           </div>
         </div>
 
-        <div class="overflow-x-auto min-h-[10vh] max-h-[50vh]">
+        <div class="overflow-x-auto min-h-48 max-h-[50vh]">
           <table class="table table-zebra w-full">
             <thead class="sticky top-0 bg-base-300 z-10 rounded">
               <tr>
