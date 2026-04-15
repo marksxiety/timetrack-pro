@@ -50,6 +50,45 @@ organization's shift codes:
 }
 ```
 
+## Mail Configuration
+
+The application sends password reset emails. Update your `.env` with your mail credentials:
+
+### Gmail
+
+1. Enable **2-Step Verification** on your Google Account → Security
+2. Go to **App passwords** → create one (select "Other")
+3. Update your `.env`:
+
+```text
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-16-char-app-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your-email@gmail.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+### Outlook
+
+1. Go to [Microsoft Security](https://account.live.com/proofs/manage) → **App passwords** → create one
+2. Update your `.env`:
+
+```text
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.office365.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@outlook.com
+MAIL_PASSWORD=your-app-password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=your-email@outlook.com
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+> **Note:** Using `MAIL_MAILER=log` will write emails to `storage/logs/laravel.log` instead of sending them. Useful for local development without configuring real mail credentials.
+
 ## Run the Application
 
 ```bash
