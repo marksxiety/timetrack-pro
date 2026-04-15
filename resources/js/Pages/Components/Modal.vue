@@ -7,6 +7,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 const dialog = ref(null)
 
 const open = () => dialog.value?.showModal()
