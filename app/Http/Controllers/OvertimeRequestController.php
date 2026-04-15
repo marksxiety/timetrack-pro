@@ -121,8 +121,7 @@ class OvertimeRequestController extends Controller
         // compute the hours and convert it to float
         $hours = $this->calculateOvertimeHours($submitted_start_time, $submitted_end_time);
 
-        // ensure that the filing has minimum hours (configurable via .env)
-        $minimumHours = (float) (env('VITE_MINIMUM_OVERTIME_HOURS', 1));
+        $minimumHours = (float) $this->getMinimumOvertimeHours();
         if ((float)$hours < $minimumHours) {
             $errors->add('start_time', "Overtime Request should be minimum of {$minimumHours} hour(s)");
             $errors->add('end_time', "Overtime Request should be minimum of {$minimumHours} hour(s)");
@@ -287,8 +286,8 @@ class OvertimeRequestController extends Controller
                 // compute the hours and convert it to float
                 $hours = $this->calculateOvertimeHours($submitted_start_time, $submitted_end_time);
 
-                // ensure that the filing has minimum hours (configurable via .env)
-                $minimumHours = (float) (env('VITE_MINIMUM_OVERTIME_HOURS', 1));
+                // ensure that the filing has minimum hours (configurable via setup/config.json)
+                $minimumHours = (float) $this->getMinimumOvertimeHours();
                 if ((float)$hours < $minimumHours) {
                     $errors->add('start_time', "Overtime Request should be minimum of {$minimumHours} hour(s)");
                     $errors->add('end_time', "Overtime Request should be minimum of {$minimumHours} hour(s)");
@@ -334,7 +333,70 @@ class OvertimeRequestController extends Controller
         $overtimelist = [];
         $overtime = null;
         $message = '';
+        $stats = [
+            'total_overtime_hours' => 0,
+            'approved_requests' => 0,
+            'pending_requests' => 0,
+            'rejected_requests' => 0,
+        ];
         try {
+            $allOvertimes = OvertimeRequest::whereHas('schedule', function ($query) {
+                $query->where('user_id', Auth::id());
+            })->get();
+
+            foreach ($allOvertimes as $ot) {
+                $status = strtoupper($ot->status);
+                if ($status === 'APPROVED' || $status === 'FILED') {
+                    $stats['approved_requests']++;
+                    $stats['total_overtime_hours'] += (float) $ot->hours;
+                }
+                if ($status === 'PENDING') {
+                    $stats['pending_requests']++;
+                }
+                if ($status === 'DISAPPROVED') {
+                    $stats['rejected_requests']++;
+                }
+            }
+
+            $stats['total_overtime_hours'] = rtrim(rtrim(number_format($stats['total_overtime_hours'], 2), '0'), '.');
+
+            $recentRequestsList = [];
+            $recentOvertimes = OvertimeRequest::with(['schedule' => function ($query) {
+                $query->select('id', 'week', 'date', 'user_id', 'shift_id');
+            }, 'schedule.shift' => function ($query) {
+                $query->select('id', 'code', 'start_time', 'end_time');
+            }])
+                ->whereHas('schedule', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })
+                ->select('id', 'employee_schedule_id', 'start_time', 'end_time', 'hours', 'reason', 'remarks', 'status', 'created_at')
+                ->limit(5)
+                ->orderBy('updated_at', 'desc')
+                ->get();
+
+            foreach ($recentOvertimes as $overtime) {
+                $recentRequestsList[] = [
+                    'week' => $overtime->schedule->week ?? 'N/A',
+                    'date' => $overtime->schedule->date ?? 'N/A',
+                    'employee_schedule_id' => $overtime->employee_schedule_id,
+                    'shift_code' => $overtime->schedule->shift->code ?? 'No Shift',
+                    'shift_start_time' => $overtime->schedule->shift && $overtime->schedule->shift->start_time
+                        ? Carbon::createFromFormat('H:i:s', $overtime->schedule->shift->start_time)->format('h:i A')
+                        : '--',
+                    'shift_end_time' => $overtime->schedule->shift && $overtime->schedule->shift->end_time
+                        ? Carbon::createFromFormat('H:i:s', $overtime->schedule->shift->end_time)->format('h:i A')
+                        : '--',
+                    'id' => $overtime->id,
+                    'start_time' => $overtime->start_time ? Carbon::createFromFormat('H:i:s', $overtime->start_time)->format('h:i A') : 'N/A',
+                    'end_time' => $overtime->end_time ? Carbon::createFromFormat('H:i:s', $overtime->end_time)->format('h:i A') : 'N/A',
+                    'hours' => $overtime->hours,
+                    'reason' => $overtime->reason,
+                    'remarks' => $overtime->remarks,
+                    'status' => $overtime->status,
+                    'created_at' => $overtime->created_at ? Carbon::parse($overtime->created_at)->setTimezone('Asia/Manila')->format('M j, Y h:i A') : 'N/A'
+                ];
+            }
+
             $overtimes = OvertimeRequest::with(['schedule' => function ($query) {
                 $query->select('id', 'week', 'date', 'user_id', 'shift_id');
             }, 'schedule.shift' => function ($query) {
@@ -380,8 +442,10 @@ class OvertimeRequestController extends Controller
 
         return inertia('Employee/Index', [
             'info' => [
-                'overtimelist' => $overtimelist
+                'overtimelist' => $overtimelist,
+                'recentRequestsList' => $recentRequestsList
             ],
+            'stats' => $stats,
             'payload' => [
                 'year' => $year,
                 'month' => $month,
@@ -579,6 +643,35 @@ class OvertimeRequestController extends Controller
             $message = "Fetching Failed due to $th";
         }
 
+        $recentRequests = OvertimeRequest::with(['schedule' => function ($query) {
+            $query->select('id', 'week', 'date', 'user_id', 'shift_id');
+        }, 'schedule.shift' => function ($query) {
+            $query->select('id', 'code', 'start_time', 'end_time');
+        }, 'schedule.user' => function ($query) {
+            $query->select('id', 'name', 'employeeid');
+        }])
+            ->whereHas('schedule', function ($query) {
+                $query->whereHas('user', function ($userQuery) {
+                    $userQuery->where('organization_unit_id', Auth::user()->organization_unit_id);
+                });
+            })
+            ->select('id', 'employee_schedule_id', 'start_time', 'end_time', 'hours', 'reason', 'remarks', 'status', 'created_at')
+            ->limit(10)
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($ot) {
+                return [
+                    'id' => $ot->id,
+                    'date' => $ot->schedule->date ?? 'N/A',
+                    'shift_code' => $ot->schedule->shift->code ?? 'N/A',
+                    'hours' => $ot->hours,
+                    'status' => $ot->status,
+                    'reason' => $ot->reason,
+                    'user_name' => $ot->schedule->user->name ?? 'Unknown',
+                    'created_at' => $ot->created_at ? Carbon::parse($ot->created_at)->setTimezone('Asia/Manila')->format('M j, Y h:i A') : 'N/A',
+                ];
+            });
+
         return inertia('Approver/Index', [
             'info' => [
                 'result' => [
@@ -596,6 +689,7 @@ class OvertimeRequestController extends Controller
                         'REQUIRED_HOURS' => $required_hours,
                     ]
                 ],
+                'recentRequests' => $recentRequests,
                 'payload' => [
                     'year' => $year,
                     'week' => $week
@@ -883,5 +977,15 @@ class OvertimeRequestController extends Controller
             'success' => $success,
             'message' => $message
         ]);
+    }
+
+    private function getMinimumOvertimeHours(): float
+    {
+        $path = base_path('setup/config.json');
+        if (file_exists($path)) {
+            $config = json_decode(file_get_contents($path), true);
+            return (float) ($config['minimum_overtime_hours'] ?? 1);
+        }
+        return 1.0;
     }
 }

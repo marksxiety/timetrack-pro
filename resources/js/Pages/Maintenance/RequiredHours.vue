@@ -1,22 +1,16 @@
 <template>
-    <Head title="Registered Hours Limit"  />
-    <div class="flex flex-col gap-8 h-screen px-6 py-4">
+
+    <Head title="Registered Hours Limit" />
+    <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul class="flex gap-2 items-center">
-                <li>
-                    <Link :href="route('main')" class="hover:text-primary transition-colors">Home</Link>
-                </li>
-                <li>
-                    <Link :href="route('hours')" class="hover:text-primary transition-colors">Authorized Hours
-                    Registration</Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Home', route: 'main' },
+            { label: 'Authorized Hours Registration', route: 'hours', active: true },
+        ]" />
 
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-base-content">Manage Authorized Hours</h1>
+            <h1 class="text-2xl font-bold text-base-content">Manage Authorized Hours</h1>
         </div>
 
         <!-- Main Grid Content -->
@@ -26,7 +20,7 @@
                 <!-- Form Panel -->
                 <div class="col-span-2">
                     <div
-                        class="bg-base-100 p-8 rounded-md shadow-lg min-h-[50vh] flex flex-col justify-center border border-base-200">
+                        class="bg-base-100 p-8 rounded-md shadow-xs min-h-[50vh] flex flex-col justify-center border border-base-200">
                         <!-- Title -->
                         <h2 class="text-xl font-bold mb-6 text-center text-primary uppercase tracking-wide">
                             Weekly Authorization Form
@@ -50,7 +44,7 @@
 
                 <!-- Table Panel -->
                 <div class="col-span-3">
-                    <div class="bg-base-100 rounded-md p-6 min-h-[50vh] overflow-auto shadow-lg border border-base-200">
+                    <div class="bg-base-100 rounded-md p-6 min-h-[50vh] overflow-auto shadow-xs border border-base-200">
                         <h2 class="text-lg font-semibold mb-4 text-base-content">Registered Required Hours</h2>
                         <table class="table w-full text-sm">
                             <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
@@ -96,6 +90,7 @@
 import TextInput from '../Components/TextInput.vue'
 import SelectOption from '../Components/SelectOption.vue'
 import { ref, inject, watch } from 'vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, usePage, Link } from '@inertiajs/vue3'
 import { years, weeks, currentWeek } from '../utils/dropdownOptions.js'
 

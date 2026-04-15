@@ -1,5 +1,6 @@
 <template>
-    <Head title="Manage Shift Codes"  />
+
+    <Head title="Manage Shift Codes" />
     <Modal ref="modalRef">
         <h2 class="text-lg font-bold mb-4">Are you sure you want to delete?</h2>
         <div class="flex justify-end gap-4">
@@ -11,37 +12,32 @@
                 :disabled="deleteform.processing">Cancel</button>
         </div>
     </Modal>
-    <div class="flex flex-col gap-8 h-full">
+    <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Home</Link>
-                </li>
-                <li>
-                    <Link :href="route('shifts')">Shift Code Registration</Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Home', route: 'main' },
+            { label: 'Shift Code Registration', route: 'shifts', active: true },
+        ]" />
 
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-base-content">Manage Shift Codes</h1>
+            <h1 class="text-2xl font-bold text-base-content">Manage Shift Codes</h1>
         </div>
 
-        <!-- Grid Section -->
-        <div class="grid place-items-center min-h-[50vh]">
+        <!-- Main Grid Content -->
+        <div class="grid place-items-center">
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 h-[32rem] w-full max-w-7xl">
 
                 <!-- Form Panel -->
                 <div class="col-span-2">
                     <div
-                        class="bg-base-100 p-8 rounded-md shadow-lg h-full flex flex-col justify-center border border-base-200">
+                        class="bg-base-100 p-8 rounded-md shadow-xs min-h-[50vh] flex flex-col justify-center border border-base-200">
                         <!-- Title -->
                         <h2 class="text-xl font-bold mb-6 text-center text-primary uppercase tracking-wide">
-                            shift Code Registration
+                            Shift Code Registration
                         </h2>
-                        <form @submit.prevent="submitForm()" class="flex flex-col gap-4">
+
+                        <form @submit.prevent="submitForm()" class="card space-y-4">
                             <div class="join w-full items-center">
                                 <label class="input join-item border rounded w-full">
                                     <input type="text" placeholder="Enter Shift Code" class="w-full" v-model="form.code"
@@ -54,12 +50,11 @@
                                 </label>
                             </div>
 
-
                             <TextInput name="Start Time:" type="time" :message="form.errors?.start_time"
                                 v-model="form.start_time" :disabled="isDisabled" />
                             <TextInput name="End Time:" type="time" :message="form.errors?.end_time"
                                 v-model="form.end_time" :disabled="isDisabled" />
-                            <button type="submit" class="btn btn-primary w-full mt-4" :disabled="form.processing">
+                            <button type="submit" class="btn btn-primary w-full" :disabled="form.processing">
                                 <span v-if="form.processing" class="loading loading-spinner"></span>
                                 <span>Submit</span>
                             </button>
@@ -67,44 +62,43 @@
                     </div>
                 </div>
 
-                <!-- Table Section -->
+                <!-- Table Panel -->
                 <div class="col-span-3">
-                    <div class="bg-base-100 rounded-md p-6 shadow-lg border border-base-200">
-                        <!-- scrolling wrapper -->
-                        <div class="max-h-[50vh] overflow-auto">
-                            <table class="table w-full text-sm">
-                                <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
-                                    <tr class="text-center">
-                                        <th>Shift Code</th>
-                                        <th>Start</th>
-                                        <th>End</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="shift in shiftcodes" :key="shift.shift_code" class="text-center hover">
-                                        <td class="font-semibold">{{ shift.code }}</td>
-                                        <td>{{ shift.start_time ?? 'N/A' }}</td>
-                                        <td>{{ shift.end_time ?? 'N/A' }}</td>
-                                        <td class="flex flex-row gap-2 justify-center">
-                                            <button @click="handleHypyerLink(shift)" class="btn btn-success btn-xs"
-                                                :disabled="deleteform.processing">
-                                                EDIT
-                                            </button>
-                                            <button class="btn btn-error btn-xs" @click="initiateDeletion(shift.id)"
-                                                :disabled="deleteform.processing">
-                                                <span>DELETE</span>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr v-if="shiftcodes.length === 0">
-                                        <td colspan="4" class="text-center italic text-gray-400 py-4">
-                                            No shift codes available.
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="bg-base-100 rounded-md p-6 min-h-[50vh] overflow-auto shadow-xs border border-base-200">
+                        <h2 class="text-lg font-semibold mb-4 text-base-content">Registered Shift Codes</h2>
+                        <table class="table w-full text-sm">
+                            <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
+                                <tr class="text-center">
+                                    <th class="py-3">Shift Code</th>
+                                    <th>Start</th>
+                                    <th>End</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="shift in shiftcodes" :key="shift.shift_code"
+                                    class="text-center hover:bg-base-300/30 transition-colors">
+                                    <td class="py-2 font-semibold">{{ shift.code }}</td>
+                                    <td>{{ shift.start_time ?? 'N/A' }}</td>
+                                    <td>{{ shift.end_time ?? 'N/A' }}</td>
+                                    <td class="flex gap-2 justify-center">
+                                        <button @click="handleHypyerLink(shift)" class="btn btn-success btn-xs"
+                                            :disabled="deleteform.processing">
+                                            EDIT
+                                        </button>
+                                        <button class="btn btn-error btn-xs" @click="initiateDeletion(shift.id)"
+                                            :disabled="deleteform.processing">
+                                            <span>DELETE</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr v-if="shiftcodes.length === 0">
+                                    <td colspan="4" class="text-center italic text-gray-400 py-4">
+                                        No shift codes available.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -116,6 +110,7 @@
 <script setup>
 import TextInput from '../Components/TextInput.vue'
 import { ref, watch } from 'vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, router, Link } from '@inertiajs/vue3'
 import { inject } from 'vue'
 import Modal from '../Components/Modal.vue'

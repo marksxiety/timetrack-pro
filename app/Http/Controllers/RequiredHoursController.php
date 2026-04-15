@@ -28,14 +28,14 @@ class RequiredHoursController extends Controller
             ]);
         }
 
-        $roa = [
+        $limit = [
             'year' => $request->year,
             'week' => $request->week,
             'required_hours' => $request->required_hours,
             'organization_unit_id' =>  Auth::user()->organization_unit_id
         ];
 
-        RequiredHours::create($roa);
+        RequiredHours::create($limit);
         return redirect()->back()->with(['message' => 'Required Hours for week has been registered']);
     }
 

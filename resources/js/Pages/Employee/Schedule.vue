@@ -1,17 +1,11 @@
 <template>
 
     <Head title="Manage Schedule" />
-    <div class="flex flex-col gap-6 h-full">
-        <div class="breadcrumbs text-sm mt-4">
-            <ul>
-                <li>
-                    <Link :href="route('main')">Home</Link>
-                </li>
-                <li>
-                    <Link :href="route('schedule')">Manage Schedule</Link>
-                </li>
-            </ul>
-        </div>
+    <div class="flex flex-col gap-6">
+        <Breadcrumbs :items="[
+            { label: 'Home', route: 'main' },
+            { label: 'Manage Schedule', route: 'schedule', active: true },
+        ]" />
         <!-- Page Heading -->
         <div class="flex justify-between items-center">
             <h1 class="text-2xl font-bold">Manage Schedule</h1>
@@ -63,7 +57,7 @@
             </table>
             <div class="divider"></div>
             <div class="flex justify-between">
-                <div class="flex flex-col gap-2">
+                <div v-if="defaultShiftCodes.length > 0" class="flex flex-col gap-2">
                     <label class="label text-sm font-semibold">
                         <input type="checkbox" class="checkbox checkbox-primary"
                             @change="handleDefaultShiftFill($event, schedules)" :checked="isDefaultShift(schedules)"
@@ -73,6 +67,7 @@
                     <span class="text-xs text-gray-500 italic">*If unchecked, the selected schedule will be
                         erased</span>
                 </div>
+                <div v-else></div>
                 <button type="submit" class="btn btn-neutral mt-4" @click="submitForm()"
                     :disabled="isSubmitting || isLoading">
                     <span v-if="isSubmitting" class="loading loading-spinner"></span>
@@ -85,6 +80,7 @@
 </template>
 <script setup>
 import SelectOption from '../Components/SelectOption.vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { onMounted, ref, inject } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import { years, weeks, currentWeek } from '../utils/dropdownOptions.js'
@@ -108,16 +104,17 @@ const initshifts = ref([]) // raw shift data from API
 const shifts = ref([])     // formatted shift data for <SelectOption>
 const schedules = ref([])
 const tableText = ref('No registered Schedule.')
+const defaultShiftCodes = ref([])
 
 
 const submitForm = async () => {
     isSubmitting.value = true
     const submitResponse = await submitSchedule(schedules.value)
-    if (submitResponse.data?.success) {
-        schedules.value = submitResponse.data.schedules
-        toast(submitResponse.data?.message, 'success')
+    if (submitResponse?.success) {
+        schedules.value = submitResponse.schedules
+        toast(submitResponse?.message, 'success')
     } else {
-        toast(submitResponse.data?.message, 'error')
+        toast(submitResponse?.message, 'error')
     }
     isSubmitting.value = false
 }
@@ -132,23 +129,33 @@ async function loadScheduleData() {
     // Fetch schedule for the logged-in user and selected week/year
     const scheduleResponse = await fetchSchedule(selectedYear.value, selectedWeek.value)
 
-    if (scheduleResponse.data?.success) {
+    if (scheduleResponse?.success) {
         // Fetch all available shift codes
         const shiftsResponse = await fetchShiftList('employee')
-        initshifts.value = shiftsResponse.data
+        initshifts.value = shiftsResponse
 
         // Format the shift data into { label, value } structure
         // so it can be used directly in <SelectOption>
-        const shiftData = shiftsResponse?.data?.data ?? []
+        const shiftData = shiftsResponse?.data ?? []
         shifts.value = shiftData.map(element => ({
             label: (element.start_time && element.end_time) ? `${element.code}: ${element.start_time} - ${element.end_time}` : `${element.code === 'SY' ? 'NO WORK SCHEDULE' : 'RESTDAY/HOLIDAY'}`,
             value: element.id
         }))
 
         // Store fetched schedules
-        schedules.value = scheduleResponse.data.schedules
+        schedules.value = scheduleResponse.schedules
     } else {
         tableText.value = 'Failed to load schedules.'
+    }
+
+    try {
+        const configResponse = await fetch('/setup/config')
+        const configData = await configResponse.json()
+        defaultShiftCodes.value = Array.isArray(configData?.default_shift_codes)
+            ? configData.default_shift_codes.map(entry => entry.code.trim()).filter(code => code !== '')
+            : []
+    } catch {
+        defaultShiftCodes.value = []
     }
 
     isLoading.value = false
@@ -156,33 +163,20 @@ async function loadScheduleData() {
 
 
 const handleDefaultShiftFill = (event, schedule) => {
-    // get in .env for default shift codes
-    // e.g AA, BB, CC, DD, EE, FF, GG
-
-    const envDefaultCodes = import.meta.env.VITE_DEFAULT_SHIFT_CODES
-
-    if (!envDefaultCodes || envDefaultCodes.trim() === '') {
+    if (defaultShiftCodes.value.length === 0) {
         toast('Default shift codes are not configured. Please contact your administrator.', 'error')
         event.target.checked = false
         return
     }
 
-    let default_shiftcodes = envDefaultCodes.split(',').map(code => code.trim()).filter(code => code !== '')
-
-    if (default_shiftcodes.length === 0) {
-        toast('No valid default shift codes found.', 'error')
-        event.target.checked = false
-        return
-    }
-
-    if (default_shiftcodes.length !== schedule.length) {
-        toast(`Default shift codes (${default_shiftcodes.length}) do not match schedule days (${schedule.length}). Please contact your administrator.`, 'error')
+    if (defaultShiftCodes.value.length !== schedule.length) {
+        toast(`Default shift codes (${defaultShiftCodes.value.length}) do not match schedule days (${schedule.length}). Please contact your administrator.`, 'error')
         event.target.checked = false
         return
     }
 
     if (event.target.checked) {
-        let default_shiftcodes_id = default_shiftcodes.map(code => {
+        let default_shiftcodes_id = defaultShiftCodes.value.map(code => {
             let match = shifts.value.find(shift => (shift.label).includes(code))
             if (!match) {
                 toast(`Shift code "${code}" not found in available shifts.`, 'warning')
@@ -202,26 +196,15 @@ const handleDefaultShiftFill = (event, schedule) => {
 }
 
 const isDefaultShift = (schedule) => {
-    // get in .env for default shift codes
-    // e.g AA, BB, CC, DD, EE, FF, GG
-
-    const envDefaultCodes = import.meta.env.VITE_DEFAULT_SHIFT_CODES
-
-    if (!envDefaultCodes || envDefaultCodes.trim() === '') {
+    if (defaultShiftCodes.value.length === 0 || defaultShiftCodes.value.length !== schedule.length) {
         return false
     }
 
-    let default_shiftcodes = envDefaultCodes.split(',').map(code => code.trim()).filter(code => code !== '')
-
-    if (default_shiftcodes.length === 0 || default_shiftcodes.length !== schedule.length) {
-        return false
-    }
-
-    if (initshifts.value.data?.length > 0) {
+    if (initshifts.value?.data?.length > 0) {
         // Compare schedule's shift labels with default codes
         return schedule.every((day, idx) => {
             let match = initshifts.value.data.find(shift => shift.id === day.shift_code)
-            return match ? match.code === default_shiftcodes[idx] : false
+            return match ? match.code === defaultShiftCodes.value[idx] : false
         })
     }
 

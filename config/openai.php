@@ -4,46 +4,44 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | OpenAI API Key and Organization
+    | AI API Key
     |--------------------------------------------------------------------------
     |
-    | Here you may specify your OpenAI API Key and organization. This will be
-    | used to authenticate with the OpenAI API - you can find your API key
-    | and organization on your OpenAI dashboard, at https://openai.com.
+    | Your AI provider API key. If using an OpenAI-compatible provider,
+    | set this alongside the base_uri below.
     */
 
-    'api_key' => env('OPENAI_API_KEY'),
-    'organization' => env('OPENAI_ORGANIZATION'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | OpenAI API Project
-    |--------------------------------------------------------------------------
-    |
-    | Here you may specify your OpenAI API project. This is used optionally in
-    | situations where you are using a legacy user API key and need association
-    | with a project. This is not required for the newer API keys.
-    */
-    'project' => env('OPENAI_PROJECT'),
+    'api_key' => env('AI_API_KEY'),
+    'organization' => env('AI_ORGANIZATION'),
 
     /*
     |--------------------------------------------------------------------------
-    | OpenAI Base URL
+    | AI API Project
     |--------------------------------------------------------------------------
     |
-    | Here you may specify your OpenAI API base URL used to make requests. This
-    | is needed if using a custom API endpoint. Defaults to: api.openai.com/v1
+    | Optionally specify your AI provider project for legacy API keys.
     */
-    'base_uri' => env('OPENAI_BASE_URL'),
+
+    'project' => env('AI_PROJECT'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI API Base URL
+    |--------------------------------------------------------------------------
+    |
+    | Set this when using a non-OpenAI compatible endpoint.
+    | Defaults to: api.openai.com/v1
+    */
+
+    'base_uri' => env('AI_BASE_URL'),
 
     /*
     |--------------------------------------------------------------------------
     | Request Timeout
     |--------------------------------------------------------------------------
     |
-    | The timeout may be used to specify the maximum number of seconds to wait
-    | for a response. By default, the client will time out after 30 seconds.
+    | Maximum seconds to wait for a response. Default: 30
     */
 
-    'request_timeout' => env('OPENAI_REQUEST_TIMEOUT', 30),
+    'request_timeout' => env('AI_REQUEST_TIMEOUT', 30),
 ];

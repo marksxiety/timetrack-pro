@@ -1,5 +1,4 @@
-import axios from "axios";
-
-export function fetchFilledOvertime() {
-    return axios.get("/overtime/list");
+export async function fetchFilledOvertime() {
+    const res = await fetch("/overtime/list");
+    return res.json();
 }

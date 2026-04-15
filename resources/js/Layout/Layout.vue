@@ -1,7 +1,7 @@
 <template>
-    <div class="bg-base-300">
+    <div class="bg-base-300 h-screen flex flex-col overflow-hidden">
         <div
-            class="flex justify-between items-center bottom-2 shadow-md px-4 py-2 bg-base-100 rounded h-14 sticky top-0 z-10">
+            class="flex justify-between items-center bottom-2 shadow-md px-4 py-2 bg-base-100 rounded h-14 sticky top-0 z-10 flex-shrink-0">
             <Link :href="route('main')" class="font-bold text-sm">TimeTrack Pro</Link>
             <div v-if="$page?.props?.auth.user" class="flex justify-between items-center gap-2 font-semibold">
                 <div class="dropdown dropdown-end">
@@ -14,38 +14,38 @@
                         class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-40 p-2 shadow">
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('shifts')" class="justify-between">
-                            <Icon icon="jam:code" width="24" height="24" />
-                            Shift Codes
+                                <Icon icon="jam:code" width="24" height="24" />
+                                Shift Codes
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('schedule.manage')" class="justify-between">
-                            <Icon icon="icon-park-outline:schedule" width="24" height="24" />
-                            Schedule
+                                <Icon icon="icon-park-outline:schedule" width="24" height="24" />
+                                Schedule
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('hours')" class="justify-between">
-                            <Icon icon="tabler:clock-check" width="24" height="24" />
-                            Manage ROA
+                                <Icon icon="tabler:clock-check" width="24" height="24" />
+                                Overtime Limits
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('approver.generate.report')" class="justify-between">
-                            <Icon icon="mdi:report-box-multiple-outline" width="24" height="24" />
-                            Generate Report
+                                <Icon icon="mdi:report-box-multiple-outline" width="24" height="24" />
+                                Generate Report
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('approver.manage.user')" class="justify-between">
-                            <Icon icon="material-symbols:manage-accounts-rounded" width="24" height="24" />
-                            Manage Users
+                                <Icon icon="material-symbols:manage-accounts-rounded" width="24" height="24" />
+                                Manage Users
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'employee'">
                             <Link :href="route('schedule')" class="justify-between">
-                            <Icon icon="mingcute:schedule-line" width="24" height="24" />
-                            Schedule
+                                <Icon icon="mingcute:schedule-line" width="24" height="24" />
+                                Schedule
                             </Link>
                         </li>
                     </ul>
@@ -69,8 +69,8 @@
                         class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-40 p-2 shadow">
                         <li v-if="$page?.props?.auth.user?.role === 'employee'">
                             <Link :href="route('profile.employee')" class="justify-between px-4 py-2">
-                            <Icon icon="iconamoon:profile-circle-fill" width="24" height="24" />
-                            Profile
+                                <Icon icon="iconamoon:profile-circle-fill" width="24" height="24" />
+                                Profile
                             </Link>
                         </li>
                         <li>
@@ -92,17 +92,19 @@
                         </li>
                         <li>
                             <Link :href="route('logout')" method="post" class="justify-between px-4 py-2">
-                            <Icon icon="ic:round-logout" width="24" height="24" />
-                            Logout
+                                <Icon icon="ic:round-logout" width="24" height="24" />
+                                Logout
                             </Link>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
-        <main class="w-full px-20 box-border min-h-screen bg-base-300 mb-0">
-            <Toast ref="toastRef" />
-            <slot></slot>
+        <main class="flex-1 bg-base-300 overflow-y-auto">
+            <div class="w-4/5 mx-auto py-8 min-h-full" :class="slotClass">
+                <Toast ref="toastRef" />
+                <slot></slot>
+            </div>
         </main>
     </div>
 </template>
@@ -115,9 +117,14 @@ import { Icon } from "@iconify/vue"
 import { theme, setTheme } from '../Pages/utils/themeStore.js'
 
 const toastRef = ref()
+const slotClass = ref('overflow-hidden')
 
 provide('toast', (msg, type = 'info') => {
     toastRef.value?.showToast(msg, type)
+})
+
+provide('setSlotClass', (cls) => {
+    slotClass.value = cls
 })
 
 const props = defineProps({

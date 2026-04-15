@@ -11,7 +11,7 @@
 
                 <div class="space-y-6">
                     <!-- Employee Information -->
-                    <div class="card border border-base-300 shadow-sm">
+                    <div class="card border border-base-300 shadow-xs">
                         <div class="card-body p-6">
                             <h3 class="card-title text-base mb-4 flex items-center gap-2">
                                 <Icon icon="material-symbols:person-outline" width="20" height="20" />
@@ -51,7 +51,7 @@
                     </div>
 
                     <!-- Registered Schedule -->
-                    <div class="card border border-base-300 shadow-sm">
+                    <div class="card border border-base-300 shadow-xs">
                         <div class="card-body p-6">
                             <h3 class="card-title text-base mb-4 flex items-center gap-2">
                                 <Icon icon="material-symbols:schedule-outline" width="20" height="20" />
@@ -95,7 +95,7 @@
                     </div>
 
                     <!-- Overtime Request -->
-                    <div class="card border border-base-300 shadow-sm">
+                    <div class="card border border-base-300 shadow-xs">
                         <div class="card-body p-6">
                             <h3 class="card-title text-base mb-4 flex items-center gap-2">
                                 <Icon icon="material-symbols:timer-outline" width="20" height="20" />
@@ -115,7 +115,7 @@
                                         Time
                                     </span>
                                     <span class="font-semibold">{{ overtime.start_time }} → {{ overtime.end_time
-                                        }}</span>
+                                    }}</span>
                                 </div>
                                 <div class="flex flex-col">
                                     <span class="text-xs opacity-60 mb-1 flex items-center gap-1">
@@ -143,7 +143,7 @@
                     </div>
 
                     <!-- Reason -->
-                    <div class="card border border-base-300 shadow-sm">
+                    <div class="card border border-base-300 shadow-xs">
                         <div class="card-body p-6">
                             <h3 class="card-title text-base mb-3 flex items-center gap-2">
                                 <Icon icon="material-symbols:description-outline" width="20" height="20" />
@@ -154,7 +154,7 @@
                     </div>
 
                     <!-- Remarks -->
-                    <div class="card border border-base-300 shadow-sm">
+                    <div class="card border border-base-300 shadow-xs">
                         <div class="card-body p-6">
                             <h3 class="card-title text-base mb-4 flex items-center gap-2">
                                 <Icon icon="material-symbols:comment-outline" width="20" height="20" />
@@ -211,54 +211,34 @@
         </div>
     </Modal>
 
-    <div class="flex flex-col gap-6 p-4 h-full">
+    <div class="flex flex-col gap-6">
         <!-- Breadcrumbs -->
-        <div class="breadcrumbs text-sm">
-            <ul>
-                <li>
-                    <Link :href="route('main', { week: selectedWeek, year: selectedYear })">Dashboard</Link>
-                </li>
-                <li>
-                    <Link
-                        :href="route('overtime.pending', { status: 'PENDING', page: 'Approver/Pending', week: selectedWeek, year: selectedYear })"
-                        class="text-primary font-semibold underline">
-                    Pending
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                        :href="route('overtime.filing', { status: 'APPROVED', page: 'Approver/Filing', week: selectedWeek, year: selectedYear })">
-                    Filing
-                    </Link>
-                </li>
-                <li>
-                    <Link
-                        :href="route('overtime.filing', { status: 'FILED', page: 'Approver/Filed', week: selectedWeek, year: selectedYear })">
-                    Filed
-                    </Link>
-                </li>
-            </ul>
-        </div>
+        <Breadcrumbs :items="[
+            { label: 'Dashboard', route: 'main', params: { week: selectedWeek, year: selectedYear } },
+            { label: 'Pending', route: 'overtime.pending', params: { status: 'PENDING', page: 'Approver/Pending', week: selectedWeek, year: selectedYear }, active: true },
+            { label: 'Filing', route: 'overtime.filing', params: { status: 'APPROVED', page: 'Approver/Filing', week: selectedWeek, year: selectedYear } },
+            { label: 'Filed', route: 'overtime.filing', params: { status: 'FILED', page: 'Approver/Filed', week: selectedWeek, year: selectedYear } },
+        ]" />
 
         <!-- Page Title -->
         <div class="flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-base-content">Pending Overtime Requests</h1>
+            <h1 class="text-2xl font-bold text-base-content">Pending Overtime Requests</h1>
         </div>
 
-        <div class="stats stats-horizontal shadow flex-wrap">
+        <div class="stats stats-horizontal shadow-xs flex-wrap">
             <Card title="Requests to File" :value="total_requests" description="For Approval" />
             <Card title="Total Overtime Hours" :value="total_requests_hours" description="Awaiting confirmation" />
-            <Card title="Registered ROA" :value="roa_hours"
-                :description="roa_hours <= 0 ? 'No ROA hours remaining — please file additional hours.' : 'You still have ROA hours available.'" />
+            <Card title="Weekly Overtime Limit" :value="roa_hours"
+                :description="roa_hours <= 0 ? 'No overtime limit hours remaining — please file additional hours.' : 'You still have overtime limit hours available.'" />
             <Card title="Remaining Hours" :value="remaining_hours" :description="remaining_hours === 0
                 ? 'No remaining hours'
                 : remaining_hours < 0
-                    ? 'ROA consumed exceeded — please file additional hours'
+                    ? 'Overtime limit consumed exceeded — please file additional hours'
                     : 'Remaining hours available'" />
         </div>
 
         <!-- Filing Table -->
-        <div class="card bg-base-100 shadow">
+        <div class="card bg-base-100 shadow-xs">
             <div class="card-body">
                 <div class="flex justify-between mb-4">
                     <h2 class="card-title">Approved Requests Awaiting Filing</h2>
@@ -270,7 +250,7 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto min-h-[10vh] max-h-[50vh]">
+                <div class="overflow-x-auto min-h-48 max-h-[50vh]">
                     <table class="table table-zebra w-full">
                         <thead class="sticky top-0 bg-base-300 z-10 rounded">
                             <tr>
@@ -315,6 +295,7 @@ import TextArea from '../Components/TextArea.vue'
 import Stepper from '../Components/Stepper.vue'
 import { weeks, years, currentWeek } from '../utils/dropdownOptions.js'
 import Modal from '../Components/Modal.vue'
+import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, router, Link } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 
@@ -437,7 +418,7 @@ const closeManageRequestModal = () => {
 
 const updateOvertiemRequestStatus = (status) => {
     if (roa_hours.value === 0 && status === 'APPROVED') {
-        toast('No registered ROA yet.', 'error')
+        toast('No registered weekly overtime limit yet.', 'error')
         return
     }
 

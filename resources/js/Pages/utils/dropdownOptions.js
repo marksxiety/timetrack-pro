@@ -1,17 +1,20 @@
 const currentYear = new Date().getFullYear();
+const currentWeekNum = currentWeek();
 export const years = [];
 for (let i = 0; i < 7; i++) {
     const year = currentYear - 1 + i;
+    const isCurrent = year === currentYear;
     years.push({
-        label: String(year),
+        label: isCurrent ? `${year} **` : String(year),
         value: String(year),
     });
 }
 
 export const weeks = [{ label: "All Weeks", value: "" }];
 for (let w = 1; w <= 52; w++) {
+    const isCurrent = w === currentWeekNum;
     weeks.push({
-        label: `Week ${w}`,
+        label: isCurrent ? `Week ${w} **` : `Week ${w}`,
         value: w,
     });
 }
@@ -29,7 +32,7 @@ export function currentWeek(date = new Date()) {
     // adjust if the starting of the week is sunday or monday
     // just add + 1 if starting on monday
     const weekNumber = Math.ceil(
-        (pastDaysOfYear + firstDayOfYear.getDay()) / 7
+        (pastDaysOfYear + firstDayOfYear.getDay()) / 7,
     );
     return weekNumber;
 }

@@ -17,6 +17,10 @@ Route::middleware(['guest'])->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::inertia('/login', 'Auth/Login')->name('login');
+    Route::inertia('/forgot-password', 'Auth/ForgotPassword')->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::get('/', function (Request $request) {
@@ -83,8 +87,16 @@ Route::middleware('approver')->group(function () {
 Route::get('/404', fn() => Inertia::render('Unauthorized'))->name('404');
 
 Route::middleware('auth')->group(function () {
-    Route::post('/openai/analyze', [OpenAIController::class, 'analyze'])->name('openai.analyze');
-    Route::post('/openai/enhance', [OpenAIController::class, 'enhance'])->name('openai.enhance');
+    Route::post('/ai/analyze', [OpenAIController::class, 'analyze'])->name('ai.analyze');
+    Route::post('/ai/enhance', [OpenAIController::class, 'enhance'])->name('ai.enhance');
 });
 
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/setup/config', function () {
+    $path = base_path('setup/config.json');
+    if (!file_exists($path)) {
+        return response()->json([]);
+    }
+    return response()->json(json_decode(file_get_contents($path), true));
+});
