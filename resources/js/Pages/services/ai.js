@@ -5,11 +5,11 @@ export async function analyzeWithAI(jsonData, onChunk) {
                 ? jsonData
                 : JSON.stringify(jsonData, null, 2);
 
-        const response = await fetch("/openai/analyze", {
+        const response = await fetch("/ai/analyze", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name=\"csrf-token\"]').content,
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
             },
             body: JSON.stringify({ content }),
         });
@@ -40,21 +40,41 @@ export async function analyzeWithAI(jsonData, onChunk) {
     }
 }
 
-export async function enhanceReasonWithAI(reason) {
+export async function enhanceReasonWithAI(reason, onChunk) {
     try {
-        const response = await fetch("/openai/enhance", {
+        const response = await fetch("/ai/enhance", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name=\"csrf-token\"]').content,
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
             },
             body: JSON.stringify({ reason }),
         });
 
-        const data = await response.json();
-        if (!data.success) throw new Error(data.message || "Enhancement failed");
+        if (!response.ok) {
+            let message = `AI enhance failed (status ${response.status})`;
+            try {
+                const body = await response.json();
+                message = body.error || message;
+            } catch { /* use default message */ }
+            return { success: false, data: message, status: response.status };
+        }
 
-        return { success: true, data: data.enhanced_text };
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let fullText = "";
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            fullText += chunk;
+            if (chunk && typeof onChunk === "function") {
+                onChunk(fullText);
+            }
+        }
+
+        return { success: true, data: fullText.trim() };
     } catch (error) {
         console.error("AI Enhancement Error:", error);
         return { success: false, data: error.message };
