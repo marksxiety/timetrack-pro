@@ -485,9 +485,7 @@
                 <!-- Upcoming Holidays -->
                 <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-80">
                     <div class="px-4 py-3 border-b border-base-300">
-                        <h2 class="text-sm font-semibold tracking-tight flex items-center gap-2">
-                            <Icon icon="material-symbols:celebration-outline" width="18" height="18"
-                                class="text-base-content/50" />
+                        <h2 class="text-sm font-semibold tracking-tight">
                             Upcoming Holidays
                         </h2>
                     </div>
@@ -520,8 +518,7 @@
                 <!-- My Requests -->
                 <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-96">
                     <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
-                        <h2 class="text-sm font-semibold tracking-tight flex items-center gap-2">
-                            <Icon icon="material-symbols:history" width="18" height="18" class="text-base-content/50" />
+                        <h2 class="text-sm font-semibold tracking-tight">
                             My Recent Requests
                         </h2>
                         <Link :href="route('overtime.requests.employee')"
