@@ -68,7 +68,7 @@
                                             d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                                     </svg>
                                     <input type="email" class="grow bg-transparent outline-none text-sm"
-                                        placeholder="you@example.com" v-model="form.email" />
+                                        placeholder="you@example.com" v-model="form.email" autocomplete="off" />
                                 </label>
                                 <span v-if="form.errors.email" class="text-error text-xs mt-0.5">{{ form.errors.email
                                     }}</span>
@@ -90,7 +90,7 @@
                                     </svg>
                                     <input :type="showPassword ? 'text' : 'password'"
                                         class="grow bg-transparent outline-none text-sm" placeholder="••••••••"
-                                        v-model="form.password" />
+                                        v-model="form.password" autocomplete="off" />
                                     <button type="button" @click="showPassword = !showPassword"
                                         class="text-base-content/30 hover:text-base-content/60 transition-colors">
                                         <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
