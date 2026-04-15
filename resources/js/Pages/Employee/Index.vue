@@ -114,14 +114,20 @@
                                             <textarea ref="reasonTextarea" v-model="formFiling.reason"
                                                 placeholder="Enter your reason for overtime request..."
                                                 :disabled="isEnhancing"
-                                                :class="['textarea break-words whitespace-normal w-full min-h-24', { 'textarea-error': formFiling.errors?.reason }]"
+                                                :class="['textarea break-words whitespace-normal w-full min-h-24', {
+                                                    'textarea-error': formFiling.errors?.reason && typeof formFiling.errors?.reason !== 'object',
+                                                    'textarea-warning': typeof formFiling.errors?.reason === 'object'
+                                                }]"
                                                 @input="autoResize"></textarea>
 
-                                            <!-- Error message -->
+                                            <!-- Error/warning message -->
                                             <p v-if="formFiling.errors?.reason"
-                                                class="text-sm text-error flex items-center gap-2">
-                                                <Icon icon="material-symbols:error-outline" width="16" height="16" />
-                                                {{ formFiling.errors?.reason }}
+                                                :class="[
+                                                    'text-sm flex items-center gap-2',
+                                                    typeof formFiling.errors?.reason === 'object' ? 'text-warning' : 'text-error'
+                                                ]">
+                                                <Icon :icon="typeof formFiling.errors?.reason === 'object' ? 'material-symbols:warning-outline' : 'material-symbols:error-outline'" width="16" height="16" />
+                                                {{ typeof formFiling.errors?.reason === 'object' ? formFiling.errors?.reason.message : formFiling.errors?.reason }}
                                             </p>
 
                                             <!-- enhancing message -->
@@ -574,7 +580,7 @@ import { fetchUserSchedule } from '../api/schedule.js'
 import fetchUpcomingHolidays from '../api/upcomingHolidays.js'
 import { getTimeOptions } from '../utils/dropdownOptions.js'
 import Stepper from '../Components/Stepper.vue'
-import { enhanceReasonWithAI } from "../services/openai.js"
+import { enhanceReasonWithAI } from "../services/ai.js"
 import { Icon } from "@iconify/vue"
 
 
@@ -978,6 +984,7 @@ const submitCancelation = () => {
 const enhanceReason = async (context) => {
 
     let form = context === 'update' ? formFilledOvertime : formFiling
+    const originalReason = form.reason
 
     if (form.reason) {
         if (form.reason.trim().length === 0) {
@@ -993,14 +1000,21 @@ const enhanceReason = async (context) => {
         delete form.errors.reason
         isEnhancing.value = true
 
-        const enhanced = await enhanceReasonWithAI(form.reason)
+        const enhanced = await enhanceReasonWithAI(form.reason, (streamedText) => {
+            form.reason = streamedText
+        })
 
         if (enhanced.success) {
             form.reason = enhanced.data
             isEnhancing.value = false
         } else {
-            form.errors.reason = 'Failed to enhance reason. Please try again.'
+            form.reason = originalReason
             isEnhancing.value = false
+            if (enhanced.status === 422) {
+                form.errors.reason = { message: enhanced.data, type: 'warning' }
+            } else {
+                form.errors.reason = 'Failed to enhance reason. Please try again.'
+            }
         }
     } else {
         form.errors.reason = 'Please enter a reason to enhance.'
