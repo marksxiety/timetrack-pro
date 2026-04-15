@@ -1,5 +1,25 @@
 <template>
     <div class="flex flex-col gap-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-lg font-semibold">Overtime Dashboard</h1>
+                <p class="text-xs text-base-content/40">Manage and track overtime requests</p>
+            </div>
+
+            <!-- Global period selector -->
+            <div class="flex items-center bg-base-200 rounded-xl px-1 py-1 gap-0.5">
+                <select v-model="selectedYear" @change="handleWeekSelection()"
+                    class="select select-ghost select-sm bg-transparent font-medium focus:outline-none border-none min-w-28">
+                    <option v-for="y in years" :key="y.value" :value="y.value">{{ y.label }}</option>
+                </select>
+                <div class="w-px h-5 bg-base-300"></div>
+                <select v-model="selectedWeek" @change="handleWeekSelection()"
+                    class="select select-ghost select-sm bg-transparent font-medium focus:outline-none border-none min-w-36">
+                    <option v-for="w in weeks.filter(w => w.value)" :key="w.value" :value="w.value">{{ w.label }}
+                    </option>
+                </select>
+            </div>
+        </div>
         <div class="flex flex-col gap-6">
             <!-- Stat Cards -->
             <div class="stats stats-horizontal shadow-xs flex-wrap">
@@ -51,15 +71,7 @@
             </div>
             <div class="grid grid-cols-3 gap-4">
                 <div class="col-span-2 flex flex-col gap-4 p-4 bg-base-100 card shadow-xs">
-                    <div class="flex justify-end w-full">
-                        <div class="flex flex-row gap-4 w-1/4">
-                            <SelectOption :options="years" v-model="selectedYear" margin=''
-                                @change="handleWeekSelection()" />
-                            <SelectOption :options="weeks" v-model="selectedWeek" margin=''
-                                @change="handleWeekSelection()" />
-                        </div>
-                    </div>
-                    <div ref="overtimeWeeklyBarGraph" class="min-h-[50vh] w-full"></div>
+                    <div ref="overtimeWeeklyBarGraph" class="min-h-[45vh] w-full"></div>
                 </div>
 
                 <div class="col-span-1 card bg-base-100 shadow-xs overflow-hidden">
@@ -111,7 +123,6 @@
 <script setup>
 import { ref, inject, watch, onMounted, computed } from 'vue'
 import Card from '../Components/Card.vue'
-import SelectOption from '../Components/SelectOption.vue'
 import { weeks, years } from '../utils/dropdownOptions.js'
 import { router } from '@inertiajs/vue3'
 import * as echarts from 'echarts'
