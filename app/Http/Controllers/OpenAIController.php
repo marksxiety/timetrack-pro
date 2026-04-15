@@ -10,63 +10,72 @@ class OpenAIController extends Controller
 {
     public function enhance(Request $request)
     {
-        $request->validate([
-            'reason' => 'required|string|max:1000',
+        $reason = $request->input('reason');
+        if (!$reason) {
+            return response()->json(['error' => 'Missing reason'], 400);
+        }
+
+        // --- STEP 1: INITIAL AI VALIDATION (The Guardrail) ---
+        $validator = OpenAI::chat()->create([
+            'model' => env('AI_MODEL', 'gpt-4o-mini'),
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => "Analyze the user's overtime reason. Determine if it is a valid, work-related task or intent. " .
+                        "If it is gibberish (e.g., 'asdf'), purely emojis, offensive, or completely unrelated to work, return 'INVALID'. " .
+                        "If it is a potential work reason, even if short, return 'VALID'. " .
+                        "Return ONLY the word VALID or INVALID."
+                ],
+                ['role' => 'user', 'content' => $reason],
+            ],
+            'temperature' => 0, // Keep it precise
         ]);
 
-        try {
-            $response = OpenAI::chat()->create([
-                'model' => 'gpt-4o-mini',
+        $isValid = trim($validator->choices[0]->message->content);
+
+        if (str_contains($isValid, 'INVALID')) {
+            return response()->json(['error' => 'Please provide a valid work-related reason.'], 422);
+        }
+
+        // --- STEP 2: THE ENHANCEMENT STREAM (Main Logic) ---
+        $response = new StreamedResponse(function () use ($reason) {
+            $stream = OpenAI::chat()->createStreamed([
+                'model' => env('AI_MODEL', 'gpt-4o-mini'),
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => "You are an expert at refining overtime request reasons. Take the user's short reason and expand it into 2–3 natural, professional sentences that explain WHY they need overtime. Keep it practical and work-focused. Do not make it sound too formal. Return only the enhanced text without quotes or explanations. Response must not exceed 16,777,215 characters."
+                        'content' => "You are an expert at refining work logs. " .
+                            "Rewrite the input as a professional, objective statement using an action verb. " .
+                            "Avoid personal pronouns. " .
+                            "Tone: Productive and concise. " .
+                            "Constraint: Response must not exceed 16,777,215 characters. " .
+                            "Return only the enhanced text."
                     ],
-                    [
-                        'role' => 'user',
-                        'content' => $request->reason,
-                    ],
+                    ['role' => 'user', 'content' => $reason],
                 ],
-                'temperature' => 0.5,
-                'max_tokens' => 300,
-                'response_format' => [
-                    'type' => 'json_schema',
-                    'json_schema' => [
-                        'name' => 'enhanced_reason',
-                        'strict' => true,
-                        'schema' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'enhanced_text' => [
-                                    'type' => 'string',
-                                    'maxLength' => 16777215,
-                                    'description' => 'The enhanced overtime reason text',
-                                ],
-                            ],
-                            'required' => ['enhanced_text'],
-                            'additionalProperties' => false,
-                        ],
-                    ],
-                ],
+                'temperature' => 0.3,
+                'max_tokens' => 500,
             ]);
 
-            $data = json_decode($response['choices'][0]['message']['content'], true);
+            foreach ($stream as $event) {
+                if (isset($event->choices[0]->delta->content)) {
+                    echo $event->choices[0]->delta->content;
+                    ob_flush();
+                    flush();
+                }
+            }
+        });
 
-            return response()->json([
-                'success' => true,
-                'enhanced_text' => $data['enhanced_text'] ?? '',
-            ]);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 500);
-        }
+        $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
+        $response->headers->set('Cache-Control', 'no-cache');
+        $response->headers->set('X-Accel-Buffering', 'no');
+
+        return $response;
     }
 
     public function analyze(Request $request)
     {
-        $content = $request->input('reason');
+        $content = $request->input('content');
         if (!$content) {
             return response()->json(['error' => 'Missing content'], 400);
         }
@@ -74,7 +83,7 @@ class OpenAIController extends Controller
         // Streamed response for incremental output
         $response = new StreamedResponse(function () use ($content) {
             $stream = OpenAI::chat()->createStreamed([
-                'model' => 'gpt-4o-mini',
+                'model' => env('AI_MODEL', 'gpt-4o-mini'),
                 'messages' => [
                     [
                         'role' => 'system',
