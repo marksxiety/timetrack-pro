@@ -45,7 +45,17 @@ php artisan migrate
 
 ---
 
-## Step 4 — Seed Default Data
+## Step 4 — Create Storage Link
+
+```bash
+php artisan storage:link
+```
+
+This creates a symlink from `public/storage` to `storage/app/public`, required for serving user avatar images and uploaded files.
+
+---
+
+## Step 5 — Seed Default Data
 
 ```bash
 php artisan db:seed
@@ -58,7 +68,7 @@ This creates:
 
 ---
 
-## Step 5 — Generate Setup Config
+## Step 6 — Generate Setup Config
 
 ```bash
 php artisan make:config
@@ -78,7 +88,7 @@ This creates `setup/config.json`. Open it and update with your organization's sh
 
 ---
 
-## Step 6 — AI Configuration (Optional)
+## Step 7 — AI Configuration (Optional)
 
 The application uses AI for reason enhancement and report analysis. Supports any OpenAI-compatible provider.
 
@@ -105,7 +115,7 @@ AI_BASE_URL=https://your-provider-endpoint/v1
 
 ---
 
-## Step 7 — Mail Configuration (Optional)
+## Step 8 — Mail Configuration (Optional)
 
 The application sends password reset emails. By default, `MAIL_MAILER=log` writes emails to `storage/logs/laravel.log` — no setup needed for local development.
 
@@ -124,7 +134,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 ---
 
-## Step 8 — Run the Application
+## Step 9 — Run the Application
 
 ```bash
 npm start
@@ -142,6 +152,7 @@ Visit **http://127.0.0.1:8000** to access the application.
 - [ ] Application key generated (`php artisan key:generate`)
 - [ ] Frontend dependencies installed (`npm install`)
 - [ ] Database migrated (`php artisan migrate`)
+- [ ] Storage link created (`php artisan storage:link`)
 - [ ] Database seeded (`php artisan db:seed`)
 - [ ] Setup config generated (`php artisan make:config`)
 - [ ] Setup config updated (`setup/config.json`)
