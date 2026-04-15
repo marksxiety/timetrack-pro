@@ -8,95 +8,57 @@
             { label: 'Generate Report', route: 'approver.generate.report', active: true },
         ]" />
 
-        <div v-if="reportLoaded" class="animate-in fade-in duration-500 space-y-8">
+        <div v-if="reportLoaded" class="animate-in fade-in duration-500 flex flex-col gap-6">
 
-            <div
-                class="navbar bg-base-100 border border-base-200 shadow-xs rounded-box px-4 py-2 flex flex-col md:flex-row gap-4 sticky top-4 z-10">
-                <div class="flex-1">
-                    <h1 class="text-xl font-bold px-2">Overtime Analysis</h1>
-                </div>
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="flex items-center gap-2">
-                        <TextInput type="date" v-model="selectedDateRange.start_date" class="input-sm"
-                            :disabled="isRegenerating" />
-                        <span class="text-base-content/50">to</span>
-                        <TextInput type="date" v-model="selectedDateRange.end_date" class="input-sm"
-                            :disabled="isRegenerating" />
+            <div class="card bg-base-100 border border-base-200 shadow-xs sticky top-4 z-10">
+                <div class="card-body">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <h1 class="text-xl font-bold">Overtime Analysis</h1>
+                        <div class="flex flex-wrap items-center justify-center gap-3">
+                            <div class="flex items-center gap-2">
+                                <TextInput type="date" v-model="selectedDateRange.start_date" margin="" class="input-sm"
+                                    :disabled="isRegenerating" />
+                                <span class="text-base-content/50">to</span>
+                                <TextInput type="date" v-model="selectedDateRange.end_date" margin="" class="input-sm"
+                                    :disabled="isRegenerating" />
+                            </div>
+
+                            <div class="join bg-base-200 p-1 rounded-lg">
+                                <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
+                                    aria-label="Weekly" value="weekly" v-model="selectedReportType" />
+                                <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
+                                    aria-label="Monthly" value="monthly" v-model="selectedReportType" />
+                                <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
+                                    aria-label="Yearly" value="yearly" v-model="selectedReportType" />
+                            </div>
+
+                            <button class="btn btn-primary btn-sm md:btn-md" @click="handleRegenerateReport()"
+                                :disabled="isRegenerating">
+                                <span v-if="isRegenerating" class="loading loading-spinner loading-sm"></span>
+                                <Icon v-else icon="lucide:refresh-cw" class="w-4 h-4" />
+                                REGENERATE
+                            </button>
+                        </div>
                     </div>
-
-                    <div class="join bg-base-200 p-1 rounded-lg">
-                        <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
-                            aria-label="Weekly" value="weekly" v-model="selectedReportType" />
-                        <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
-                            aria-label="Monthly" value="monthly" v-model="selectedReportType" />
-                        <input class="join-item btn btn-ghost btn-xs sm:btn-sm no-animation" type="radio"
-                            aria-label="Yearly" value="yearly" v-model="selectedReportType" />
-                    </div>
-
-                    <button class="btn btn-primary btn-sm md:btn-md" @click="handleRegenerateReport()"
-                        :disabled="isRegenerating">
-                        <span v-if="isRegenerating" class="loading loading-spinner loading-sm"></span>
-                        <Icon v-else icon="lucide:refresh-cw" class="w-4 h-4" />
-                        REGENERATE
-                    </button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="stats shadow-xs border border-base-200">
-                    <div class="stat">
-                        <div class="stat-figure text-success">
-                            <Icon icon="lucide:check-circle" width="32" />
-                        </div>
-                        <div class="stat-title font-medium">Approved</div>
-                        <div class="stat-value text-success text-2xl">{{ card.filed }}h</div>
-                        <div class="stat-desc text-xs mt-1">Confirmed OT hours</div>
-                    </div>
-                </div>
-
-                <div class="stats shadow-xs border border-base-200">
-                    <div class="stat">
-                        <div class="stat-figure text-info">
-                            <Icon icon="lucide:clock" width="32" />
-                        </div>
-                        <div class="stat-title font-medium">Tentative</div>
-                        <div class="stat-value text-info text-2xl">{{ card.tentative }}h</div>
-                        <div class="stat-desc text-xs mt-1">Pending + Approved</div>
-                    </div>
-                </div>
-
-                <div class="stats shadow-xs border border-base-200">
-                    <div class="stat">
-                        <div class="stat-figure text-primary">
-                            <Icon icon="lucide:file-text" width="32" />
-                        </div>
-                        <div class="stat-title font-medium">Total Requests</div>
-                        <div class="stat-value text-primary text-2xl">{{ card.requests }}</div>
-                        <div class="stat-desc text-xs mt-1">Total filings received</div>
-                    </div>
-                </div>
-
-                <div class="stats shadow-xs border border-base-200">
-                    <div class="stat">
-                        <div class="stat-figure text-warning">
-                            <Icon icon="lucide:alert-circle" width="32" />
-                        </div>
-                        <div class="stat-title font-medium">Pending</div>
-                        <div class="stat-value text-warning text-2xl">{{ card.pending }}</div>
-                        <div class="stat-desc text-xs mt-1">Awaiting action</div>
-                    </div>
-                </div>
+            <div class="stats stats-horizontal shadow-xs flex-wrap">
+                <Card title="Approved" :value="card.filed + 'h'" description="Confirmed OT hours" />
+                <Card title="Tentative" :value="card.tentative + 'h'" description="Pending + Approved" />
+                <Card title="Total Requests" :value="card.requests" description="Total filings received" />
+                <Card title="Pending" :value="card.pending" description="Awaiting action" />
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 card bg-base-100 border border-base-200 shadow-xs overflow-hidden">
-                    <div class="card-body p-0">
-                        <div class="p-6 border-b border-base-200 flex justify-between items-center bg-base-50/50">
+                    <div class="card-body p-0 !gap-0">
+                        <div class="px-6 py-4 border-b border-base-200 flex justify-between items-center bg-base-50/50">
                             <h2 class="card-title text-sm uppercase tracking-wider opacity-70">Consumed Overtime Trends
                             </h2>
                             <div class="badge badge-outline">Live Data</div>
                         </div>
-                        <div class="p-6">
+                        <div class="p-4">
                             <div ref="totalOvertimeViaTimeGraph" class="min-h-[400px] w-full"></div>
                         </div>
                     </div>
@@ -209,6 +171,7 @@
 <script setup>
 import { watch, ref, nextTick, reactive, computed } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
+import Card from '../Components/Card.vue'
 import { useForm, Link } from '@inertiajs/vue3'
 import reportImage from '../../images/generate-report.svg'
 import TextInput from '../Components/TextInput.vue'
