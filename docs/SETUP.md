@@ -50,6 +50,18 @@ organization's shift codes:
 }
 ```
 
+## AI Configuration
+
+The application uses AI for reason enhancement and report analysis. Supports any OpenAI-compatible provider. Update your `.env`:
+
+```text
+AI_API_KEY=your-api-key
+AI_MODEL=gpt-4o-mini
+AI_BASE_URL=  # optional, defaults to OpenAI. Set for custom providers (e.g., Azure, local LLMs)
+```
+
+> **Note:** Leave `AI_BASE_URL` blank if using OpenAI directly. Set it when using compatible alternatives (e.g., Azure OpenAI, Ollama, LM Studio).
+
 ## Mail Configuration
 
 The application sends password reset emails. Update your `.env` with your mail credentials:
