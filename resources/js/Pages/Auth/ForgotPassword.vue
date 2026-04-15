@@ -16,11 +16,7 @@
             <div class="text-center space-y-1">
                 <div class="flex items-center justify-center gap-2 mb-2">
                     <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-primary-content" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
-                        </svg>
+                        <Icon icon="material-symbols:schedule-outline" width="20" height="20" class="text-primary-content" />
                     </div>
                     <h1 class="text-3xl font-black text-base-content tracking-tight">TimeTrack <span
                             class="text-primary">Pro</span></h1>
@@ -36,11 +32,7 @@
                     <!-- Icon -->
                     <div class="flex justify-center mb-2">
                         <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-primary" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                            </svg>
+                            <Icon icon="material-symbols:lock-open-outline" width="32" height="32" class="text-primary" />
                         </div>
                     </div>
 
@@ -54,11 +46,7 @@
 
                     <!-- Success state -->
                     <div v-if="successMessage" class="alert alert-success mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <Icon icon="material-symbols:check-circle-outline" width="20" height="20" class="shrink-0" />
                         <span class="text-sm">{{ successMessage }}</span>
                     </div>
 
@@ -72,11 +60,8 @@
                             </label>
                             <label
                                 class="input input-bordered flex items-center gap-2 focus-within:input-primary transition-all w-full">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-base-content/40 shrink-0"
-                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                                </svg>
+                                <Icon icon="material-symbols:mail-outline" width="16" height="16"
+                                    class="text-base-content/40 shrink-0" />
                                 <input type="email" class="grow bg-transparent outline-none text-sm"
                                     placeholder="you@example.com" v-model="form.email" :disabled="!!successMessage" />
                             </label>
@@ -91,20 +76,12 @@
                                 <span class="loading loading-spinner loading-xs"></span> Sending link...
                             </span>
                             <span v-else-if="successMessage" class="flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 13l4 4L19 7" />
-                                </svg>
+                                <Icon icon="material-symbols:check-rounded" width="16" height="16" />
                                 Email Sent
                             </span>
                             <span v-else class="flex items-center gap-2">
                                 Send Reset Link
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                </svg>
+                                <Icon icon="material-symbols:arrow-forward-rounded" width="16" height="16" />
                             </span>
                         </button>
                     </form>
@@ -114,11 +91,7 @@
                     <div class="flex flex-col items-center gap-2 text-sm text-base-content/50">
                         <Link :href="route('login')"
                             class="flex items-center gap-1.5 link link-primary font-semibold no-underline hover:underline">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                            </svg>
+                            <Icon icon="material-symbols:arrow-back-rounded" width="16" height="16" />
                             Back to Login
                         </Link>
                         <span>
@@ -138,6 +111,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
+import { Icon } from '@iconify/vue'
 
 const successMessage = ref('')
 
