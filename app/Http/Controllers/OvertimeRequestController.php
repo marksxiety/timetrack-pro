@@ -643,6 +643,35 @@ class OvertimeRequestController extends Controller
             $message = "Fetching Failed due to $th";
         }
 
+        $recentRequests = OvertimeRequest::with(['schedule' => function ($query) {
+            $query->select('id', 'week', 'date', 'user_id', 'shift_id');
+        }, 'schedule.shift' => function ($query) {
+            $query->select('id', 'code', 'start_time', 'end_time');
+        }, 'schedule.user' => function ($query) {
+            $query->select('id', 'name', 'employeeid');
+        }])
+            ->whereHas('schedule', function ($query) {
+                $query->whereHas('user', function ($userQuery) {
+                    $userQuery->where('organization_unit_id', Auth::user()->organization_unit_id);
+                });
+            })
+            ->select('id', 'employee_schedule_id', 'start_time', 'end_time', 'hours', 'reason', 'remarks', 'status', 'created_at')
+            ->limit(10)
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(function ($ot) {
+                return [
+                    'id' => $ot->id,
+                    'date' => $ot->schedule->date ?? 'N/A',
+                    'shift_code' => $ot->schedule->shift->code ?? 'N/A',
+                    'hours' => $ot->hours,
+                    'status' => $ot->status,
+                    'reason' => $ot->reason,
+                    'user_name' => $ot->schedule->user->name ?? 'Unknown',
+                    'created_at' => $ot->created_at ? Carbon::parse($ot->created_at)->setTimezone('Asia/Manila')->format('M j, Y h:i A') : 'N/A',
+                ];
+            });
+
         return inertia('Approver/Index', [
             'info' => [
                 'result' => [
@@ -660,6 +689,7 @@ class OvertimeRequestController extends Controller
                         'REQUIRED_HOURS' => $required_hours,
                     ]
                 ],
+                'recentRequests' => $recentRequests,
                 'payload' => [
                     'year' => $year,
                     'week' => $week
