@@ -1,47 +1,70 @@
 # Setup
 
-## Environment Configuration
+Follow each step in order. After completing all steps, run `npm start` to launch the application.
+
+---
+
+## Step 1 — Environment Configuration
+
+Copy the example environment file and generate an application key:
 
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-Update your `.env` file with your database credentials:
+Open `.env` and update these required values:
 
-```text
-DB_DATABASE=timetrack_pro
-DB_USERNAME=root
-DB_PASSWORD=your_password
+| Variable | Description | Example |
+|---|---|---|
+| `APP_URL` | URL where the app runs | `http://localhost` or `http://127.0.0.1:8000` |
+| `APP_TIMEZONE` | Server timezone | `Asia/Manila` |
+| `DB_DATABASE` | MySQL database name | `timetrack-pro` |
+| `DB_USERNAME` | MySQL username | `root` |
+| `DB_PASSWORD` | MySQL password | `your_password` |
+
+> Make sure the database exists in MySQL before proceeding. Create it with: `CREATE DATABASE timetrack_pro;`
+
+---
+
+## Step 2 — Install Frontend Dependencies
+
+```bash
+npm install
 ```
 
-## Database Setup
+---
+
+## Step 3 — Database Migration
+
+Run the migrations to create all required tables:
 
 ```bash
 php artisan migrate
 ```
 
-## Seed Default Data
+---
+
+## Step 4 — Seed Default Data
 
 ```bash
 php artisan db:seed
 ```
 
-This will create:
+This creates:
 
 - **Default** organization unit
-- Shift codes **AA-GG** (Saturday/Sunday: no time window,
-  Monday-Friday: 08:00 - 17:00)
+- Shift codes **AA–GG** (Saturday/Sunday: no time window, Monday–Friday: 08:00–17:00)
 
-## Generate Setup Config
+---
+
+## Step 5 — Generate Setup Config
 
 ```bash
 php artisan make:config
 ```
 
-This creates `setup/config.json` with blank default shift codes
-and default minimum overtime hours. Update the file with your
-organization's shift codes:
+This creates `setup/config.json`. Open it and update with your organization's shift codes:
 
 ```json
 {
@@ -50,64 +73,81 @@ organization's shift codes:
 }
 ```
 
-## AI Configuration
+- `default_shift_codes` — Array of shift codes assigned to new users by default
+- `minimum_overtime_hours` — Minimum hours required for an overtime request
 
-The application uses AI for reason enhancement and report analysis. Supports any OpenAI-compatible provider. Update your `.env`:
+---
+
+## Step 6 — AI Configuration (Optional)
+
+The application uses AI for reason enhancement and report analysis. Supports any OpenAI-compatible provider.
+
+Add these variables to your `.env`:
 
 ```text
 AI_API_KEY=your-api-key
 AI_MODEL=gpt-4o-mini
-AI_BASE_URL=  # optional, defaults to OpenAI. Set for custom providers (e.g., Azure, local LLMs)
 ```
 
-> **Note:** Leave `AI_BASE_URL` blank if using OpenAI directly. Set it when using compatible alternatives (e.g., Azure OpenAI, Ollama, LM Studio).
+For custom providers (Azure, Ollama, LM Studio, etc.), also add:
 
-## Mail Configuration
+```text
+AI_BASE_URL=https://your-provider-endpoint/v1
+```
 
-The application sends password reset emails. Update your `.env` with your mail credentials:
+| Variable | Required | Description |
+|---|---|---|
+| `AI_API_KEY` | Yes | Your provider's API key |
+| `AI_MODEL` | Yes | Model identifier (e.g., `gpt-4o-mini`, `llama3`) |
+| `AI_BASE_URL` | No | Custom endpoint URL. Leave blank for OpenAI |
 
-### Gmail
+> Without AI configuration, the enhance and analyze features will be unavailable. All other features work normally.
 
-1. Enable **2-Step Verification** on your Google Account → Security
-2. Go to **App passwords** → create one (select "Other")
-3. Update your `.env`:
+---
+
+## Step 7 — Mail Configuration (Optional)
+
+The application sends password reset emails. By default, `MAIL_MAILER=log` writes emails to `storage/logs/laravel.log` — no setup needed for local development.
+
+To send real emails, update these variables in your `.env` with your SMTP provider's credentials:
 
 ```text
 MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
+MAIL_HOST=your-smtp-host
 MAIL_PORT=587
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-16-char-app-password
+MAIL_USERNAME=your-email@example.com
+MAIL_PASSWORD=your-password
 MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=your-email@gmail.com
+MAIL_FROM_ADDRESS=your-email@example.com
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 
-### Outlook
+---
 
-1. Go to [Microsoft Security](https://account.live.com/proofs/manage) → **App passwords** → create one
-2. Update your `.env`:
-
-```text
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.office365.com
-MAIL_PORT=587
-MAIL_USERNAME=your-email@outlook.com
-MAIL_PASSWORD=your-app-password
-MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=your-email@outlook.com
-MAIL_FROM_NAME="${APP_NAME}"
-```
-
-> **Note:** Using `MAIL_MAILER=log` will write emails to `storage/logs/laravel.log` instead of sending them. Useful for local development without configuring real mail credentials.
-
-## Run the Application
+## Step 8 — Run the Application
 
 ```bash
 npm start
 ```
 
-This starts both `php artisan serve` and `vite` concurrently. Visit [http://127.0.0.1:8000](http://127.0.0.1:8000).
+This starts both `php artisan serve` and `vite` concurrently.
+
+Visit **http://127.0.0.1:8000** to access the application.
+
+---
+
+## Summary Checklist
+
+- [ ] `.env` copied and configured (database credentials)
+- [ ] Application key generated (`php artisan key:generate`)
+- [ ] Frontend dependencies installed (`npm install`)
+- [ ] Database migrated (`php artisan migrate`)
+- [ ] Database seeded (`php artisan db:seed`)
+- [ ] Setup config generated (`php artisan make:config`)
+- [ ] Setup config updated (`setup/config.json`)
+- [ ] AI configured (optional — `AI_API_KEY`, `AI_MODEL`)
+- [ ] Mail configured (optional — defaults to log driver)
+- [ ] Application running (`npm start` → http://127.0.0.1:8000)
 
 ---
 
