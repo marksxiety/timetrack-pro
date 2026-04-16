@@ -17,7 +17,7 @@
 
         <!-- Main Card -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
-            <div class="card-body p-6 lg:p-8">
+            <div class="card-body p-4">
                 <!-- Header -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                     <div>
@@ -54,8 +54,8 @@
                 </div>
 
                 <!-- Table Section -->
-                <div class="overflow-x-auto rounded-lg border border-base-300 bg-base-100">
-                    <table class="table w-full">
+                <div class="overflow-auto max-h-[40vh] rounded-lg border border-base-300 bg-base-100">
+                    <table class="table table-fixed w-full">
                         <thead class="bg-base-200">
                             <tr>
                                 <th class="font-bold text-sm">Date</th>
