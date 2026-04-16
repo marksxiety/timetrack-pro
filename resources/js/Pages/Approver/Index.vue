@@ -71,7 +71,7 @@
             </div>
             <div class="grid grid-cols-3 gap-4">
                 <div class="col-span-2 flex flex-col gap-4 p-4 bg-base-100 card shadow-xs">
-                    <div ref="overtimeWeeklyBarGraph" class="min-h-[45vh] w-full"></div>
+                    <div ref="overtimeWeeklyBarGraph" class="max-h-[45vh] w-full"></div>
                 </div>
 
                 <div class="col-span-1 card bg-base-100 shadow-xs overflow-hidden">
