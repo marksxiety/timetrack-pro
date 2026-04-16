@@ -86,7 +86,7 @@
                         <h2 class="text-xl font-bold italic">AI Insight Engine</h2>
                     </div>
 
-                        <div ref="aiContainer" class="min-h-32">
+                    <div ref="aiContainer" class="min-h-32">
                         <div v-if="AIresponse === ''" class="flex flex-col items-center justify-center py-10 space-y-4">
                             <p class="text-base-content/60 max-w-md text-center">Let AI analyze the trends, identify
                                 outliers, and suggest resource optimizations based on this period's data.</p>
@@ -99,17 +99,21 @@
                                         <Icon icon="lucide:sparkles" class="w-4 h-4 group-hover:animate-pulse" />
                                     </span>
                                 </button>
-                                <button v-if="hasRegenerated" class="btn btn-ghost group" @click="handleAnalyzeAI"
-                                    :disabled="analyzingAI">
-                                    <span v-if="analyzingAI" class="loading loading-spinner loading-sm"></span>
-                                    <Icon v-else icon="lucide:refresh-cw" class="w-4 h-4" />
-                                    REGENERATE
-                                </button>
                             </div>
                         </div>
                         <div v-else class="bg-base-100 rounded-xl p-6 border border-base-200">
                             <VueMarkdown :source="AIresponse"
                                 class="prose prose-slate max-w-none prose-headings:text-primary" />
+                            <div class="flex justify-end mt-4">
+                                <button class="btn btn-ghost btn-sm group" @click="handleAnalyzeAI"
+                                    :disabled="analyzingAI">
+                                    <span v-if="analyzingAI" class="loading loading-spinner loading-sm"></span>
+                                    <span v-else class="flex items-center gap-2">
+                                        <Icon icon="mingcute:ai-line" class="w-4 h-4" />
+                                        REGENERATE AI INSIGHTS
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -207,7 +211,6 @@ const card = ref({
 const analyzingAI = ref(false)
 const AIresponse = ref("")
 const isRegenerating = ref(false)
-const hasRegenerated = ref(false)
 
 
 const aiContainer = ref(null)
@@ -556,6 +559,7 @@ const handleGenerateReport = () => {
 
 const handleRegenerateReport = () => {
     isRegenerating.value = true
+    AIresponse.value = ""
 
     selectedDateRange.get(route('approver.generate.report.daterange'), {
         preserveState: true,
@@ -567,7 +571,6 @@ const handleRegenerateReport = () => {
         onFinish: async () => {
 
             isRegenerating.value = false
-            hasRegenerated.value = true
             await nextTick()
             handleDataManipulationViaReportType(props?.requests)
         }
