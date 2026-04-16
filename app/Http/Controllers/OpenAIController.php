@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class OpenAIController extends Controller
@@ -36,13 +35,8 @@ class OpenAIController extends Controller
             return response()->json(['error' => 'Please provide a valid work-related reason.'], 422);
         }
 
-        session_write_close();
-
-        $response = new StreamedResponse(function () use ($reason) {
-            @ini_set('output_buffering', '0');
-            while (ob_get_level()) ob_end_flush();
-
-            $stream = OpenAI::chat()->createStreamed([
+        return $this->streamResponse(function () use ($reason) {
+            return OpenAI::chat()->createStreamed([
                 'model' => env('AI_MODEL', 'gpt-4o-mini'),
                 'messages' => [
                     [
@@ -59,21 +53,7 @@ class OpenAIController extends Controller
                 'temperature' => 0.3,
                 'max_tokens' => 500,
             ]);
-
-            foreach ($stream as $event) {
-                if (isset($event->choices[0]->delta->content)) {
-                    echo $event->choices[0]->delta->content;
-                    flush();
-                }
-            }
         });
-
-        $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
-        $response->headers->set('Cache-Control', 'no-cache');
-        $response->headers->set('X-Accel-Buffering', 'no');
-        $response->headers->set('Connection', 'close');
-
-        return $response;
     }
 
     public function analyze(Request $request)
@@ -83,14 +63,8 @@ class OpenAIController extends Controller
             return response()->json(['error' => 'Missing content'], 400);
         }
 
-        session_write_close();
-
-        $response = new StreamedResponse(function () use ($content) {
-            set_time_limit(120);
-            @ini_set('output_buffering', '0');
-            while (ob_get_level()) ob_end_flush();
-
-            $stream = OpenAI::chat()->createStreamed([
+        return $this->streamResponse(function () use ($content) {
+            return OpenAI::chat()->createStreamed([
                 'model' => env('AI_MODEL', 'gpt-4o-mini'),
                 'messages' => [
                     [
@@ -119,19 +93,53 @@ class OpenAIController extends Controller
                     ],
                 ],
             ]);
+        }, 120);
+    }
+
+    /**
+     * Returns a clean streamed response from an OpenAI stream callback.
+     *
+     * @param callable $streamCallback  Returns an OpenAI streamed response
+     * @param int      $timeLimit       Max execution time in seconds
+     */
+    private function streamResponse(callable $streamCallback, int $timeLimit = 60): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        // Close session before streaming to prevent session lock blocking the response
+        session_write_close();
+
+        $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($streamCallback, $timeLimit) {
+            set_time_limit($timeLimit);
+
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+
+            $stream = $streamCallback();
 
             foreach ($stream as $event) {
-                if (isset($event->choices[0]->delta->content)) {
-                    echo $event->choices[0]->delta->content;
+                $chunk = $event->choices[0]->delta->content ?? null;
+                if ($chunk !== null) {
+                    // SSE format — works reliably across browsers and fetch() readers
+                    echo "data: " . json_encode(['content' => $chunk]) . "\n\n";
+                    if (ob_get_level()) {
+                        ob_flush();
+                    }
                     flush();
                 }
             }
+
+            // Signal stream end
+            echo "data: [DONE]\n\n";
+            if (ob_get_level()) {
+                ob_flush();
+            }
+            flush();
         });
 
-        $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
-        $response->headers->set('Cache-Control', 'no-cache');
-        $response->headers->set('X-Accel-Buffering', 'no');
-        $response->headers->set('Connection', 'close');
+        $response->headers->set('Content-Type', 'text/event-stream');
+        $response->headers->set('Cache-Control', 'no-cache, no-store');
+        $response->headers->set('X-Accel-Buffering', 'no');   // Critical for Nginx
+        $response->headers->set('Connection', 'keep-alive');
 
         return $response;
     }
