@@ -1,3 +1,8 @@
+function getCsrfToken() {
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : document.querySelector('meta[name="csrf-token"]')?.content;
+}
+
 export async function analyzeWithAI(jsonData, onChunk) {
     try {
         const content =
@@ -9,7 +14,7 @@ export async function analyzeWithAI(jsonData, onChunk) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                "X-XSRF-TOKEN": getCsrfToken(),
             },
             body: JSON.stringify({ content }),
         });
@@ -46,7 +51,7 @@ export async function enhanceReasonWithAI(reason, onChunk) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+                "X-XSRF-TOKEN": getCsrfToken(),
             },
             body: JSON.stringify({ reason }),
         });
