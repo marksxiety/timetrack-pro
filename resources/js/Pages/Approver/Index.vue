@@ -71,7 +71,7 @@
             </div>
             <div class="grid grid-cols-3 gap-4">
                 <div class="col-span-2 flex flex-col gap-4 p-4 bg-base-100 card shadow-xs">
-                    <div ref="overtimeWeeklyBarGraph" class="max-h-[45vh] w-full"></div>
+                    <div ref="overtimeWeeklyBarGraph" class="h-[45vh] w-full"></div>
                 </div>
 
                 <div class="col-span-1 card bg-base-100 shadow-xs overflow-hidden">
@@ -89,8 +89,11 @@
                             request.status === 'CANCELED' ? 'opacity-50' : ''
                         ]">
                             <div
-                                class="w-10 h-10 bg-neutral text-neutral-content font-semibold rounded-full flex items-center justify-center flex-shrink-0">
-                                {{ getInitials(request.user_name) }}
+                                class="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-base-200 border-2 flex-shrink-0 transition-colors duration-300 border-base-300">
+                                <img v-if="request.avatar_url" :src="request.avatar_url" alt="Avatar"
+                                    class="w-full h-full object-cover" />
+                                <span v-else
+                                    class="text-xs font-semibold text-base-content/60">{{ getInitials(request.user_name) }}</span>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2">
@@ -128,6 +131,7 @@ import { router } from '@inertiajs/vue3'
 import * as echarts from 'echarts'
 import { theme } from '../utils/themeStore.js'
 import { getInitials } from '../utils/nameHelper.js'
+import { Icon } from "@iconify/vue"
 
 // ===== constant variables =====
 
