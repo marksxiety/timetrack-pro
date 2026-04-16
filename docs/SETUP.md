@@ -1,6 +1,6 @@
 # Setup
 
-Follow each step in order. After completing all steps, run `npm start` to launch the application.
+Follow each step in order. After completing all steps, run `php artisan serve` to launch the application.
 
 ---
 
@@ -88,7 +88,7 @@ This creates `setup/config.json`. Open it and update with your organization's sh
 
 ---
 
-## Step 7 — AI Configuration (Optional)
+## Step 7 — AI Configuration
 
 The application uses AI for reason enhancement and report analysis. Supports any OpenAI-compatible provider.
 
@@ -115,7 +115,7 @@ AI_BASE_URL=https://your-provider-endpoint/v1
 
 ---
 
-## Step 8 — Mail Configuration (Optional)
+## Step 8 — Mail Configuration
 
 The application sends password reset emails. By default, `MAIL_MAILER=log` writes emails to `storage/logs/laravel.log` — no setup needed for local development.
 
@@ -134,13 +134,17 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 ---
 
-## Step 9 — Run the Application
+## Step 9 — Build the front-end
 
 ```bash
-npm start
+npm run build
 ```
 
-This starts both `php artisan serve` and `vite` concurrently.
+## Step 10 — Run the Application
+
+```bash
+php artisan serve
+```
 
 Visit **http://127.0.0.1:8000** to access the application.
 
@@ -156,9 +160,9 @@ Visit **http://127.0.0.1:8000** to access the application.
 - [ ] Database seeded (`php artisan db:seed`)
 - [ ] Setup config generated (`php artisan make:config`)
 - [ ] Setup config updated (`setup/config.json`)
-- [ ] AI configured (optional — `AI_API_KEY`, `AI_MODEL`)
-- [ ] Mail configured (optional — defaults to log driver)
-- [ ] Application running (`npm start` → http://127.0.0.1:8000)
+- [ ] AI configured (`AI_API_KEY`, `AI_MODEL`)
+- [ ] Mail configured
+- [ ] Application running (`php artisan serve` → http://127.0.0.1:8000)
 
 ---
 
