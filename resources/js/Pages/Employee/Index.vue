@@ -516,7 +516,7 @@
                 </div>
 
                 <!-- My Requests -->
-                <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-96">
+                <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-[22.5rem]">
                     <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
                         <h2 class="text-sm font-semibold tracking-tight">
                             My Recent Requests
