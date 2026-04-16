@@ -134,13 +134,28 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 ---
 
-## Step 9 — Build the front-end
+## Step 9 — Clear Cache
+
+Remove the Vite hot file (if it exists) and clear all Laravel caches:
+
+```bash
+rm -f public/hot
+php artisan optimize:clear
+```
+
+The `public/hot` file is created by `npm run dev` and causes `@vite` to look for a running Vite dev server instead of using the built assets. Remove it before building for production.
+
+---
+
+## Step 10 — Build the front-end
 
 ```bash
 npm run build
 ```
 
-## Step 10 — Run the Application
+---
+
+## Step 11 — Run the Application
 
 ```bash
 php artisan serve
@@ -162,6 +177,8 @@ Visit **http://127.0.0.1:8000** to access the application.
 - [ ] Setup config updated (`setup/config.json`)
 - [ ] AI configured (`AI_API_KEY`, `AI_MODEL`)
 - [ ] Mail configured
+- [ ] Front-end built (`npm run build`)
+- [ ] Hot file removed and cache cleared (`rm -f public/hot && php artisan optimize:clear`)
 - [ ] Application running (`php artisan serve` → http://127.0.0.1:8000)
 
 ---
