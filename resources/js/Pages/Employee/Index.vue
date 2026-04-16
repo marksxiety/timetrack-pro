@@ -70,13 +70,13 @@
                                     <div class="space-y-6">
                                         <div class="grid grid-cols-2 gap-4">
                                             <div class="col-span-1">
-                                                <SelectOption name="Start Time:"
+                                                <TimePickerInput name="Start Time:"
                                                     :message="formFiling.errors?.start_time"
-                                                    v-model="formFiling.start_time" :options="timeOptions" />
+                                                    v-model="formFiling.start_time" />
                                             </div>
                                             <div class="col-span-1">
-                                                <SelectOption name="End Time:" :message="formFiling.errors?.end_time"
-                                                    v-model="formFiling.end_time" :options="timeOptions" />
+                                                <TimePickerInput name="End Time:" :message="formFiling.errors?.end_time"
+                                                    v-model="formFiling.end_time" />
                                             </div>
                                         </div>
 
@@ -113,21 +113,21 @@
                                             <!-- Auto-expanding textarea -->
                                             <textarea ref="reasonTextarea" v-model="formFiling.reason"
                                                 placeholder="Enter your reason for overtime request..."
-                                                :disabled="isEnhancing"
-                                                :class="['textarea break-words whitespace-normal w-full min-h-24', {
+                                                :disabled="isEnhancing" :class="['textarea break-words whitespace-normal w-full min-h-24', {
                                                     'textarea-error': formFiling.errors?.reason && typeof formFiling.errors?.reason !== 'object',
                                                     'textarea-warning': typeof formFiling.errors?.reason === 'object'
-                                                }]"
-                                                @input="autoResize"></textarea>
+                                                }]" @input="autoResize"></textarea>
 
                                             <!-- Error/warning message -->
-                                            <p v-if="formFiling.errors?.reason"
-                                                :class="[
-                                                    'text-sm flex items-center gap-2',
-                                                    typeof formFiling.errors?.reason === 'object' ? 'text-warning' : 'text-error'
-                                                ]">
-                                                <Icon :icon="typeof formFiling.errors?.reason === 'object' ? 'material-symbols:warning-outline' : 'material-symbols:error-outline'" width="16" height="16" />
-                                                {{ typeof formFiling.errors?.reason === 'object' ? formFiling.errors?.reason.message : formFiling.errors?.reason }}
+                                            <p v-if="formFiling.errors?.reason" :class="[
+                                                'text-sm flex items-center gap-2',
+                                                typeof formFiling.errors?.reason === 'object' ? 'text-warning' : 'text-error'
+                                            ]">
+                                                <Icon
+                                                    :icon="typeof formFiling.errors?.reason === 'object' ? 'material-symbols:warning-outline' : 'material-symbols:error-outline'"
+                                                    width="16" height="16" />
+                                                {{ typeof formFiling.errors?.reason === 'object' ?
+                                                    formFiling.errors?.reason.message : formFiling.errors?.reason }}
                                             </p>
 
                                             <!-- enhancing message -->
@@ -279,14 +279,14 @@
                                     <div class="grid grid-cols-2 gap-4">
                                         <template v-if="formFilledOvertime.current_status === 'PENDING'">
                                             <div class="col-span-1">
-                                                <SelectOption name="Start Time:"
+                                                <TimePickerInput name="Start Time:"
                                                     :message="formFilledOvertime.errors?.start_time"
-                                                    v-model="formFilledOvertime.start_time" :options="timeOptions" />
+                                                    v-model="formFilledOvertime.start_time" />
                                             </div>
                                             <div class="col-span-1">
-                                                <SelectOption name="End Time:"
+                                                <TimePickerInput name="End Time:"
                                                     :message="formFilledOvertime.errors?.end_time"
-                                                    v-model="formFilledOvertime.end_time" :options="timeOptions" />
+                                                    v-model="formFilledOvertime.end_time" />
                                             </div>
                                         </template>
                                         <template v-else>
@@ -412,7 +412,8 @@
 
             <div class="col-span-8 flex flex-col rounded-xl border border-base-300 bg-base-100 overflow-hidden">
                 <header class="flex items-center justify-between px-6 py-4 border-b border-base-300">
-                    <button class="btn btn-ghost btn-sm btn-square" :disabled="isNavigating" @click="handlePreviousMonth()">
+                    <button class="btn btn-ghost btn-sm btn-square" :disabled="isNavigating"
+                        @click="handlePreviousMonth()">
                         <Icon icon="ic:round-navigate-before" width="20" height="20" />
                     </button>
 
@@ -433,16 +434,14 @@
                 </div>
 
                 <div class="grid grid-cols-7 flex-1">
-                    <div v-for="(days, index) in calendardays" :key="index"
-                        :class="[
-                            'min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-200/50 transition-colors',
-                            days.type !== 'current' ? 'outside-month' : 'cursor-pointer hover:bg-accent/50 hover:border-primary',
-                            index === 0 ? 'rounded-tl-xl' : '',
-                            index === 6 ? 'rounded-tr-xl' : '',
-                            index === 35 ? 'rounded-bl-xl' : '',
-                            index === 41 ? 'rounded-br-xl' : ''
-                        ]"
-                        @click="days.type === 'current' && handleDateClick(days)">
+                    <div v-for="(days, index) in calendardays" :key="index" :class="[
+                        'min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-200/50 transition-colors',
+                        days.type !== 'current' ? 'outside-month' : 'cursor-pointer hover:bg-accent/50 hover:border-primary',
+                        index === 0 ? 'rounded-tl-xl' : '',
+                        index === 6 ? 'rounded-tr-xl' : '',
+                        index === 35 ? 'rounded-bl-xl' : '',
+                        index === 41 ? 'rounded-br-xl' : ''
+                    ]" @click="days.type === 'current' && handleDateClick(days)">
 
                         <span :class="[
                             'text-sm font-medium inline-flex items-center justify-center w-7 h-7 rounded-full',
@@ -456,7 +455,8 @@
                         </span>
 
                         <div v-if="getDateOvertimes(days) || getDateHoliday(days)" class="mt-1 space-y-0.5">
-                            <span v-if="getDateHoliday(days)" class="badge badge-xs badge-primary font-medium max-w-full truncate block"
+                            <span v-if="getDateHoliday(days)"
+                                class="badge badge-xs badge-primary font-medium max-w-full truncate block"
                                 :title="getDateHoliday(days).name">
                                 {{ getDateHoliday(days).name }}
                             </span>
@@ -499,7 +499,8 @@
                                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group">
                                 <div
                                     class="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary flex-shrink-0">
-                                    <span class="text-[10px] font-semibold uppercase leading-tight">{{ h.date?.split(' ')[0]?.substring(0, 3) }}</span>
+                                    <span class="text-[10px] font-semibold uppercase leading-tight">{{
+                                        h.date?.split('')[0]?.substring(0, 3) }}</span>
                                     <span class="text-lg font-bold leading-none">{{ h.date?.split(' ')[1] }}</span>
                                 </div>
                                 <div class="flex-1 min-w-0">
@@ -572,6 +573,7 @@ import Modal from '../Components/Modal.vue'
 import TextInput from '../Components/TextInput.vue'
 import TextArea from '../Components/TextArea.vue'
 import SelectOption from '../Components/SelectOption.vue'
+import TimePickerInput from '../Components/TimePicker.vue'
 import Card from '../Components/Card.vue'
 import { fetchUserSchedule } from '../api/schedule.js'
 import fetchUpcomingHolidays from '../api/upcomingHolidays.js'
@@ -962,7 +964,7 @@ const submitCancelation = () => {
 
     formFilledOvertime.post(route('overtime.update.employee'), {
         onSuccess: () => {
-            if (modeUpdate) {
+            if (modeUpdate.value) {
                 toast('Updating Successful', 'success')
             } else {
                 toast('Cancelation Successful', 'success')
@@ -1052,12 +1054,10 @@ watch(() => props.payload, (updatedPayload) => {
 }
 
 .outside-month {
-    background: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 10px,
-        color-mix(in oklch, var(--color-base-content) 10%, transparent) 10px,
-        color-mix(in oklch, var(--color-base-content) 10%, transparent) 12px
-    );
+    background: repeating-linear-gradient(45deg,
+            transparent,
+            transparent 10px,
+            color-mix(in oklch, var(--color-base-content) 10%, transparent) 10px,
+            color-mix(in oklch, var(--color-base-content) 10%, transparent) 12px);
 }
 </style>
