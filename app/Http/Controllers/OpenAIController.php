@@ -39,6 +39,7 @@ class OpenAIController extends Controller
         session_write_close();
 
         $response = new StreamedResponse(function () use ($reason) {
+            @ini_set('output_buffering', '0');
             while (ob_get_level()) ob_end_flush();
 
             $stream = OpenAI::chat()->createStreamed([
@@ -86,6 +87,7 @@ class OpenAIController extends Controller
 
         $response = new StreamedResponse(function () use ($content) {
             set_time_limit(120);
+            @ini_set('output_buffering', '0');
             while (ob_get_level()) ob_end_flush();
 
             $stream = OpenAI::chat()->createStreamed([
