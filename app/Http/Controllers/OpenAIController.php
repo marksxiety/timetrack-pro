@@ -15,7 +15,6 @@ class OpenAIController extends Controller
             return response()->json(['error' => 'Missing reason'], 400);
         }
 
-        // --- STEP 1: INITIAL AI VALIDATION (The Guardrail) ---
         $validator = OpenAI::chat()->create([
             'model' => env('AI_MODEL', 'gpt-4o-mini'),
             'messages' => [
@@ -28,7 +27,7 @@ class OpenAIController extends Controller
                 ],
                 ['role' => 'user', 'content' => $reason],
             ],
-            'temperature' => 0, // Keep it precise
+            'temperature' => 0,
         ]);
 
         $isValid = trim($validator->choices[0]->message->content);
@@ -37,8 +36,11 @@ class OpenAIController extends Controller
             return response()->json(['error' => 'Please provide a valid work-related reason.'], 422);
         }
 
-        // --- STEP 2: THE ENHANCEMENT STREAM (Main Logic) ---
+        session_write_close();
+
         $response = new StreamedResponse(function () use ($reason) {
+            while (ob_get_level()) ob_end_flush();
+
             $stream = OpenAI::chat()->createStreamed([
                 'model' => env('AI_MODEL', 'gpt-4o-mini'),
                 'messages' => [
@@ -60,7 +62,6 @@ class OpenAIController extends Controller
             foreach ($stream as $event) {
                 if (isset($event->choices[0]->delta->content)) {
                     echo $event->choices[0]->delta->content;
-                    ob_flush();
                     flush();
                 }
             }
@@ -69,6 +70,7 @@ class OpenAIController extends Controller
         $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
         $response->headers->set('Cache-Control', 'no-cache');
         $response->headers->set('X-Accel-Buffering', 'no');
+        $response->headers->set('Connection', 'close');
 
         return $response;
     }
@@ -80,8 +82,12 @@ class OpenAIController extends Controller
             return response()->json(['error' => 'Missing content'], 400);
         }
 
-        // Streamed response for incremental output
+        session_write_close();
+
         $response = new StreamedResponse(function () use ($content) {
+            set_time_limit(120);
+            while (ob_get_level()) ob_end_flush();
+
             $stream = OpenAI::chat()->createStreamed([
                 'model' => env('AI_MODEL', 'gpt-4o-mini'),
                 'messages' => [
@@ -112,11 +118,9 @@ class OpenAIController extends Controller
                 ],
             ]);
 
-            // flush data as it's received
             foreach ($stream as $event) {
                 if (isset($event->choices[0]->delta->content)) {
                     echo $event->choices[0]->delta->content;
-                    ob_flush();
                     flush();
                 }
             }
@@ -125,6 +129,7 @@ class OpenAIController extends Controller
         $response->headers->set('Content-Type', 'text/plain; charset=utf-8');
         $response->headers->set('Cache-Control', 'no-cache');
         $response->headers->set('X-Accel-Buffering', 'no');
+        $response->headers->set('Connection', 'close');
 
         return $response;
     }
