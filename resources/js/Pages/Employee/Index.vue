@@ -1,11 +1,7 @@
 <template>
-    <Modal ref="overtimeFilingModal">
-        <div class="py-4 mt-2">
+    <Modal ref="overtimeFilingModal" title="File Overtime Request">
+        <div>
             <div class="flex flex-col gap-2 w-full">
-                <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                    <Icon icon="material-symbols:schedule-outline" width="28" height="28" />
-                    File Overtime Request
-                </h2>
                 <div class="flex flex-col gap-4">
                     <form @submit.prevent="submitOvertime()" class="flex flex-col gap-1 min-h-96">
                         <!-- Loading State -->
@@ -187,15 +183,9 @@
             </div>
         </div>
     </Modal>
-    <Modal ref="overtimeRequestModal">
+    <Modal ref="overtimeRequestModal" title="Overtime Request Details">
         <div class="flex flex-col gap-2 w-full">
-            <div class="flex justify-end">
-                <span class="hover:opacity-70 rounded-full p-2 cursor-pointer transition-opacity"
-                    @click="closeOvertimeRequestModal()">
-                    <Icon icon="material-symbols:close-rounded" width="20" height="20" />
-                </span>
-            </div>
-            <div class="max-w-2xl mx-auto p-6 w-full">
+            <div class="max-w-2xl mx-auto w-full">
                 <form @submit.prevent="submitCancelation()">
                     <!-- Stepper -->
                     <div class="mb-8">

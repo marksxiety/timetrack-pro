@@ -1,8 +1,8 @@
 <template>
 
   <Head title="Filed List" />
-  <Modal ref="manageRequestModal" width="w-md">
-    <div class="py-4 mt-2">
+  <Modal ref="manageRequestModal" title="Overtime Request Details" width="w-md">
+    <div>
       <div class="flex flex-col gap-2 w-full">
         <!-- Stepper -->
         <div class="mb-6">

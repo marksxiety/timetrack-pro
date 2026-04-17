@@ -1,13 +1,8 @@
 <template>
 
     <Head title="Manage Schedules" />
-    <Modal ref="confirmSubmitModal">
-        <div class="flex flex-col gap-2 p-2">
-            <div class="flex flex-row justify-start items-center gap-2">
-                <h3 class="text-lg font-bold">Confirm Submission</h3>
-                <Icon icon="stash:question" width="28" height="28" />
-            </div>
-
+    <Modal ref="confirmSubmitModal" title="Confirm Submission">
+        <div class="flex flex-col gap-2">
             <p class="text-md">
                 Are you sure you want to submit the employee's schedule?
                 This action cannot be undone.
