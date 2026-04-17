@@ -64,3 +64,10 @@ export const statuses = [
     { label: "Canceled", value: "CANCELED" },
     { label: "Disapproved", value: "DISAPPROVED" },
 ];
+
+export const sortOptions = [
+    { label: "Newest First", value: "date_desc" },
+    { label: "Oldest First", value: "date_asc" },
+    { label: "Status A-Z", value: "status_asc" },
+    { label: "Status Z-A", value: "status_desc" },
+];
