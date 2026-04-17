@@ -72,10 +72,12 @@
                                             <div class="col-span-1">
                                                 <TimePickerInput name="Start Time:"
                                                     :message="formFiling.errors?.start_time"
+                                                    :minuteStep="minuteStep"
                                                     v-model="formFiling.start_time" />
                                             </div>
                                             <div class="col-span-1">
                                                 <TimePickerInput name="End Time:" :message="formFiling.errors?.end_time"
+                                                    :minuteStep="minuteStep"
                                                     v-model="formFiling.end_time" />
                                             </div>
                                         </div>
@@ -281,11 +283,13 @@
                                             <div class="col-span-1">
                                                 <TimePickerInput name="Start Time:"
                                                     :message="formFilledOvertime.errors?.start_time"
+                                                    :minuteStep="minuteStep"
                                                     v-model="formFilledOvertime.start_time" />
                                             </div>
                                             <div class="col-span-1">
                                                 <TimePickerInput name="End Time:"
                                                     :message="formFilledOvertime.errors?.end_time"
+                                                    :minuteStep="minuteStep"
                                                     v-model="formFilledOvertime.end_time" />
                                             </div>
                                         </template>
@@ -500,7 +504,7 @@
                                 <div
                                     class="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary flex-shrink-0">
                                     <span class="text-[10px] font-semibold uppercase leading-tight">{{
-                                        h.date?.split('')[0]?.substring(0, 3) }}</span>
+                                        h.date?.split(' ')[0]?.substring(0, 3) }}</span>
                                     <span class="text-lg font-bold leading-none">{{ h.date?.split(' ')[1] }}</span>
                                 </div>
                                 <div class="flex-1 min-w-0">
@@ -590,6 +594,7 @@ const months = [
     'July', 'August', 'September', 'October', 'November', 'December'
 ]
 const toast = inject('toast')
+const appConfig = inject('appConfig')
 const confirmingCancel = ref(false)
 const modeUpdate = ref(false)
 const greetingMessage = ref('')
@@ -598,6 +603,7 @@ const timeOptions = computed(() => getTimeOptions())
 const holidayMessage = ref('')
 const isEnhancing = ref(false)
 const isNavigating = ref(false)
+const minuteStep = ref(15)
 
 // ========= Props =============
 const props = defineProps({
@@ -719,6 +725,11 @@ const formFilledOvertime = useForm({
 // ========== Lifecycle ==========
 onMounted(async () => {
     updateCurrentMonthYear(currentYear.value, currentMonth.value)
+
+    const step = appConfig.value?.overtime_minute_step
+    if ([1, 5, 10, 15, 30].includes(step)) {
+        minuteStep.value = step
+    }
 
     totalovertime.value = props?.stats?.total_overtime_hours ?? 0
     approvedovertime.value = props?.stats?.approved_requests ?? 0
