@@ -879,6 +879,8 @@ class OvertimeRequestController extends Controller
             $requests->getCollection()->transform(function ($req) {
                 return [
                     'id'      => $req->id,
+                    'employee_schedule_id' => $req->employee_schedule_id,
+                    'created_at' => $req->created_at ? $req->created_at->format('M d, Y h:i A') : 'N/A',
                     'shift'   => $req->schedule->shift ? $req->schedule->shift->code : 'N/A',
                     'shift_start_time' => $req->schedule->shift && $req->schedule->shift->start_time
                         ? Carbon::createFromFormat('H:i:s', $req->schedule->shift->start_time)->format('h:i A')
@@ -887,6 +889,7 @@ class OvertimeRequestController extends Controller
                         ? Carbon::createFromFormat('H:i:s', $req->schedule->shift->end_time)->format('h:i A')
                         : '--',
                     'start_time' => $req->start_time ? Carbon::createFromFormat('H:i:s', $req->start_time)->format('h:i A') : 'N/A',
+                    'end_time' => $req->end_time ? Carbon::createFromFormat('H:i:s', $req->end_time)->format('h:i A') : 'N/A',
                     'date'    => $req->schedule->date,
                     'week'    => $req->schedule->week,
                     'status'  => $req->status,
