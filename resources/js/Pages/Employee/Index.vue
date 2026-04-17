@@ -609,8 +609,8 @@ const props = defineProps({
 
 // ========== Calendar Refs ==========
 const currentMonthYear = ref('')
-const currentYear = ref(props?.payload?.year)
-const currentMonth = ref(props?.payload?.month - 1)
+const currentYear = ref(parseInt(props?.payload?.year) || new Date().getFullYear())
+const currentMonth = ref(parseInt(props?.payload?.month) - 1 || 0)
 
 const lastDateOfMonth = ref(0)
 const firstDayOfMonth = ref(0)
@@ -1038,8 +1038,8 @@ watch(() => props.info?.recentRequestsList, (updatedRequests) => {
 
 watch(() => props.payload, (updatedPayload) => {
     if (updatedPayload) {
-        currentYear.value = updatedPayload.year
-        currentMonth.value = updatedPayload.month - 1
+        currentYear.value = parseInt(updatedPayload.year) || new Date().getFullYear()
+        currentMonth.value = (parseInt(updatedPayload.month) || 1) - 1
         updateCurrentMonthYear(currentYear.value, currentMonth.value)
     }
 })
