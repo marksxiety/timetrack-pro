@@ -1,17 +1,23 @@
-import { ref } from "vue";
+import { ref, watch } from "vue";
 
-// Detect stored theme or browser preference
-const defaultTheme =
-    localStorage.getItem("theme") ||
-    (window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
+const getInitialTheme = () => {
+    const stored = localStorage.getItem("theme");
+    if (stored) return stored;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches
         ? "dark"
-        : "light");
+        : "light";
+};
 
-export const theme = ref(defaultTheme);
+const initialTheme = getInitialTheme();
+document.documentElement.setAttribute("data-theme", initialTheme);
+
+export const theme = ref(initialTheme);
+
+watch(theme, (value) => {
+    document.documentElement.setAttribute("data-theme", value);
+    localStorage.setItem("theme", value);
+});
 
 export function setTheme(newTheme) {
     theme.value = newTheme;
-    document.documentElement.setAttribute("data-theme", newTheme);
-    localStorage.setItem("theme", newTheme);
 }
