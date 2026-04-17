@@ -150,6 +150,7 @@ import SelectOption from '../Components/SelectOption.vue'
 import Modal from '../Components/Modal.vue'
 
 const toast = inject('toast')
+const appConfig = inject('appConfig')
 
 const props = defineProps({
     flash: Object,
@@ -188,9 +189,7 @@ onMounted(async () => {
     // so it can be used directly in <SelectOption>
     const shiftData = shiftsResponse?.data ?? []
     shifts.value = shiftData.map(element => ({
-        label: (element.start_time && element.end_time)
-            ? element.code
-            : element.code,
+        label: (element.start_time && element.end_time) ? `${element.code}: ${element.start_time} - ${element.end_time}` : `${element.code}: N/A`,
         value: element.id
     }))
 
@@ -209,15 +208,9 @@ onMounted(async () => {
         toast("Loading Employee(s) schedule failed. Please try again", 'error')
     }
 
-    try {
-        const configResponse = await fetch('/setup/config')
-        const configData = await configResponse.json()
-        defaultShiftCodes.value = Array.isArray(configData?.default_shift_codes)
-            ? configData.default_shift_codes.map(entry => entry.code.trim()).filter(code => code !== '')
-            : []
-    } catch {
-        defaultShiftCodes.value = []
-    }
+    defaultShiftCodes.value = Array.isArray(appConfig.value?.default_shift_codes)
+        ? appConfig.value.default_shift_codes.map(entry => entry.code.trim()).filter(code => code !== '')
+        : []
 
     isLoading.value = false
 })
