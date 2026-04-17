@@ -147,7 +147,6 @@ const toggleTheme = () => {
 }
 
 onMounted(() => {
-    setTheme(theme.value)
     loadConfig()
 })
 
