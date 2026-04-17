@@ -92,6 +92,7 @@ const page = usePage()
 const user_id = ref(page?.props?.auth?.user?.id)
 
 const toast = inject('toast')
+const appConfig = inject('appConfig')
 
 // Default selected year and week
 const selectedYear = ref(new Date().getFullYear())
@@ -138,7 +139,7 @@ async function loadScheduleData() {
         // so it can be used directly in <SelectOption>
         const shiftData = shiftsResponse?.data ?? []
         shifts.value = shiftData.map(element => ({
-            label: (element.start_time && element.end_time) ? `${element.code}: ${element.start_time} - ${element.end_time}` : `${element.code === 'SY' ? 'NO WORK SCHEDULE' : 'RESTDAY/HOLIDAY'}`,
+            label: (element.start_time && element.end_time) ? `${element.code}: ${element.start_time} - ${element.end_time}` : `${element.code}: RESTDAY / DAYOFF`,
             value: element.id
         }))
 
@@ -148,15 +149,9 @@ async function loadScheduleData() {
         tableText.value = 'Failed to load schedules.'
     }
 
-    try {
-        const configResponse = await fetch('/setup/config')
-        const configData = await configResponse.json()
-        defaultShiftCodes.value = Array.isArray(configData?.default_shift_codes)
-            ? configData.default_shift_codes.map(entry => entry.code.trim()).filter(code => code !== '')
-            : []
-    } catch {
-        defaultShiftCodes.value = []
-    }
+    defaultShiftCodes.value = Array.isArray(appConfig.value?.default_shift_codes)
+        ? appConfig.value.default_shift_codes.map(entry => entry.code.trim()).filter(code => code !== '')
+        : []
 
     isLoading.value = false
 }
