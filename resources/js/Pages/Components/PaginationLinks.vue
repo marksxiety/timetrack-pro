@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col md:flex-row justify-between items-center mt-4 gap-2 p-4 w-full">
+    <div class="flex flex-col md:flex-row justify-between items-center mt-2 gap-2 p-2 w-full">
         <!-- Pagination summary -->
         <div>
             <p class="text-sm">

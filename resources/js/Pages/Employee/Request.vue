@@ -64,9 +64,8 @@
                                             :placeholder="''" />
                                     </div>
                                     <div class="col-span-1">
-                                        <TextInput name="End:" type="text"
-                                            v-model="formFilledOvertime.shift_end_time" :readonly="true"
-                                            :placeholder="''" />
+                                        <TextInput name="End:" type="text" v-model="formFilledOvertime.shift_end_time"
+                                            :readonly="true" :placeholder="''" />
                                     </div>
                                 </div>
                             </div>
@@ -84,24 +83,24 @@
                                             <div class="col-span-1">
                                                 <TimePickerInput name="Start Time:"
                                                     :message="formFilledOvertime.errors?.start_time"
-                                                    :minuteStep="minuteStep"
-                                                    v-model="formFilledOvertime.start_time" />
+                                                    :minuteStep="minuteStep" v-model="formFilledOvertime.start_time" />
                                             </div>
                                             <div class="col-span-1">
                                                 <TimePickerInput name="End Time:"
                                                     :message="formFilledOvertime.errors?.end_time"
-                                                    :minuteStep="minuteStep"
-                                                    v-model="formFilledOvertime.end_time" />
+                                                    :minuteStep="minuteStep" v-model="formFilledOvertime.end_time" />
                                             </div>
                                         </template>
                                         <template v-else>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">Start Time</span>
-                                                <span class="font-semibold">{{ formatTime(formFilledOvertime.start_time) }}</span>
+                                                <span class="font-semibold">{{ formatTime(formFilledOvertime.start_time)
+                                                }}</span>
                                             </div>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">End Time</span>
-                                                <span class="font-semibold">{{ formatTime(formFilledOvertime.end_time) }}</span>
+                                                <span class="font-semibold">{{ formatTime(formFilledOvertime.end_time)
+                                                }}</span>
                                             </div>
                                         </template>
                                     </div>
@@ -111,7 +110,8 @@
                                     <div class="space-y-3">
                                         <div class="flex items-center justify-between">
                                             <label class="font-semibold text-sm flex items-center gap-2">
-                                                <Icon icon="material-symbols:edit-note-outline" width="18" height="18" />
+                                                <Icon icon="material-symbols:edit-note-outline" width="18"
+                                                    height="18" />
                                                 Reason
                                             </label>
                                             <div v-if="formFilledOvertime.current_status === 'PENDING'">
@@ -120,9 +120,12 @@
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
                                                             @click="enhanceReason()" :disabled="isEnhancing">
-                                                            <span v-if="isEnhancing" class="loading loading-spinner loading-xs"></span>
-                                                            <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18" height="18" />
-                                                            <span class="font-medium">{{ isEnhancing ? 'Enhancing...' : 'Enhance with AI' }}</span>
+                                                            <span v-if="isEnhancing"
+                                                                class="loading loading-spinner loading-xs"></span>
+                                                            <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
+                                                                height="18" />
+                                                            <span class="font-medium">{{ isEnhancing ? 'Enhancing...' :
+                                                                'Enhance with AI' }}</span>
                                                         </button>
                                                     </span>
                                                 </div>
@@ -156,8 +159,10 @@
                         <div v-if="!confirmingCancel" class="flex gap-3">
                             <button type="submit" class="btn btn-primary flex-1 gap-2"
                                 :disabled="formFilledOvertime.processing" @click="modeUpdate = true">
-                                <span v-if="formFilledOvertime.processing && modeUpdate" class="loading loading-spinner loading-sm"></span>
-                                <Icon v-if="!formFilledOvertime.processing || !modeUpdate" icon="material-symbols:check-circle-outline" width="20" height="20" />
+                                <span v-if="formFilledOvertime.processing && modeUpdate"
+                                    class="loading loading-spinner loading-sm"></span>
+                                <Icon v-if="!formFilledOvertime.processing || !modeUpdate"
+                                    icon="material-symbols:check-circle-outline" width="20" height="20" />
                                 <span class="font-medium">Update Request</span>
                             </button>
                             <button type="button" class="btn btn-outline flex-1 gap-2" @click="confirmingCancel = true"
@@ -170,12 +175,14 @@
                             <Icon icon="material-symbols:warning-outline" width="24" height="24" class="text-warning" />
                             <div class="flex-1">
                                 <h3 class="font-bold">Confirm Cancellation</h3>
-                                <div class="text-xs opacity-70">Are you sure you want to cancel this overtime request?</div>
+                                <div class="text-xs opacity-70">Are you sure you want to cancel this overtime request?
+                                </div>
                             </div>
                             <div class="flex gap-2">
                                 <button type="submit" class="btn btn-sm btn-error gap-2" @click="modeUpdate = false"
                                     :disabled="formFilledOvertime.processing">
-                                    <span v-if="formFilledOvertime.processing" class="loading loading-spinner loading-xs"></span>
+                                    <span v-if="formFilledOvertime.processing"
+                                        class="loading loading-spinner loading-xs"></span>
                                     <span>Yes, Cancel</span>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline" @click="confirmingCancel = false"
@@ -208,17 +215,17 @@
 
         <!-- Main Card -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
-            <div class="card-body p-4">
+            <div class="card-body px-6 py-3">
                 <!-- Header -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
                     <div>
-                        <h1 class="text-2xl font-bold text-base-content">Overtime Requests</h1>
+                        <h1 class="text-xl font-bold text-base-content">Overtime Requests</h1>
                         <p class="text-base-content/60 text-sm mt-1">Track and manage your overtime submissions</p>
                     </div>
                 </div>
 
                 <!-- Filters Section -->
-                <div class="bg-base-200 rounded-xl p-4 mb-6">
+                <div class="mb-2">
                     <div class="flex flex-col lg:flex-row gap-3">
                         <div class="flex-1">
                             <TextInput name="Search" type="text" v-model="searchValue"
@@ -248,10 +255,12 @@
                     </div>
                 </div>
 
+                <div class="divider my-0"></div>
+
                 <!-- Table Section -->
                 <div class="overflow-auto max-h-[40vh] rounded-lg border border-base-300 bg-base-100">
                     <table class="table table-fixed w-full">
-                        <thead class="bg-base-200">
+                        <thead class="bg-base-200 sticky top-0 z-10">
                             <tr>
                                 <th class="font-bold text-sm">Date</th>
                                 <th class="font-bold text-sm text-center">Shift Code</th>
@@ -275,8 +284,7 @@
                                 </td>
                             </tr>
 
-                            <tr v-else v-for="req in requests" :key="req.id"
-                                class="hover:bg-base-200 cursor-pointer"
+                            <tr v-else v-for="req in requests" :key="req.id" class="hover:bg-base-200 cursor-pointer"
                                 @click="openRequestModal(req)">
                                 <td class="font-medium">{{ req.date }}</td>
                                 <td class="font-medium text-center">{{ req.shift }}</td>
@@ -323,7 +331,7 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="mt-2">
+                <div>
                     <PaginationLinks :paginator="paginator" />
                 </div>
             </div>
