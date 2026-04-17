@@ -69,69 +69,73 @@ class ScheduleController extends Controller
     public function submitSchedule(Request $request)
     {
         $info = $request->input('schedule');
-        $resultSchedules = [];
 
         try {
-            foreach ($info as $item) {
+            $resultSchedules = DB::transaction(function () use ($info) {
+                $resultSchedules = [];
 
-                if (!empty($item['id'])) {
-                    Schedule::where('id', $item['id'])->update([
-                        'user_id' => Auth::id(),
-                        'shift_id' => $item['shift_code'],
-                        'date' => $item['date'],
-                        'week' => $item['week'],
-                    ]);
+                foreach ($info as $item) {
 
-                    $updated = Schedule::find($item['id']);
-                    $resultSchedules[] = [
-                        'id' => $updated->id,
-                        'date' => $updated->date,
-                        'week' => $updated->week,
-                        'day' => $item['day'],
-                        'shift_code' => $updated->shift_id,
-                    ];
-                } else {
-                    if (empty($item['shift_code'])) {
-                        $resultSchedules[] = [
-                            'id' => null,
+                    if (!empty($item['id'])) {
+                        Schedule::where('id', $item['id'])->update([
+                            'user_id' => Auth::id(),
+                            'shift_id' => $item['shift_code'],
                             'date' => $item['date'],
                             'week' => $item['week'],
+                        ]);
+
+                        $updated = Schedule::find($item['id']);
+                        $resultSchedules[] = [
+                            'id' => $updated->id,
+                            'date' => $updated->date,
+                            'week' => $updated->week,
                             'day' => $item['day'],
-                            'shift_code' => null
+                            'shift_code' => $updated->shift_id,
                         ];
-                        continue;
+                    } else {
+                        if (empty($item['shift_code'])) {
+                            $resultSchedules[] = [
+                                'id' => null,
+                                'date' => $item['date'],
+                                'week' => $item['week'],
+                                'day' => $item['day'],
+                                'shift_code' => null
+                            ];
+                            continue;
+                        }
+
+                        $created = Schedule::create([
+                            'user_id' => Auth::id(),
+                            'shift_id' => $item['shift_code'],
+                            'date' => $item['date'],
+                            'week' => $item['week'],
+                        ]);
+
+                        $resultSchedules[] = [
+                            'id' => $created->id,
+                            'date' => $created->date,
+                            'week' => $created->week,
+                            'day' => $item['day'],
+                            'shift_code' => $created->shift_id,
+                        ];
                     }
-
-                    $created = Schedule::create([
-                        'user_id' => Auth::id(),
-                        'shift_id' => $item['shift_code'],
-                        'date' => $item['date'],
-                        'week' => $item['week'],
-                    ]);
-
-                    $resultSchedules[] = [
-                        'id' => $created->id,
-                        'date' => $created->date,
-                        'week' => $created->week,
-                        'day' => $item['day'],
-                        'shift_code' => $created->shift_id,
-                    ];
                 }
-            }
 
-            $success = true;
-            $message = 'Submission Successful';
+                return $resultSchedules;
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Submission Successful',
+                'schedules' => $resultSchedules
+            ]);
         } catch (\Throwable $th) {
-            $success = false;
-            $message = 'Submission Failed';
-            $resultSchedules = [];
+            return response()->json([
+                'success' => false,
+                'message' => 'Submission Failed',
+                'schedules' => []
+            ]);
         }
-
-        return response()->json([
-            'success' => $success,
-            'message' => $message,
-            'schedules' => $resultSchedules
-        ]);
     }
 
 
