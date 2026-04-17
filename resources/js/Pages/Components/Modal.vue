@@ -9,7 +9,7 @@
                 </button>
             </div>
             <!-- Scrollable content only -->
-            <div class="overflow-y-auto px-6 py-4">
+            <div class="overflow-y-auto overflow-x-hidden p-6">
                 <slot></slot>
             </div>
         </div>
