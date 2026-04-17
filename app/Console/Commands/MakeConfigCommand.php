@@ -26,6 +26,7 @@ class MakeConfigCommand extends Command
         $defaultConfig = [
             'default_shift_codes' => array_map(fn($day) => ['day' => $day, 'code' => ''], $days),
             'minimum_overtime_hours' => 1,
+            'overtime_minute_step' => 15,
         ];
 
         if (!is_dir(dirname($path))) {
