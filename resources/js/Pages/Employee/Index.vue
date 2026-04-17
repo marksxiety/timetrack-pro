@@ -67,14 +67,12 @@
                                         <div class="grid grid-cols-2 gap-4">
                                             <div class="col-span-1">
                                                 <TimePickerInput name="Start Time:"
-                                                    :message="formFiling.errors?.start_time"
-                                                    :minuteStep="minuteStep"
+                                                    :message="formFiling.errors?.start_time" :minuteStep="minuteStep"
                                                     v-model="formFiling.start_time" />
                                             </div>
                                             <div class="col-span-1">
                                                 <TimePickerInput name="End Time:" :message="formFiling.errors?.end_time"
-                                                    :minuteStep="minuteStep"
-                                                    v-model="formFiling.end_time" />
+                                                    :minuteStep="minuteStep" v-model="formFiling.end_time" />
                                             </div>
                                         </div>
 
@@ -273,26 +271,24 @@
                                             <div class="col-span-1">
                                                 <TimePickerInput name="Start Time:"
                                                     :message="formFilledOvertime.errors?.start_time"
-                                                    :minuteStep="minuteStep"
-                                                    v-model="formFilledOvertime.start_time" />
+                                                    :minuteStep="minuteStep" v-model="formFilledOvertime.start_time" />
                                             </div>
                                             <div class="col-span-1">
                                                 <TimePickerInput name="End Time:"
                                                     :message="formFilledOvertime.errors?.end_time"
-                                                    :minuteStep="minuteStep"
-                                                    v-model="formFilledOvertime.end_time" />
+                                                    :minuteStep="minuteStep" v-model="formFilledOvertime.end_time" />
                                             </div>
                                         </template>
                                         <template v-else>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">Start Time</span>
                                                 <span class="font-semibold">{{ formatTime(formFilledOvertime.start_time)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">End Time</span>
                                                 <span class="font-semibold">{{ formatTime(formFilledOvertime.end_time)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </template>
                                     </div>
@@ -404,8 +400,8 @@
 
         <div class="gap-4 grid grid-cols-12">
 
-            <div class="col-span-8 flex flex-col rounded-xl border border-base-300 bg-base-100 overflow-hidden">
-                <header class="flex items-center justify-between px-6 py-4 border-b border-base-300">
+            <div class="col-span-8 flex flex-col rounded-xl border border-base-300 bg-base-100 overflow-hidden p-4">
+                <header class="flex items-center justify-between p-2 border-b border-base-300">
                     <button class="btn btn-ghost btn-sm btn-square" :disabled="isNavigating"
                         @click="handlePreviousMonth()">
                         <Icon icon="ic:round-navigate-before" width="20" height="20" />
@@ -429,8 +425,10 @@
 
                 <div class="grid grid-cols-7 flex-1">
                     <div v-for="(days, index) in calendardays" :key="index" :class="[
-                        'min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-200/50 transition-colors',
-                        days.type !== 'current' ? 'outside-month' : 'cursor-pointer hover:bg-accent/50 hover:border-primary',
+                        'calendar-tile min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-200/50 transition-all duration-200 ease-out',
+                        days.type !== 'current'
+                            ? 'outside-month'
+                            : 'cursor-pointer hover:bg-base-300 hover:border-primary hover:rounded-lg hover:scale-[1.03] hover:-translate-y-0.5 hover:shadow-md',
                         index === 0 ? 'rounded-tl-xl' : '',
                         index === 6 ? 'rounded-tr-xl' : '',
                         index === 35 ? 'rounded-bl-xl' : '',
@@ -450,7 +448,7 @@
 
                         <div v-if="getDateOvertimes(days) || getDateHoliday(days)" class="mt-1 space-y-0.5">
                             <span v-if="getDateHoliday(days)"
-                                class="badge badge-xs badge-primary font-medium max-w-full truncate block"
+                                class="badge badge-xs badge-primary font-medium max-w-full truncate block badge-animate"
                                 :title="getDateHoliday(days).name">
                                 {{ getDateHoliday(days).name }}
                             </span>
@@ -465,7 +463,7 @@
                                     {{ ot.shift_code }}: {{ ot.hours }}hrs
                                 </span>
                                 <span v-if="getDateOvertimes(days).length > 2"
-                                    class="text-[10px] text-base-content/40 leading-tight block pl-1">
+                                    class="badge badge-xs badge-ghost border border-base-300 block">
                                     +{{ getDateOvertimes(days).length - 2 }} more
                                 </span>
                             </template>
@@ -477,7 +475,8 @@
             <div class="col-span-4 flex flex-col gap-4">
 
                 <!-- Upcoming Holidays -->
-                <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-80">
+                <div
+                    class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-full max-h-80">
                     <div class="px-4 py-3 border-b border-base-300">
                         <h2 class="text-sm font-semibold tracking-tight">
                             Upcoming Holidays
@@ -511,7 +510,7 @@
                 </div>
 
                 <!-- My Requests -->
-                <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-[22.5rem]">
+                <div class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-full">
                     <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
                         <h2 class="text-sm font-semibold tracking-tight">
                             My Recent Requests
@@ -1060,5 +1059,37 @@ watch(() => props.payload, (updatedPayload) => {
             transparent 10px,
             color-mix(in oklch, var(--color-base-content) 10%, transparent) 10px,
             color-mix(in oklch, var(--color-base-content) 10%, transparent) 12px);
+}
+
+@keyframes tile-pop {
+    0% {
+        transform: scale(0.96);
+        opacity: 0.6;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.calendar-tile {
+    animation: tile-pop 0.25s ease-out;
+}
+
+@keyframes fade-slide-up {
+    0% {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.badge-animate {
+    animation: fade-slide-up 0.25s ease forwards;
 }
 </style>
