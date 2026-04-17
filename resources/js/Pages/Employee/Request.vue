@@ -233,6 +233,10 @@
                             <SelectOption name="Status" :options="statuses" v-model="selectedStatus" margin=""
                                 class="select-bordered w-full" />
                         </div>
+                        <div class="flex-none w-full lg:w-44">
+                            <SelectOption name="Sort" :options="sortOptions" v-model="selectedSort" margin=""
+                                class="select-bordered w-full" />
+                        </div>
                         <div class="flex-none self-end">
                             <button
                                 class="btn btn-primary gap-2 w-full lg:w-auto shadow-md hover:shadow-lg transition-shadow"
@@ -340,7 +344,7 @@ import Card from '../Components/Card.vue'
 import { Icon } from "@iconify/vue"
 import { Link, useForm, router } from '@inertiajs/vue3'
 import { ref, computed, watch, inject, onMounted } from 'vue'
-import { weeks, statuses } from '../utils/dropdownOptions.js'
+import { weeks, statuses, sortOptions } from '../utils/dropdownOptions.js'
 import { enhanceReasonWithAI } from "../services/ai.js"
 
 const toast = inject('toast')
@@ -389,6 +393,7 @@ const props = defineProps({
 
 const selectedWeek = ref(props.payload?.week ?? '')
 const selectedStatus = ref(props.payload?.status ?? '')
+const selectedSort = ref(props.payload?.sort ?? 'date_desc')
 const searchValue = ref(props.payload?.search ?? '')
 
 
@@ -429,6 +434,7 @@ const handleFilter = () => {
         filters: {
             week: selectedWeek.value,
             status: selectedStatus.value,
+            sort: selectedSort.value,
             search: searchValue.value
         }
     }
@@ -438,6 +444,7 @@ const fetchRequests = () => {
     router.get(route('overtime.requests.employee'), {
         week: selectedWeek.value,
         status: selectedStatus.value,
+        sort: selectedSort.value,
         search: searchValue.value
     }, {
         preserveState: true,
