@@ -115,6 +115,7 @@ import Toast from '../Pages/Components/Toast.vue'
 import { ref, provide, onMounted } from 'vue'
 import { Icon } from "@iconify/vue"
 import { theme, setTheme } from '../Pages/utils/themeStore.js'
+import { useConfig } from '../Pages/utils/configStore.js'
 
 const toastRef = ref()
 const slotClass = ref('overflow-hidden')
@@ -136,6 +137,9 @@ const props = defineProps({
 })
 
 const isLight = ref(theme.value === 'light')
+const { config, loadConfig } = useConfig()
+
+provide('appConfig', config)
 
 const toggleTheme = () => {
     const newTheme = isLight.value ? 'light' : 'dark'
@@ -144,6 +148,7 @@ const toggleTheme = () => {
 
 onMounted(() => {
     setTheme(theme.value)
+    loadConfig()
 })
 
 </script>
