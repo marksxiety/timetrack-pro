@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.1.1] - 2026-04-17
+
+### Added
+
+- ConfigStore module to load and cache app config via shared reactive ref,
+  injected into child components
+- Custom TimePicker component with scrollable hour/minute/AM-PM selector,
+  replacing SelectOption time inputs on employee overtime page
+- `overtime_minute_step` key to default config in `make:config` command
+- Regenerate button to AI insight engine with scrollIntoView behavior
+
+### Changed
+
+- Rewrite overtime validation to load shift from DB, use before/after
+  classification, fix night shift handling, prevent Carbon mutation in
+  `calculateOvertimeHours`, and enforce 0.25 increments
+- Extract theme initialization into `getInitialTheme` in themeStore, sync
+  `data-theme` and localStorage via watch instead of manual `setTheme` calls
+- Replace initials avatar with image avatar and fallback initials in recent
+  requests
+- Move regenerate button into AI response card and simplify regeneration state
+- Extract `readSSEStream` helper in AI service and `streamResponse` helper in
+  OpenAI controller with SSE format
+- Adjust request page table layout with scrollable container
+
+### Fixed
+
+- Fix holiday date display splitting from empty string to space
+- Fix overtime chart height from `min-h-[45vh]` to `max-h-[45vh]`
+- Fix SSE streaming reliability: disable gzip compression and output buffering
+  for AI streaming routes
+- Fix CSRF authentication in AI service and schedule API using XSRF-TOKEN
+  cookie
+
+### Testing
+
+- Add OvertimeRequestValidationTest covering day/night shift overlap, swapped
+  times, rest day, update, `calculateOvertimeHours`, and config validation
+  cases
+- Remove default Laravel example tests from Feature and Unit directories
+
+### Documentation
+
+- Add overtime filing scenarios covering day shift, night shift, rest day, and
+  classification logic
+- Update setup guide with cache clearing step, build checklist, and application
+  launch instructions
+
 ## [v1.1.0] - 2026-04-15
 
 ### Added
