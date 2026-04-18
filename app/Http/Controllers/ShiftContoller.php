@@ -35,16 +35,21 @@ class ShiftContoller extends Controller
     }
     public function updateShiftCode(Request $request, Shift $shift)
     {
-        $data = $request->validate([
+        $rules = [
             'code' => [
                 'required',
                 'string',
                 'max:10',
                 Rule::unique('shift_codes')->ignore($shift->id),
             ],
-            'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
-        ]);
+        ];
+
+        if (!$request->timerequired) {
+            $rules['start_time'] = 'required';
+            $rules['end_time'] = 'required|after:start_time';
+        }
+
+        $data = $request->validate($rules);
 
         $shift->update($data);
 

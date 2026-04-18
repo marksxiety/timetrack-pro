@@ -221,7 +221,11 @@ class AuthController extends Controller
             'email' => 'required|email|exists:users,email',
         ]);
 
-        $status = Password::sendResetLink($request->only('email'));
+        try {
+            $status = Password::sendResetLink($request->only('email'));
+        } catch (\Throwable $e) {
+            return back()->withErrors(['email' => 'Unable to send reset link. Please try again later.']);
+        }
 
         if ($status === Password::RESET_LINK_SENT) {
             return back()->with('message', __($status));

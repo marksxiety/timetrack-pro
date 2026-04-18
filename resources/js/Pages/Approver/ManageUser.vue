@@ -1,17 +1,8 @@
 <template>
 
     <Head title="Manage Users" />
-    <Modal ref="displayUserModal">
+    <Modal ref="displayUserModal" title="Update User Profile">
         <div class="flex flex-col">
-            <div class="flex items-center gap-2 mb-4">
-                <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Icon icon="material-symbols:person-edit-rounded" class="text-primary text-lg" />
-                </div>
-                <div>
-                    <h3 class="text-base font-bold">Update User Profile</h3>
-                    <p class="text-[11px] opacity-50">Modify user information and settings</p>
-                </div>
-            </div>
             <form @submit.prevent="updateUserProfile()">
                 <div class="card border border-base-300 shadow-xs mb-3">
                     <div class="card-body p-3">

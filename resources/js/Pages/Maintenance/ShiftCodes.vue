@@ -1,8 +1,8 @@
 <template>
 
     <Head title="Manage Shift Codes" />
-    <Modal ref="modalRef">
-        <h2 class="text-lg font-bold mb-4">Are you sure you want to delete?</h2>
+    <Modal ref="modalRef" title="Delete Shift Code">
+        <p class="text-md mb-4">Are you sure you want to delete this shift code?</p>
         <div class="flex justify-end gap-4">
             <button class="btn btn-sm btn-primary mt-4" @click="handleDeletion()" :disabled="deleteform.processing">
                 <span v-if="deleteform.processing" class="loading loading-spinner"></span>
@@ -135,7 +135,8 @@ const form = useForm({
     code: '',
     start_time: '',
     end_time: '',
-    timerequired: noreqtime.value
+    is_rest_day: false,
+    timerequired: false
 })
 
 const deleteform = useForm()
@@ -156,13 +157,14 @@ const submitForm = () => {
             }
         })
     } else {
-        if (id) {
+        if (id.value) {
             console.log(form)
             form.put(route('shift.update', id.value), {
                 onSuccess: () => {
                     form.reset()
                     toast('Shift code Updated Successfully.', 'success')
                     mode.value = 'insert'
+                    id.value = null
                 },
                 onError: (errors) => {
                     toast('Shift Code updating failed. Please try again.', 'danger')
@@ -180,7 +182,7 @@ const initiateDeletion = (shift_id) => {
 }
 
 const handleDeletion = () => {
-    if (id) {
+    if (id.value) {
         mode.value = 'delete'
         deleteform.delete(route('shift.delete', id.value), {
             onSuccess: () => {
@@ -200,15 +202,19 @@ const handleDeletion = () => {
 
 const handleHypyerLink = (data) => {
     form.code = data.code
-    form.start_time = data.start_time
-    form.end_time = data.end_time
+    form.start_time = data.start_time ?? ''
+    form.end_time = data.end_time ?? ''
+    form.is_rest_day = !data.start_time && !data.end_time
+    form.timerequired = !(!data.start_time && !data.end_time)
     mode.value = 'update'
     id.value = data.id
 
     if (!data.start_time && !data.end_time) {
         isDisabled.value = true
+        noreqtime.value = true
     } else {
         isDisabled.value = false
+        noreqtime.value = false
     }
 
 }

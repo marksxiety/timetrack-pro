@@ -1,5 +1,6 @@
 const currentYear = new Date().getFullYear();
 const currentWeekNum = currentWeek();
+const currentMonth = new Date().getMonth() + 1;
 export const years = [];
 for (let i = 0; i < 7; i++) {
     const year = currentYear - 1 + i;
@@ -19,6 +20,15 @@ for (let w = 1; w <= 52; w++) {
     });
 }
 
+const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+export const months = monthNames.map((name, idx) => {
+    const m = idx + 1;
+    return {
+        label: m === currentMonth ? `${name} **` : name,
+        value: m,
+    };
+});
+
 export function currentWeek(date = new Date()) {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
     const pastDaysOfYear =
@@ -35,6 +45,37 @@ export function currentWeek(date = new Date()) {
         (pastDaysOfYear + firstDayOfYear.getDay()) / 7,
     );
     return weekNumber;
+}
+
+function formatShortDate(date) {
+    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${names[date.getMonth()]} ${date.getDate()}`;
+}
+
+function getWeekNumberForYear(date, year) {
+    const jan1 = new Date(year, 0, 1);
+    const yearStartSunday = new Date(jan1);
+    yearStartSunday.setDate(yearStartSunday.getDate() - jan1.getDay());
+    return Math.floor(Math.round((date - yearStartSunday) / 86400000) / 7) + 1;
+}
+
+export function getWeeksInMonth(year, month) {
+    const weeks = [];
+    const firstOfMonth = new Date(year, month - 1, 1);
+    const lastOfMonth = new Date(year, month, 0);
+    let sunday = new Date(firstOfMonth);
+    sunday.setDate(sunday.getDate() - sunday.getDay());
+    while (sunday <= lastOfMonth) {
+        const saturday = new Date(sunday);
+        saturday.setDate(saturday.getDate() + 6);
+        weeks.push({
+            weekNumber: getWeekNumberForYear(sunday, year),
+            startDate: formatShortDate(sunday),
+            endDate: formatShortDate(saturday),
+        });
+        sunday.setDate(sunday.getDate() + 7);
+    }
+    return weeks;
 }
 
 export function getTimeOptions() {
@@ -63,4 +104,11 @@ export const statuses = [
     { label: "Declined", value: "DECLINED" },
     { label: "Canceled", value: "CANCELED" },
     { label: "Disapproved", value: "DISAPPROVED" },
+];
+
+export const sortOptions = [
+    { label: "Newest First", value: "date_desc" },
+    { label: "Oldest First", value: "date_asc" },
+    { label: "Status A-Z", value: "status_asc" },
+    { label: "Status Z-A", value: "status_desc" },
 ];
