@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.1.2] - 2026-04-18
+
+### Added
+
+- Employee schedule page redesign to monthly view with weekly rows and
+  per-week default shift toggle
+- Months dropdown options and `getWeeksInMonth` utility function
+- Size prop to SelectOption component and center select text
+- Sort dropdown to employee request filters with newest, oldest, and
+  status sort values wired to fetch params
+- Sorting support to employee overtime requests with date and status
+  options
+- Overtime request details modal with update, cancel, and AI reason
+  enhancement
+- `employee_schedule_id`, `created_at`, and `end_time` fields to
+  overtime request response
+
+### Changed
+
+- Show schedule as direct nav link for employees, remove role checks
+  from management dropdown
+- Wrap schedule submission in database transaction for atomicity
+- Improve validation rules in `updateShiftCode` method
+- Enhance Modal component structure and styling for better usability
+- Refactor email notification template to improve structure and styling
+  for Gmail and Outlook compatibility
+- Update modal titles for better clarity and user experience
+- Set default `MAIL_TIMEOUT` value in mail configuration
+
+### Fixed
+
+- Safely parse year and month payload values to prevent NaN in calendar
+- Handle exceptions when sending password reset link
+
+### Style
+
+- Add interactive cursor-following blobs background to all auth pages
+  via shared `AuthBackground` component with `mix-blend-screen`
+- Add calendar tile animations and refine layout and spacing in
+  employee dashboard
+- Improve layout and spacing in PaginationLinks and Request components
+- Update modal content overflow and padding classes
+
 ## [v1.1.1] - 2026-04-17
 
 ### Added
