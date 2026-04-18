@@ -1,16 +1,10 @@
 <template>
 
     <Head title="Register" />
-    <main class="min-h-screen bg-base-200 flex items-center justify-center relative overflow-hidden">
-        <!-- Decorative background blobs -->
-        <div
-            class="absolute top-0 right-0 w-72 h-72 bg-secondary opacity-10 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 pointer-events-none">
-        </div>
-        <div
-            class="absolute bottom-0 left-0 w-96 h-96 bg-primary opacity-10 rounded-full blur-3xl -translate-x-1/3 translate-y-1/3 pointer-events-none">
-        </div>
+    <main class="min-h-screen bg-base-100 flex flex-1 flex-col items-center justify-center relative overflow-hidden">
+        <AuthBackground />
 
-        <div class="w-full max-w-5xl mx-auto px-4 py-12 flex flex-col items-center gap-8 z-10">
+        <div class="relative z-10 w-full max-w-5xl mx-auto px-4 py-12 flex flex-col items-center gap-8">
 
             <!-- Brand Header -->
             <div class="text-center space-y-1">
@@ -201,6 +195,7 @@ import { ref } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 import registerImage from '../../images/Coder.svg'
+import AuthBackground from '../../Components/AuthBackground.vue'
 
 const showPassword = ref(false)
 const showConfirm = ref(false)
