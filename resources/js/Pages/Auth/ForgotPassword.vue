@@ -14,13 +14,8 @@
 
             <!-- Brand Header -->
             <div class="text-center space-y-1">
-                <div class="flex items-center justify-center gap-2 mb-2">
-                    <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shadow-lg">
-                        <Icon icon="material-symbols:schedule-outline" width="20" height="20" class="text-primary-content" />
-                    </div>
-                    <h1 class="text-3xl font-black text-base-content tracking-tight">TimeTrack <span
-                            class="text-primary">Pro</span></h1>
-                </div>
+                <h1 class="text-3xl font-black text-base-content tracking-tight mb-2">TimeTrack <span
+                        class="text-primary">Pro</span></h1>
                 <p class="text-sm text-base-content/50 uppercase tracking-widest font-medium">Overtime Tracker System
                 </p>
             </div>
