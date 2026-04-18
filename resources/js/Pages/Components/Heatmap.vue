@@ -1,8 +1,12 @@
 <template>
-    <div class="card bg-base-100 shadow-sm border border-base-300 w-full skeleton" :class="{ 'pointer-events-none': isLoading }">
-        <div class="card-body px-6 py-4">
+    <div class="card bg-base-100 shadow-sm border border-base-300 w-full relative">
+        <div v-if="isLoading" class="absolute inset-0 z-40 flex items-center justify-center bg-base-100/80 rounded-xl">
+            <span class="loading loading-bars loading-xl text-primary"></span>
+        </div>
+        <div class="card-body px-12 py-4" :class="{ 'opacity-0': isLoading }">
 
-            <div class="mt-4 grid gap-4" style="grid-template-columns: 1fr auto;" ref="containerRef">
+            <div class="mt-4 grid gap-4 transition-opacity duration-300" style="grid-template-columns: 1fr auto;"
+                ref="containerRef" :class="{ 'opacity-0': isLoading }">
                 <div class="relative overflow-x-auto">
                     <div class="inline-block relative" style="min-width: 600px;">
                         <svg ref="svgRef" :width="svgWidth" :height="svgHeight" class="block">
@@ -28,18 +32,21 @@
                         </svg>
                     </div>
 
-                    <!-- Tooltip -->
-                    <div ref="tooltipRef" class="absolute pointer-events-none z-50 hidden"
+                    <!--
+                        Tooltip — DaisyUI's `tooltip` class works on HTML elements only and cannot
+                        wrap SVG <rect> nodes. We keep the manual JS positioning but render the
+                        bubble using DaisyUI's own `.tooltip-content` child element so it inherits
+                        the theme's neutral bg, text color, border-radius, and shadow automatically.
+                    -->
+                    <div ref="tooltipRef"
+                        class="tooltip tooltip-top tooltip-open absolute pointer-events-none z-50 hidden"
                         style="transform: translate(-50%, calc(-100% - 8px));">
-                        <div
-                            class="bg-neutral text-neutral-content text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-lg whitespace-nowrap">
+                        <div class="tooltip-content text-[11px] font-medium whitespace-nowrap">
                             {{ tooltipText }}
-                        </div>
-                        <div class="flex justify-center">
-                            <div class="w-2 h-2 bg-neutral rotate-45 -mt-1"></div>
                         </div>
                     </div>
                 </div>
+
                 <div class="flex flex-col gap-1.5 content-start overflow-y-auto pr-4"
                     :style="{ maxHeight: svgHeight + 'px' }" :class="{ 'opacity-50 pointer-events-none': isLoading }">
                     <button v-for="y in yearPills" :key="y" type="button" @click="year = y"
@@ -101,7 +108,7 @@ function resolveBase300() {
 // ─── State ───────────────────────────────────────────────────────────────────
 const isLoading = ref(true)
 const heatmapData = shallowRef({})
-const yearPills = Array.from({ length: 7 }, (_, i) => new Date().getFullYear() + 1 - i)
+const yearPills = Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 1 - i)
 const year = ref(new Date().getFullYear())
 const totalHours = ref('0')
 const cells = shallowRef([])
