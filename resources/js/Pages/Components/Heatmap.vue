@@ -71,7 +71,7 @@
 </template>
 <script setup>
 import { ref, shallowRef, watch, onMounted, computed } from 'vue'
-import { fetchHeatmapData } from '../api/overtime.js'
+import { fetchHeatmapData } from '../api/heatmap.js'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', '']
