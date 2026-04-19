@@ -3,41 +3,37 @@
         <div v-if="isLoading" class="absolute inset-0 z-40 flex items-center justify-center bg-base-100/80 rounded-xl">
             <span class="loading loading-bars loading-xl text-primary"></span>
         </div>
-        <div class="card-body px-12 py-4">
+        <div class="card-body px-[2.5rem] py-4">
 
             <div class="mt-4 grid grid-cols-12 gap-4 transition-opacity duration-300"
                 :class="{ 'opacity-0': isLoading }">
 
                 <!-- Heatmap -->
                 <div class="col-span-11 flex justify-center overflow-x-auto p-2">
-                    <div class="w-full mx-auto">
-                        <div>
-                            <!-- Month labels -->
-                            <div class="relative" :style="{ height: MONTH_ROW_H + 'px' }">
-                                <span v-for="(label, i) in monthLabels" :key="'m' + i"
-                                    class="absolute text-[10px] text-base-content/40"
-                                    :style="{ left: label.x + 'px' }">{{ label.text }}</span>
+                    <div class="w-full">
+                        <!-- Month labels -->
+                        <div class="relative" :style="{ height: MONTH_ROW_H + 'px' }">
+                            <span v-for="(label, i) in monthLabels" :key="'m' + i"
+                                class="absolute text-[11px] text-base-content/40" :style="{ left: label.x + 'px' }">{{
+                                    label.text }}</span>
+                        </div>
+
+                        <div class="flex">
+                            <!-- Day labels -->
+                            <div class="flex flex-col shrink-0" style="width: 30px;">
+                                <span v-for="(d, idx) in DAY_LABELS" :key="idx" class="text-[11px] text-base-content/40"
+                                    :style="{ height: CELL_R_H + 'px', marginBottom: idx < 6 ? CELL_GAP + 'px' : '0', lineHeight: CELL_R_H + 'px' }">{{
+                                        d }}</span>
                             </div>
 
-                            <div class="flex">
-                                <!-- Day labels -->
-                                <div class="flex flex-col shrink-0" style="width: 30px;">
-                                    <span v-for="(d, idx) in DAY_LABELS" :key="idx"
-                                        class="text-[9px] text-base-content/40"
-                                        :style="{ height: CELL_R_H + 'px', marginBottom: idx < 6 ? CELL_GAP + 'px' : '0', lineHeight: CELL_R_H + 'px' }">{{
-                                            d }}</span>
-                                </div>
-
-                                <!-- Grid -->
-                                <div :style="gridStyle">
-                                    <div v-for="cell in cells" :key="cell.i"
-                                        class="rounded-[3px] hover:brightness-90 hover:z-50"
-                                        :class="[
-                                            cell.date ? 'tooltip tooltip-top' : '',
-                                            !cell.fill && cell.date ? 'bg-base-300' : ''
-                                        ]" :data-tip="cell.tip || undefined"
-                                        :style="cell.fill ? { backgroundColor: cell.fill } : {}">
-                                    </div>
+                            <!-- Grid -->
+                            <div :style="gridStyle">
+                                <div v-for="cell in cells" :key="cell.i"
+                                    class="rounded-[3px] hover:brightness-90 hover:z-50" :class="[
+                                        cell.date ? 'tooltip tooltip-top' : '',
+                                        !cell.fill && cell.date ? 'bg-base-300' : ''
+                                    ]" :data-tip="cell.tip || undefined"
+                                    :style="cell.fill ? { backgroundColor: cell.fill } : {}">
                                 </div>
                             </div>
                         </div>
@@ -45,14 +41,17 @@
                 </div>
 
                 <!-- Year pills -->
-                <div class="col-span-1 flex flex-col gap-1.5 justify-center overflow-y-auto"
+                <div class="col-span-1 flex flex-col justify-center overflow-y-auto"
                     :style="{ maxHeight: gridHeight + 'px' }" :class="{ 'opacity-50 pointer-events-none': isLoading }">
-                    <button v-for="y in yearPills" :key="y" type="button" @click="year = y"
-                        class="btn btn-sm transition-all duration-150 w-full" :class="year === y
-                            ? 'btn-primary !bg-primary/50 hover:!bg-primary/60'
-                            : 'btn-ghost text-base-content/70 hover:text-base-content'">
-                        {{ y }}
-                    </button>
+                    <template v-for="(y, idx) in yearPills" :key="y">
+                        <div v-if="idx > 0" class="divider my-0"></div>
+                        <button type="button" @click="year = y" class="btn btn-sm transition-all duration-150 w-full"
+                            :class="year === y
+                                ? 'btn-primary !bg-primary/50 hover:!bg-primary/60'
+                                : 'btn-ghost text-base-content/70 hover:text-base-content'">
+                            {{ y }}
+                        </button>
+                    </template>
                 </div>
             </div>
 
@@ -90,8 +89,8 @@ const PRIMARY_COLORS_LIST = [PRIMARY_COLORS.low, PRIMARY_COLORS.mid, PRIMARY_COL
 
 const isLoading = ref(true)
 const heatmapData = shallowRef({})
-const yearPills = Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 1 - i)
-const year = ref(new Date().getFullYear())
+const yearPills = ref(Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 1 - i))
+const year = ref(null)
 const totalHours = ref('0')
 const cells = shallowRef([])
 const monthLabels = shallowRef([])
@@ -110,6 +109,12 @@ function dateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
+function snapToSunday(date) {
+    const d = new Date(date)
+    d.setDate(d.getDate() - d.getDay())
+    return d
+}
+
 function getCellFill(hours) {
     if (hours === 0) return ''
     if (hours <= 2) return PRIMARY_COLORS.low
@@ -123,10 +128,23 @@ function formatTip(dateStr, hours) {
     return hours > 0 ? `${fmt} · ${hours} hrs` : `${fmt} · No overtime`
 }
 
+function computeRange() {
+    if (year.value === null) {
+        const end = new Date()
+        const start = new Date()
+        start.setDate(start.getDate() - 365)
+        return { start, end, gridStart: snapToSunday(start) }
+    }
+    const y = year.value
+    const start = new Date(y, 0, 1)
+    const end = new Date(y, 11, 31)
+    return { start, end, gridStart: snapToSunday(start) }
+}
+
 function buildGrid(data) {
-    const jan1 = new Date(year.value, 0, 1)
-    const startOfWeek = new Date(jan1)
-    startOfWeek.setDate(jan1.getDate() - ((jan1.getDay() + 6) % 7))
+    const { start: rangeStart, end: rangeEnd, gridStart } = computeRange()
+    const rangeStartStr = dateKey(rangeStart)
+    const rangeEndStr = dateKey(rangeEnd)
 
     const result = []
     const labels = []
@@ -136,16 +154,15 @@ function buildGrid(data) {
     let dayIdx = 0
     let i = 0
 
-    const current = new Date(startOfWeek)
-    const dec31 = new Date(year.value, 11, 31)
+    const current = new Date(gridStart)
 
-    while (current <= dec31 || dayIdx > 0) {
-        const inYear = current.getFullYear() === year.value
+    while (current <= rangeEnd || dayIdx > 0) {
         const key = dateKey(current)
-        const hours = inYear ? (data[key] || 0) : 0
-        const dateStr = inYear ? key : null
+        const inRange = key >= rangeStartStr && key <= rangeEndStr
+        const hours = inRange ? (data[key] || 0) : 0
+        const dateStr = inRange ? key : null
 
-        if (inYear && dayIdx === 0) {
+        if (inRange && dayIdx === 0) {
             const month = current.getMonth()
             if (month !== lastMonth) {
                 lastMonth = month
@@ -153,7 +170,7 @@ function buildGrid(data) {
             }
         }
 
-        if (inYear) total += hours
+        if (inRange) total += hours
 
         result.push({
             i,
@@ -179,7 +196,8 @@ async function loadData() {
     isLoading.value = true
     buildGrid({})
     try {
-        const res = await fetchHeatmapData(year.value)
+        const { start: rangeStart, end: rangeEnd } = computeRange()
+        const res = await fetchHeatmapData(dateKey(rangeStart), dateKey(rangeEnd))
         const data = res.data || {}
         heatmapData.value = data
         buildGrid(data)
