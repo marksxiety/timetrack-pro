@@ -32,8 +32,11 @@
                                 <div :style="gridStyle">
                                     <div v-for="cell in cells" :key="cell.i"
                                         class="rounded-[3px] hover:brightness-90 hover:z-50"
-                                        :class="{ 'tooltip tooltip-top': cell.date }" :data-tip="cell.tip || undefined"
-                                        :style="{ backgroundColor: cell.fill }">
+                                        :class="[
+                                            cell.date ? 'tooltip tooltip-top' : '',
+                                            !cell.fill && cell.date ? 'bg-base-300' : ''
+                                        ]" :data-tip="cell.tip || undefined"
+                                        :style="cell.fill ? { backgroundColor: cell.fill } : {}">
                                     </div>
                                 </div>
                             </div>
@@ -85,17 +88,6 @@ const PRIMARY_COLORS = {
 }
 const PRIMARY_COLORS_LIST = [PRIMARY_COLORS.low, PRIMARY_COLORS.mid, PRIMARY_COLORS.high]
 
-let base300Color = '#e5e7eb'
-
-function resolveBase300() {
-    const probe = document.createElement('div')
-    probe.className = 'bg-base-300'
-    probe.style.cssText = 'position:absolute;width:1px;height:1px;visibility:hidden;pointer-events:none;'
-    document.body.appendChild(probe)
-    base300Color = getComputedStyle(probe).backgroundColor
-    document.body.removeChild(probe)
-}
-
 const isLoading = ref(true)
 const heatmapData = shallowRef({})
 const yearPills = Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 1 - i)
@@ -119,7 +111,7 @@ function dateKey(date) {
 }
 
 function getCellFill(hours) {
-    if (hours === 0) return base300Color
+    if (hours === 0) return ''
     if (hours <= 2) return PRIMARY_COLORS.low
     if (hours <= 5) return PRIMARY_COLORS.mid
     return PRIMARY_COLORS.high
@@ -201,7 +193,6 @@ async function loadData() {
 
 watch(year, loadData)
 onMounted(() => {
-    resolveBase300()
     loadData()
 })
 </script>
