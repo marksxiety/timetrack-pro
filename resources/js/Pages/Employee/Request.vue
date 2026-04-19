@@ -213,6 +213,9 @@
             <Card title="Rejected Requests" :value="filteredRejected" />
         </div>
 
+        <!-- Heatmap -->
+        <Heatmap />
+
         <!-- Main Card -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
             <div class="card-body px-6 py-3">
@@ -349,6 +352,7 @@ import SelectOption from '../Components/SelectOption.vue'
 import Stepper from '../Components/Stepper.vue'
 import PaginationLinks from '../Components/PaginationLinks.vue'
 import Card from '../Components/Card.vue'
+import Heatmap from '../Components/Heatmap.vue'
 import { Icon } from "@iconify/vue"
 import { Link, useForm, router } from '@inertiajs/vue3'
 import { ref, computed, watch, inject, onMounted } from 'vue'

@@ -52,6 +52,7 @@ Route::middleware('employee')->group(function () {
     Route::post('/profile/update/employee', [AuthController::class, 'updateProfileInformation'])->name('profile.update.employee');
 
     Route::get('/overtime/requests', [OvertimeRequestController::class, 'fetchOvertimeRequestOfEmployee'])->name('overtime.requests.employee');
+    Route::get('/overtime/heatmap', [OvertimeRequestController::class, 'fetchOvertimeHeatmap']);
 });
 
 Route::middleware('approver')->group(function () {

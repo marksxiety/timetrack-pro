@@ -927,6 +927,52 @@ class OvertimeRequestController extends Controller
         ]);
     }
 
+    public function fetchOvertimeHeatmap(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        if (!$startDate || !$endDate) {
+            $endDate = Carbon::now()->toDateString();
+            $startDate = Carbon::now()->subDays(365)->toDateString();
+        }
+
+        $firstYear = OvertimeRequest::whereHas('schedule', function ($query) {
+            $query->where('user_id', Auth::id());
+        })
+            ->where('status', 'APPROVED')
+            ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')
+            ->min(DB::raw('YEAR(schedules.date)'));
+
+        if (!$firstYear) {
+            return response()->json([
+                'years' => [Carbon::now()->year],
+                'data' => [],
+            ]);
+        }
+
+        $years = range((int) $firstYear, Carbon::now()->year);
+
+        $data = OvertimeRequest::where('status', 'APPROVED')
+            ->whereHas('schedule', function ($query) use ($startDate, $endDate) {
+                $query->where('user_id', Auth::id())
+                    ->whereBetween('date', [$startDate, $endDate]);
+            })
+            ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')
+            ->select('schedules.date', DB::raw('SUM(overtime_requests.hours) as total_hours'))
+            ->groupBy('schedules.date')
+            ->orderBy('schedules.date')
+            ->get()
+            ->mapWithKeys(fn($item) => [
+                $item->date => (float) $item->total_hours,
+            ]);
+
+        return response()->json([
+            'years' => $years,
+            'data'  => $data,
+        ]);
+    }
+
     private function getMinimumOvertimeHours(): float
     {
         $path = base_path('setup/config.json');
