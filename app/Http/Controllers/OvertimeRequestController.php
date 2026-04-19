@@ -929,7 +929,13 @@ class OvertimeRequestController extends Controller
 
     public function fetchOvertimeHeatmap(Request $request)
     {
-        $year = $request->input('year', Carbon::now()->year);
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        if (!$startDate || !$endDate) {
+            $endDate = Carbon::now()->toDateString();
+            $startDate = Carbon::now()->subDays(365)->toDateString();
+        }
 
         $firstYear = OvertimeRequest::whereHas('schedule', function ($query) {
             $query->where('user_id', Auth::id());
@@ -948,9 +954,9 @@ class OvertimeRequestController extends Controller
         $years = range((int) $firstYear, Carbon::now()->year);
 
         $data = OvertimeRequest::where('status', 'APPROVED')
-            ->whereHas('schedule', function ($query) use ($year) {
+            ->whereHas('schedule', function ($query) use ($startDate, $endDate) {
                 $query->where('user_id', Auth::id())
-                    ->whereYear('date', $year);
+                    ->whereBetween('date', [$startDate, $endDate]);
             })
             ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')
             ->select('schedules.date', DB::raw('SUM(overtime_requests.hours) as total_hours'))
@@ -963,7 +969,7 @@ class OvertimeRequestController extends Controller
 
         return response()->json([
             'years' => $years,
-            'data' => $data,
+            'data'  => $data,
         ]);
     }
 
