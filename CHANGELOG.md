@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.0] - 2026-04-19
+
+### Added
+
+- Overtime heatmap on employee page to visualize approved overtime hours
+  with interactive tooltips
+- Date range filtering for heatmap data
+- Index on `overtime_requests` table for improved query performance
+
+### Changed
+
+- Redesign profile page layout with active toggle switch, updated form
+  elements, and removed password strength bar
+- Consolidate schedule and management links into single dropdown with
+  role-based visibility
+
+### Fixed
+
+- Ensure dark mode configuration is correctly set in Tailwind CSS
+- Fix AuthBackground blob blending effect for proper visibility in both
+  light and dark mode
+
+### Style
+
+- Update calendar tile border color for improved visibility
+- Improve heatmap layout, styling, and overflow handling for better
+  responsiveness
+
 ## [v1.1.2] - 2026-04-18
 
 ### Added
