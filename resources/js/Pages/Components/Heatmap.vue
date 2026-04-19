@@ -9,8 +9,8 @@
                 :class="{ 'opacity-0': isLoading }">
 
                 <!-- Heatmap -->
-                <div class="col-span-11 flex justify-center overflow-x-auto p-2">
-                    <div class="w-full">
+                <div class="col-span-11 flex justify-center overflow-hidden lg:overflow-hidden overflow-x-auto p-2">
+                    <div class="w-fit">
                         <!-- Month labels -->
                         <div class="relative" :style="{ height: MONTH_ROW_H + 'px' }">
                             <span v-for="(label, i) in monthLabels" :key="'m' + i"
@@ -18,7 +18,7 @@
                                     label.text }}</span>
                         </div>
 
-                        <div class="flex">
+                        <div class="inline-flex w-fit">
                             <!-- Day labels -->
                             <div class="flex flex-col shrink-0" style="width: 30px;">
                                 <span v-for="(d, idx) in DAY_LABELS" :key="idx" class="text-[11px] text-base-content/40"
@@ -102,7 +102,6 @@ const gridStyle = computed(() => ({
     gridAutoFlow: 'column',
     gridAutoColumns: `${CELL_R_W}px`,
     gap: `${CELL_GAP}px`,
-    overflow: 'visible',
 }))
 
 function dateKey(date) {
@@ -156,7 +155,7 @@ function buildGrid(data) {
 
     const current = new Date(gridStart)
 
-    while (current <= rangeEnd || dayIdx > 0) {
+    while (current <= rangeEnd) {
         const key = dateKey(current)
         const inRange = key >= rangeStartStr && key <= rangeEndStr
         const hours = inRange ? (data[key] || 0) : 0
