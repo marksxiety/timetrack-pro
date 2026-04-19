@@ -425,7 +425,7 @@
 
                 <div class="grid grid-cols-7 flex-1">
                     <div v-for="(days, index) in calendardays" :key="index" :class="[
-                        'calendar-tile min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-200/50 transition-all duration-200 ease-out',
+                        'calendar-tile min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-300 transition-all ease-out',
                         days.type !== 'current'
                             ? 'outside-month'
                             : 'cursor-pointer hover:bg-base-300 hover:border-primary hover:rounded-lg hover:scale-[1.03] hover:-translate-y-0.5 hover:shadow-md',
