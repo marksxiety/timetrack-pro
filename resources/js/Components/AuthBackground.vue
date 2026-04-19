@@ -1,7 +1,7 @@
 <template>
     <div
         ref="container"
-        class="absolute inset-0 opacity-50 mix-blend-screen pointer-events-none"
+        class="absolute inset-0 opacity-50 mix-blend-multiply dark:mix-blend-screen pointer-events-none"
     >
         <div
             ref="blob1"
