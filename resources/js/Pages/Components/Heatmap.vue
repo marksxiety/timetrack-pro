@@ -5,10 +5,10 @@
         </div>
         <div class="card-body px-12 py-4" :class="{ 'opacity-0': isLoading }">
 
-            <div class="mt-4 grid gap-4 transition-opacity duration-300" style="grid-template-columns: 1fr auto;"
+            <div class="mt-4 grid gap-4 transition-opacity duration-300" style="grid-template-columns: 1fr 5.5rem;"
                 ref="containerRef" :class="{ 'opacity-0': isLoading }">
-                <div class="relative overflow-x-auto">
-                    <div class="inline-block relative" style="min-width: 600px;">
+                <div class="relative overflow-x-auto flex justify-center">
+                    <div class="inline-flex flex-shrink-0 relative" style="min-width: 600px;">
                         <svg ref="svgRef" :width="svgWidth" :height="svgHeight" class="block">
 
                             <!-- Month labels -->
@@ -50,10 +50,10 @@
                 <div class="flex flex-col gap-1.5 content-start overflow-y-auto pr-4"
                     :style="{ maxHeight: svgHeight + 'px' }" :class="{ 'opacity-50 pointer-events-none': isLoading }">
                     <button v-for="y in yearPills" :key="y" type="button" @click="year = y"
-                        class="btn btn-sm border transition-all duration-150"
+                        class="btn btn-sm transition-all duration-150 w-full"
                         :class="year === y
-                            ? 'btn-primary border-primary text-primary-content'
-                            : 'btn-ghost border-base-300 text-base-content/60 hover:border-primary/40 hover:text-base-content'">
+                            ? 'btn-primary !bg-primary/50 hover:!bg-primary/60'
+                            : 'btn-ghost text-base-content/70 hover:text-base-content'">
                         {{ y }}
                     </button>
                 </div>
