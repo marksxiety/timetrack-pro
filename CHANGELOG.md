@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.1] - 2026-04-20
+
+### Fixed
+
+- Fix reason text rendering and display issues on overtime request views
+- Fix heatmap tooltip positioning, data accuracy, and layout inconsistencies
+
 ## [v1.3.0] - 2026-04-19
 
 ### Added
