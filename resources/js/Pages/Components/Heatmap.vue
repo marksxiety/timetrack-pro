@@ -4,53 +4,76 @@
             <span class="loading loading-bars loading-xl text-primary"></span>
         </div>
         <div class="card-body px-[2.5rem] py-4">
+            <div class="mt-4 flex gap-4 transition-opacity duration-300" :class="{ 'opacity-0': isLoading }">
 
-            <div class="mt-4 grid grid-cols-12 gap-4 transition-opacity duration-300"
-                :class="{ 'opacity-0': isLoading }">
+                <!-- SVG Heatmap -->
+                <div class="flex-1 overflow-x-auto">
+                    <svg :width="svgWidth" :height="svgHeight" xmlns="http://www.w3.org/2000/svg">
 
-                <!-- Heatmap -->
-                <div class="col-span-11 flex justify-center overflow-hidden lg:overflow-hidden overflow-x-auto p-2">
-                    <div class="w-fit">
                         <!-- Month labels -->
-                        <div class="relative" :style="{ height: MONTH_ROW_H + 'px' }">
-                            <span v-for="(label, i) in monthLabels" :key="'m' + i"
-                                class="absolute text-[11px] text-base-content/40" :style="{ left: label.x + 'px' }">{{
-                                    label.text }}</span>
-                        </div>
+                        <text
+                            v-for="(label, i) in monthLabels"
+                            :key="'m' + i"
+                            :x="label.x"
+                            :y="MONTH_ROW_H - 4"
+                            class="fill-base-content/40"
+                            font-size="11"
+                            font-family="inherit"
+                        >{{ label.text }}</text>
 
-                        <div class="inline-flex w-fit">
-                            <!-- Day labels -->
-                            <div class="flex flex-col shrink-0" style="width: 30px;">
-                                <span v-for="(d, idx) in DAY_LABELS" :key="idx" class="text-[11px] text-base-content/40"
-                                    :style="{ height: CELL_R_H + 'px', marginBottom: idx < 6 ? CELL_GAP + 'px' : '0', lineHeight: CELL_R_H + 'px' }">{{
-                                        d }}</span>
-                            </div>
+                        <!-- Day labels -->
+                        <text
+                            v-for="(d, idx) in DAY_LABELS"
+                            :key="'d' + idx"
+                            :x="DAY_LABEL_W - 4"
+                            :y="MONTH_ROW_H + idx * (CELL_R_H + CELL_GAP) + CELL_R_H / 2 + 4"
+                            text-anchor="end"
+                            class="fill-base-content/40"
+                            font-size="11"
+                            font-family="inherit"
+                        >{{ d }}</text>
 
-                            <!-- Grid -->
-                            <div :style="gridStyle">
-                                <div v-for="cell in cells" :key="cell.i"
-                                    class="rounded-[3px] hover:brightness-90 hover:z-50" :class="[
-                                        cell.date ? 'tooltip tooltip-top' : '',
-                                        !cell.fill && cell.date ? 'bg-base-300' : ''
-                                    ]" :data-tip="cell.tip || undefined"
-                                    :style="cell.fill ? { backgroundColor: cell.fill } : {}">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        <!-- Cells -->
+                        <g v-for="cell in cells" :key="cell.i">
+                            <rect
+                                :x="cell.x"
+                                :y="cell.y"
+                                :width="CELL_R_W"
+                                :height="CELL_R_H"
+                                :rx="3"
+                                :ry="3"
+                                :fill="cell.fill || 'var(--fallback-b3, oklch(var(--b3)))'"
+                                :opacity="cell.date ? 1 : 0"
+                                class="cursor-default"
+                            />
+                            <!-- Tooltip trigger overlay -->
+                            <rect
+                                v-if="cell.date"
+                                :x="cell.x"
+                                :y="cell.y"
+                                :width="CELL_R_W"
+                                :height="CELL_R_H"
+                                fill="transparent"
+                                class="tooltip-cell"
+                                @mouseenter="showTooltip($event, cell)"
+                                @mouseleave="hideTooltip"
+                            />
+                        </g>
+                    </svg>
                 </div>
 
                 <!-- Year pills -->
-                <div class="col-span-1 flex flex-col justify-center overflow-y-auto"
-                    :style="{ maxHeight: gridHeight + 'px' }" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+                <div class="flex flex-col justify-center gap-1" :class="{ 'opacity-50 pointer-events-none': isLoading }">
                     <template v-for="(y, idx) in yearPills" :key="y">
                         <div v-if="idx > 0" class="divider my-0"></div>
-                        <button type="button" @click="year = y" class="btn btn-sm transition-all duration-150 w-full"
+                        <button
+                            type="button"
+                            @click="year = y"
+                            class="btn btn-sm transition-all duration-150 w-full"
                             :class="year === y
                                 ? 'btn-primary !bg-primary/50 hover:!bg-primary/60'
-                                : 'btn-ghost text-base-content/70 hover:text-base-content'">
-                            {{ y }}
-                        </button>
+                                : 'btn-ghost text-base-content/70 hover:text-base-content'"
+                        >{{ y }}</button>
                     </template>
                 </div>
             </div>
@@ -58,27 +81,38 @@
             <!-- Legend -->
             <div class="flex items-center justify-end gap-1.5 mt-2">
                 <span class="text-[10px] text-base-content/40 mr-0.5">Less</span>
-                <div class="rounded-sm flex-none bg-base-300"
-                    :style="{ width: CELL_R_W + 'px', height: CELL_R_H + 'px' }">
-                </div>
-                <div v-for="color in PRIMARY_COLORS_LIST" :key="color" class="rounded-sm flex-none"
-                    :style="{ width: CELL_R_W + 'px', height: CELL_R_H + 'px', backgroundColor: color }"></div>
+                <svg :width="CELL_R_W" :height="CELL_R_H">
+                    <rect :width="CELL_R_W" :height="CELL_R_H" rx="2" fill="var(--fallback-b3, oklch(var(--b3)))" />
+                </svg>
+                <svg v-for="color in PRIMARY_COLORS_LIST" :key="color" :width="CELL_R_W" :height="CELL_R_H">
+                    <rect :width="CELL_R_W" :height="CELL_R_H" rx="2" :fill="color" />
+                </svg>
                 <span class="text-[10px] text-base-content/40 ml-0.5">More</span>
             </div>
 
+            <!-- SVG Tooltip (portal-style, fixed position) -->
+            <div
+                v-if="tooltip.visible"
+                class="fixed z-50 px-2 py-1 rounded text-xs bg-base-content text-base-100 shadow pointer-events-none whitespace-nowrap"
+                :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px', transform: 'translate(-50%, -110%)' }"
+            >
+                {{ tooltip.text }}
+            </div>
         </div>
     </div>
 </template>
+
 <script setup>
 import { ref, shallowRef, watch, onMounted, computed } from 'vue'
 import { fetchHeatmapData } from '../api/heatmap.js'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', '']
-const CELL_R_W = 20
-const CELL_R_H = 18
-const CELL_GAP = 2
-const MONTH_ROW_H = 18
+const CELL_R_W = 14
+const CELL_R_H = 14
+const CELL_GAP = 3
+const MONTH_ROW_H = 20
+const DAY_LABEL_W = 28
 
 const PRIMARY_COLORS = {
     low: '#dfd0fe',
@@ -89,20 +123,22 @@ const PRIMARY_COLORS_LIST = [PRIMARY_COLORS.low, PRIMARY_COLORS.mid, PRIMARY_COL
 
 const isLoading = ref(true)
 const heatmapData = shallowRef({})
-const yearPills = ref(Array.from({ length: 4 }, (_, i) => new Date().getFullYear() + 1 - i))
+const yearPills = ref([])
 const year = ref(null)
 const totalHours = ref('0')
 const cells = shallowRef([])
 const monthLabels = shallowRef([])
-const gridHeight = ref(MONTH_ROW_H + 7 * CELL_R_H + 6 * CELL_GAP)
 
-const gridStyle = computed(() => ({
-    display: 'grid',
-    gridTemplateRows: `repeat(7, ${CELL_R_H}px)`,
-    gridAutoFlow: 'column',
-    gridAutoColumns: `${CELL_R_W}px`,
-    gap: `${CELL_GAP}px`,
-}))
+const tooltip = ref({ visible: false, text: '', x: 0, y: 0 })
+
+const NUM_WEEKS = computed(() => {
+    const { gridStart, end: rangeEnd } = computeRange()
+    const ms = rangeEnd - gridStart
+    return Math.ceil(ms / (7 * 24 * 60 * 60 * 1000)) + 1
+})
+
+const svgWidth = computed(() => DAY_LABEL_W + NUM_WEEKS.value * (CELL_R_W + CELL_GAP))
+const svgHeight = computed(() => MONTH_ROW_H + 7 * (CELL_R_H + CELL_GAP))
 
 function dateKey(date) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
@@ -161,11 +197,18 @@ function buildGrid(data) {
         const hours = inRange ? (data[key] || 0) : 0
         const dateStr = inRange ? key : null
 
-        if (inRange && dayIdx === 0) {
+        // Compute pixel positions directly — same coordinate system as SVG
+        const x = DAY_LABEL_W + weekIdx * (CELL_R_W + CELL_GAP)
+        const y = MONTH_ROW_H + dayIdx * (CELL_R_H + CELL_GAP)
+
+        // Month label: place at the column x where the month first appears
+        // If month starts mid-week (dayIdx > 0), label goes on this column still —
+        // the x is already correct since we use the same formula
+        if (inRange) {
             const month = current.getMonth()
             if (month !== lastMonth) {
                 lastMonth = month
-                labels.push({ text: MONTHS[month], x: weekIdx * (CELL_R_W + CELL_GAP) })
+                labels.push({ text: MONTHS[month], x })
             }
         }
 
@@ -173,7 +216,9 @@ function buildGrid(data) {
 
         result.push({
             i,
-            fill: dateStr ? getCellFill(hours) : 'transparent',
+            x,
+            y,
+            fill: dateStr ? getCellFill(hours) : '',
             date: dateStr,
             hours,
             tip: dateStr ? formatTip(dateStr, hours) : '',
@@ -188,23 +233,48 @@ function buildGrid(data) {
     cells.value = result
     monthLabels.value = labels
     totalHours.value = total.toFixed(1)
-    gridHeight.value = MONTH_ROW_H + 7 * CELL_R_H + 6 * CELL_GAP
 }
 
+function showTooltip(event, cell) {
+    tooltip.value = {
+        visible: true,
+        text: cell.tip,
+        x: event.clientX,
+        y: event.clientY,
+    }
+}
+
+function hideTooltip() {
+    tooltip.value.visible = false
+}
+
+let abortController = null
+
 async function loadData() {
+    abortController?.abort()
+    const controller = new AbortController()
+    abortController = controller
     isLoading.value = true
     buildGrid({})
     try {
         const { start: rangeStart, end: rangeEnd } = computeRange()
-        const res = await fetchHeatmapData(dateKey(rangeStart), dateKey(rangeEnd))
+        const res = await fetchHeatmapData(dateKey(rangeStart), dateKey(rangeEnd), controller.signal)
         const data = res.data || {}
+
+        if (res.years && res.years.length > 0) {
+            yearPills.value = [...res.years].sort((a, b) => b - a)
+        }
+
         heatmapData.value = data
         buildGrid(data)
-    } catch {
+    } catch (e) {
+        if (e.name === 'AbortError') return
         heatmapData.value = {}
         buildGrid({})
     } finally {
-        isLoading.value = false
+        if (controller === abortController) {
+            isLoading.value = false
+        }
     }
 }
 
