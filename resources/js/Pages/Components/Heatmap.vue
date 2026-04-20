@@ -1,80 +1,41 @@
 <template>
-    <div class="card bg-base-100 shadow-sm border border-base-300 w-full relative">
+    <div class="card bg-base-100 shadow-sm border border-base-300 w-full relative heatmap-root">
         <div v-if="isLoading" class="absolute inset-0 z-40 flex items-center justify-center bg-base-100/80 rounded-xl">
             <span class="loading loading-bars loading-xl text-primary"></span>
         </div>
         <div class="card-body px-[2.5rem] py-4">
-            <div class="mt-4 flex gap-4 transition-opacity duration-300" :class="{ 'opacity-0': isLoading }">
-
-                <!-- SVG Heatmap -->
-                <div class="flex-1 overflow-x-auto">
+            <div class="mt-4 flex gap-4 transition-opacity duration-300 min-w-0" :class="{ 'opacity-0': isLoading }">
+                <div class="flex-1 min-w-0 overflow-x-auto flex justify-center">
                     <svg :width="svgWidth" :height="svgHeight" xmlns="http://www.w3.org/2000/svg">
 
                         <!-- Month labels -->
-                        <text
-                            v-for="(label, i) in monthLabels"
-                            :key="'m' + i"
-                            :x="label.x"
-                            :y="MONTH_ROW_H - 4"
-                            class="fill-base-content/40"
-                            font-size="11"
-                            font-family="inherit"
-                        >{{ label.text }}</text>
+                        <text v-for="(label, i) in monthLabels" :key="'m' + i" :x="label.x" :y="MONTH_ROW_H - 4"
+                            fill="var(--color-label)" font-size="11" font-family="inherit">{{ label.text }}</text>
 
                         <!-- Day labels -->
-                        <text
-                            v-for="(d, idx) in DAY_LABELS"
-                            :key="'d' + idx"
-                            :x="DAY_LABEL_W - 4"
-                            :y="MONTH_ROW_H + idx * (CELL_R_H + CELL_GAP) + CELL_R_H / 2 + 4"
-                            text-anchor="end"
-                            class="fill-base-content/40"
-                            font-size="11"
-                            font-family="inherit"
-                        >{{ d }}</text>
+                        <text v-for="(d, idx) in DAY_LABELS" :key="'d' + idx" :x="DAY_LABEL_W - 4"
+                            :y="MONTH_ROW_H + idx * (CELL_R_H + CELL_GAP) + CELL_R_H / 2 + 4" text-anchor="end"
+                            fill="var(--color-label)" font-size="11" font-family="inherit">{{ d }}</text>
 
                         <!-- Cells -->
                         <g v-for="cell in cells" :key="cell.i">
-                            <rect
-                                :x="cell.x"
-                                :y="cell.y"
-                                :width="CELL_R_W"
-                                :height="CELL_R_H"
-                                :rx="3"
-                                :ry="3"
-                                :fill="cell.fill || 'var(--fallback-b3, oklch(var(--b3)))'"
-                                :opacity="cell.date ? 1 : 0"
-                                class="cursor-default"
-                            />
-                            <!-- Tooltip trigger overlay -->
-                            <rect
-                                v-if="cell.date"
-                                :x="cell.x"
-                                :y="cell.y"
-                                :width="CELL_R_W"
-                                :height="CELL_R_H"
-                                fill="transparent"
-                                class="tooltip-cell"
-                                @mouseenter="showTooltip($event, cell)"
-                                @mouseleave="hideTooltip"
-                            />
+                            <rect :x="cell.x" :y="cell.y" :width="CELL_R_W" :height="CELL_R_H" rx="3" ry="3"
+                                :fill="cell.date ? (cell.fill || 'var(--color-empty-cell)') : 'transparent'" />
+                            <rect v-if="cell.date" :x="cell.x" :y="cell.y" :width="CELL_R_W" :height="CELL_R_H"
+                                fill="transparent" style="cursor: default;" @mouseenter="showTooltip($event, cell)"
+                                @mouseleave="hideTooltip" />
                         </g>
                     </svg>
                 </div>
 
                 <!-- Year pills -->
-                <div class="flex flex-col justify-center gap-1" :class="{ 'opacity-50 pointer-events-none': isLoading }">
-                    <template v-for="(y, idx) in yearPills" :key="y">
-                        <div v-if="idx > 0" class="divider my-0"></div>
-                        <button
-                            type="button"
-                            @click="year = y"
-                            class="btn btn-sm transition-all duration-150 w-full"
-                            :class="year === y
-                                ? 'btn-primary !bg-primary/50 hover:!bg-primary/60'
-                                : 'btn-ghost text-base-content/70 hover:text-base-content'"
-                        >{{ y }}</button>
-                    </template>
+                <div class="flex flex-col justify-center gap-1 w-25 shrink-0"
+                    :class="{ 'opacity-50 pointer-events-none': isLoading }">
+                    <button v-for="y in yearPills" :key="y" type="button" @click="year = y" class="year-pill"
+                        :class="year === y ? 'year-pill--active' : 'year-pill--inactive'">
+                        <span class="year-pill-dot" :class="year === y ? 'year-pill-dot--active' : ''"></span>
+                        {{ y }}
+                    </button>
                 </div>
             </div>
 
@@ -82,7 +43,7 @@
             <div class="flex items-center justify-end gap-1.5 mt-2">
                 <span class="text-[10px] text-base-content/40 mr-0.5">Less</span>
                 <svg :width="CELL_R_W" :height="CELL_R_H">
-                    <rect :width="CELL_R_W" :height="CELL_R_H" rx="2" fill="var(--fallback-b3, oklch(var(--b3)))" />
+                    <rect :width="CELL_R_W" :height="CELL_R_H" rx="2" fill="var(--color-empty-cell)" />
                 </svg>
                 <svg v-for="color in PRIMARY_COLORS_LIST" :key="color" :width="CELL_R_W" :height="CELL_R_H">
                     <rect :width="CELL_R_W" :height="CELL_R_H" rx="2" :fill="color" />
@@ -90,12 +51,10 @@
                 <span class="text-[10px] text-base-content/40 ml-0.5">More</span>
             </div>
 
-            <!-- SVG Tooltip (portal-style, fixed position) -->
-            <div
-                v-if="tooltip.visible"
+            <!-- Tooltip -->
+            <div v-if="tooltip.visible"
                 class="fixed z-50 px-2 py-1 rounded text-xs bg-base-content text-base-100 shadow pointer-events-none whitespace-nowrap"
-                :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px', transform: 'translate(-50%, -110%)' }"
-            >
+                :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px', transform: 'translate(-50%, -110%)' }">
                 {{ tooltip.text }}
             </div>
         </div>
@@ -108,9 +67,9 @@ import { fetchHeatmapData } from '../api/heatmap.js'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', '']
-const CELL_R_W = 14
-const CELL_R_H = 14
-const CELL_GAP = 3
+const CELL_R_W = 17
+const CELL_R_H = 17
+const CELL_GAP = 5
 const MONTH_ROW_H = 20
 const DAY_LABEL_W = 28
 
@@ -128,7 +87,6 @@ const year = ref(null)
 const totalHours = ref('0')
 const cells = shallowRef([])
 const monthLabels = shallowRef([])
-
 const tooltip = ref({ visible: false, text: '', x: 0, y: 0 })
 
 const NUM_WEEKS = computed(() => {
@@ -197,13 +155,9 @@ function buildGrid(data) {
         const hours = inRange ? (data[key] || 0) : 0
         const dateStr = inRange ? key : null
 
-        // Compute pixel positions directly — same coordinate system as SVG
         const x = DAY_LABEL_W + weekIdx * (CELL_R_W + CELL_GAP)
         const y = MONTH_ROW_H + dayIdx * (CELL_R_H + CELL_GAP)
 
-        // Month label: place at the column x where the month first appears
-        // If month starts mid-week (dayIdx > 0), label goes on this column still —
-        // the x is already correct since we use the same formula
         if (inRange) {
             const month = current.getMonth()
             if (month !== lastMonth) {
@@ -214,15 +168,7 @@ function buildGrid(data) {
 
         if (inRange) total += hours
 
-        result.push({
-            i,
-            x,
-            y,
-            fill: dateStr ? getCellFill(hours) : '',
-            date: dateStr,
-            hours,
-            tip: dateStr ? formatTip(dateStr, hours) : '',
-        })
+        result.push({ i, x, y, fill: dateStr ? getCellFill(hours) : '', date: dateStr, hours, tip: dateStr ? formatTip(dateStr, hours) : '' })
 
         i++
         dayIdx++
@@ -236,12 +182,7 @@ function buildGrid(data) {
 }
 
 function showTooltip(event, cell) {
-    tooltip.value = {
-        visible: true,
-        text: cell.tip,
-        x: event.clientX,
-        y: event.clientY,
-    }
+    tooltip.value = { visible: true, text: cell.tip, x: event.clientX, y: event.clientY }
 }
 
 function hideTooltip() {
@@ -283,3 +224,54 @@ onMounted(() => {
     loadData()
 })
 </script>
+
+<style scoped>
+.heatmap-root {
+    --color-empty-cell: var(--color-base-300);
+    --color-label: color-mix(in oklch, var(--color-base-content) 40%, transparent);
+}
+
+.year-pill {
+    width: 100%;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border: 1px solid transparent;
+    background: transparent;
+    transition: background 0.1s, border-color 0.1s;
+    color: oklch(var(--bc));
+}
+
+.year-pill--active {
+    background: oklch(var(--b2));
+    border-color: oklch(var(--bc) / 0.2);
+    font-weight: 600;
+}
+
+.year-pill--inactive {
+    color: oklch(var(--bc) / 0.55);
+}
+
+.year-pill--inactive:hover {
+    background: oklch(var(--b2));
+    color: oklch(var(--bc));
+}
+
+.year-pill-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: oklch(var(--bc) / 0.15);
+    transition: background 0.15s;
+}
+
+.year-pill-dot--active {
+    background: #570df8;
+}
+</style>
