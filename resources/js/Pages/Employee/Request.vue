@@ -304,9 +304,9 @@
                                 </td>
                                 <td class="max-w-xs">
                                     <div class="tooltip tooltip-left tooltip-break"
-                                        :data-tip="req.reason?.length > 80 ? req.reason : ''">
-                                        <p class="line-clamp-2 text-sm text-base-content/80 break-words">
-                                            {{ req.reason }}
+                                        :data-tip="req.reason">
+                                        <p class="text-sm text-base-content/80 break-words">
+                                            {{ truncateText(req.reason) }}
                                         </p>
                                     </div>
                                 </td>
@@ -357,6 +357,7 @@ import { Icon } from "@iconify/vue"
 import { Link, useForm, router } from '@inertiajs/vue3'
 import { ref, computed, watch, inject, onMounted } from 'vue'
 import { weeks, statuses, sortOptions } from '../utils/dropdownOptions.js'
+import { truncateText } from '../utils/truncateText.js'
 import { enhanceReasonWithAI } from "../services/ai.js"
 
 const toast = inject('toast')
