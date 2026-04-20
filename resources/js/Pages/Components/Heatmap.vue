@@ -4,8 +4,10 @@
             <span class="loading loading-bars loading-xl text-primary"></span>
         </div>
         <div class="card-body px-[2.5rem] py-4">
-            <div class="mt-4 flex gap-4 transition-opacity duration-300 min-w-0" :class="{ 'opacity-0': isLoading }">
-                <div class="flex-1 min-w-0 overflow-x-auto flex justify-center">
+            <div class="mt-4 flex justify-center gap-4 overflow-x-auto transition-opacity duration-300 min-w-0"
+                :class="{ 'opacity-0': isLoading }">
+
+                <div class="flex justify-center bg-base-200 border border-base-300 rounded-xl p-3">
                     <svg :width="svgWidth" :height="svgHeight" xmlns="http://www.w3.org/2000/svg">
 
                         <!-- Month labels -->
@@ -28,14 +30,16 @@
                     </svg>
                 </div>
 
+
                 <!-- Year pills -->
-                <div class="flex flex-col justify-center gap-1 w-25 shrink-0"
+                <div class="flex flex-col justify-center shrink-0 w-32 h-full max-h-48"
                     :class="{ 'opacity-50 pointer-events-none': isLoading }">
-                    <button v-for="y in yearPills" :key="y" type="button" @click="year = y" class="year-pill"
-                        :class="year === y ? 'year-pill--active' : 'year-pill--inactive'">
-                        <span class="year-pill-dot" :class="year === y ? 'year-pill-dot--active' : ''"></span>
-                        {{ y }}
-                    </button>
+                    <div class="flex flex-col gap-1 bg-base-200 border border-base-300 rounded-xl p-1 overflow-y-auto">
+                        <button v-for="y in yearPills" :key="y" type="button" @click="year = y"
+                            class="btn btn-sm w-full"
+                            :class="year === y ? 'btn-primary shadow-sm' : 'btn-ghost text-base-content/50'">{{ y
+                            }}</button>
+                    </div>
                 </div>
             </div>
 
@@ -229,49 +233,5 @@ onMounted(() => {
 .heatmap-root {
     --color-empty-cell: var(--color-base-300);
     --color-label: color-mix(in oklch, var(--color-base-content) 40%, transparent);
-}
-
-.year-pill {
-    width: 100%;
-    padding: 5px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    border: 1px solid transparent;
-    background: transparent;
-    transition: background 0.1s, border-color 0.1s;
-    color: oklch(var(--bc));
-}
-
-.year-pill--active {
-    background: oklch(var(--b2));
-    border-color: oklch(var(--bc) / 0.2);
-    font-weight: 600;
-}
-
-.year-pill--inactive {
-    color: oklch(var(--bc) / 0.55);
-}
-
-.year-pill--inactive:hover {
-    background: oklch(var(--b2));
-    color: oklch(var(--bc));
-}
-
-.year-pill-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: oklch(var(--bc) / 0.15);
-    transition: background 0.15s;
-}
-
-.year-pill-dot--active {
-    background: #570df8;
 }
 </style>
