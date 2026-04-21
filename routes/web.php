@@ -38,7 +38,7 @@ Route::middleware('employee')->group(function () {
     Route::get('/employee/shift/list', [ShiftContoller::class, 'shiftCodeList']);
 
     // schedule routes
-    Route::inertia('/schedule', 'Employee/Schedule')->name('schedule');
+    Route::get('/schedule', [ScheduleController::class, 'schedulePage'])->name('schedule');
     Route::get('/schedule/list', [ScheduleController::class, 'fetchSchedule']);
     Route::get('/schedule/user', [ScheduleController::class, 'getUserSchedule']);
     Route::post('/schedule/submit', [ScheduleController::class, 'submitSchedule'])->name('schedule.submit');
