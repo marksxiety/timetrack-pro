@@ -7,15 +7,24 @@ use App\Models\OvertimeRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\Schedule;
+use App\Models\Shift;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 use function PHPUnit\Framework\isEmpty;
 
 class ScheduleController extends Controller
 {
+    public function schedulePage()
+    {
+        return Inertia::render('Employee/Schedule', [
+            'shifts' => Shift::all('id', 'code', 'start_time', 'end_time'),
+        ]);
+    }
+
     public function fetchSchedule(Request $request)
     {
         try {
