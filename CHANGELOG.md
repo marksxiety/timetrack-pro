@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.2] - 2026-04-21
+
+### Added
+
+- Status filter functionality to heatmap component for filtering by request
+  statuses
+- Heatmap data endpoint support for accepting multiple statuses in
+  `fetchHeatmapData`
+- `schedulePage` method in `ScheduleController` to render schedule view with
+  shift data
+- Shift reference card on employee schedule page showing shift codes and time
+  ranges
+
+### Changed
+
+- Replace inertia schedule route with controller method to pass shift data
+- Redesign employee schedule layout with shift reference card and use injected
+  shift props over API fetch
+
+### Style
+
+- Refine heatmap component layout and improve status filter styling
+- Adjust heatmap layout and implement dynamic height synchronization
+
 ## [v1.3.1] - 2026-04-20
 
 ### Fixed
