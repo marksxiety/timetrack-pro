@@ -7,7 +7,7 @@
             <div class="mt-4 flex justify-center gap-4 overflow-x-auto transition-opacity duration-300 min-w-0"
                 :class="{ 'opacity-0': isLoading }">
 
-                <div class="flex justify-center border border-base-300 rounded-xl p-3">
+                <div ref="heatmapBox" class="flex justify-center border border-base-300 rounded-xl p-3">
                     <svg :width="svgWidth" :height="svgHeight" xmlns="http://www.w3.org/2000/svg">
 
                         <!-- Month labels -->
@@ -34,7 +34,8 @@
                 <!-- Year pills -->
                 <div class="flex flex-col shrink-0 w-32" :class="{ 'opacity-50 pointer-events-none': isLoading }">
                     <div
-                        class="flex flex-col gap-1 border border-base-300 rounded-xl p-1 overflow-y-auto flex-1 justify-center">
+                        class="flex flex-col gap-1 border border-base-300 rounded-xl p-1 overflow-y-auto justify-center"
+                        :style="{ maxHeight: heatmapBoxHeight > 0 ? heatmapBoxHeight + 'px' : undefined }">
                         <button v-for="y in yearPills" :key="y" type="button" @click="year = y"
                             class="btn btn-sm w-full"
                             :class="year === y ? 'btn-primary shadow-sm' : 'btn-ghost text-base-content/50'">{{ y
@@ -97,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, watch, onMounted, computed, reactive } from 'vue'
+import { ref, shallowRef, watch, onMounted, computed, reactive, nextTick } from 'vue'
 import { fetchHeatmapData } from '../api/heatmap.js'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -136,6 +137,15 @@ const statusFilters = reactive({
     FILED: true,
     PENDING: true,
 })
+const heatmapBox = ref(null)
+const heatmapBoxHeight = ref(0)
+
+async function syncBoxHeight() {
+    await nextTick()
+    if (heatmapBox.value) {
+        heatmapBoxHeight.value = heatmapBox.value.offsetHeight
+    }
+}
 
 function activeStatuses() {
     return AVAILABLE_STATUSES.filter(s => statusFilters[s])
@@ -231,6 +241,7 @@ function buildGrid(data) {
     cells.value = result
     monthLabels.value = labels
     totalHours.value = total.toFixed(1)
+    syncBoxHeight()
 }
 
 function showTooltip(event, cell) {
