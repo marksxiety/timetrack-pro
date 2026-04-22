@@ -931,6 +931,7 @@ class OvertimeRequestController extends Controller
     {
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
+        $statuses = $request->input('statuses', ['APPROVED']);
 
         if (!$startDate || !$endDate) {
             $endDate = Carbon::now()->toDateString();
@@ -940,7 +941,7 @@ class OvertimeRequestController extends Controller
         $firstYear = OvertimeRequest::whereHas('schedule', function ($query) {
             $query->where('user_id', Auth::id());
         })
-            ->where('status', 'APPROVED')
+            ->whereIn('status', (array) $statuses)
             ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')
             ->min(DB::raw('YEAR(schedules.date)'));
 
@@ -953,7 +954,7 @@ class OvertimeRequestController extends Controller
 
         $years = range((int) $firstYear, Carbon::now()->year);
 
-        $data = OvertimeRequest::where('status', 'APPROVED')
+        $data = OvertimeRequest::whereIn('status', (array) $statuses)
             ->whereHas('schedule', function ($query) use ($startDate, $endDate) {
                 $query->where('user_id', Auth::id())
                     ->whereBetween('date', [$startDate, $endDate]);
