@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.3] - 2026-04-22
+
+### Fixed
+
+- Heatmap controller now respects frontend status filter instead of hardcoding
+  `APPROVED`, allowing FILED and PENDING data to appear in the heatmap and year
+  pills
+
 ## [v1.3.2] - 2026-04-21
 
 ### Added
