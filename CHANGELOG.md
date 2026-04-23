@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.4] - 2026-04-23
+
+### Added
+
+- Bulk approve and bulk file functionality with selection checkboxes and confirmation modal on Pending and Filing views
+- Active status indicator (green/red dot) on approver dashboard user avatars
+- Avatar URL and active status fields in overtime request response data
+- Deletion warning alert in ShiftCodes management modal
+- Page descriptions on Manage Shift Codes and Manage Authorized Hours pages
+- Shift reference sidebar on Manage Schedule page showing codes and time ranges
+
+### Changed
+
+- Rename "Operations" dropdown to "Administration" for approver role
+- Rename navigation menu items for clarity (e.g., Schedule to Manage Schedules, My Schedule)
+- Rename "RD / NWS" label to "RD / DAYOFF" in shift code form
+- Redesign Manage Schedule layout with compact year/week selectors and shift reference card
+- Simplify Filed view to read-only with clickable rows and removed action column
+
+### Fixed
+
+- Improve ShiftCodes and RequiredHours table layout with proper overflow handling
+
+### Style
+
+- Adjust approver dashboard chart and activity panel height alignment
+
 ## [v1.3.3] - 2026-04-22
 
 ### Fixed
