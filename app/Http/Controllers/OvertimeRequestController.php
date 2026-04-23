@@ -586,7 +586,7 @@ class OvertimeRequestController extends Controller
         }, 'schedule.shift' => function ($query) {
             $query->select('id', 'code', 'start_time', 'end_time');
         }, 'schedule.user' => function ($query) {
-            $query->select('id', 'name', 'employeeid');
+            $query->select('id', 'name', 'employeeid', 'avatar', 'active');
         }])
             ->whereHas('schedule', function ($query) {
                 $query->whereHas('user', function ($userQuery) {
@@ -606,6 +606,8 @@ class OvertimeRequestController extends Controller
                     'status' => $ot->status,
                     'reason' => $ot->reason,
                     'user_name' => $ot->schedule->user->name ?? 'Unknown',
+                    'user_active' => $ot->schedule->user->active ?? false,
+                    'avatar_url' => $ot->schedule->user->avatar ? Storage::url($ot->schedule->user->avatar) : null,
                     'created_at' => $ot->created_at ? Carbon::parse($ot->created_at)->setTimezone('Asia/Manila')->format('M j, Y h:i A') : 'N/A',
                 ];
             });
@@ -972,6 +974,44 @@ class OvertimeRequestController extends Controller
             'years' => $years,
             'data'  => $data,
         ]);
+    }
+
+    public function bulkUpdateOvertimeRequestStatus(Request $request)
+    {
+        $rules = [
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer|exists:overtime_requests,id',
+            'update_status' => 'required|in:APPROVED,FILED',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        $validCurrentStatus = $request->update_status === 'APPROVED' ? 'PENDING' : 'APPROVED';
+
+        try {
+            DB::transaction(function () use ($request, $validCurrentStatus) {
+                $records = OvertimeRequest::whereIn('id', $request->ids)
+                    ->where('status', $validCurrentStatus)
+                    ->get();
+
+                if ($records->count() !== count($request->ids)) {
+                    throw new \Exception('Some requests are no longer in the expected status. Please refresh and try again.');
+                }
+
+                OvertimeRequest::whereIn('id', $request->ids)
+                    ->where('status', $validCurrentStatus)
+                    ->update(['status' => $request->update_status]);
+            });
+
+            $label = $request->update_status === 'APPROVED' ? 'approved' : 'filed';
+            return redirect()->back()->with('message', count($request->ids) . " request(s) have been {$label}.");
+        } catch (\Throwable $th) {
+            return redirect()->back()->withErrors("Bulk update failed: {$th->getMessage()}")->withInput();
+        }
     }
 
     private function getMinimumOvertimeHours(): float

@@ -11,7 +11,7 @@ for (let i = 0; i < 7; i++) {
     });
 }
 
-export const weeks = [{ label: "All Weeks", value: "" }];
+export const weeks = [];
 for (let w = 1; w <= 52; w++) {
     const isCurrent = w === currentWeekNum;
     weeks.push({

@@ -68,6 +68,7 @@ Route::middleware('approver')->group(function () {
     Route::put('/hours/{requiredHours}', [RequiredHoursController::class, 'updateRequiredHour'])->name('hours.update');
 
     Route::post('/overtime/update/approver', [OvertimeRequestController::class, 'updateOvertimeRequestStatus'])->name('overtime.update.approver');
+    Route::post('/overtime/update/bulk', [OvertimeRequestController::class, 'bulkUpdateOvertimeRequestStatus'])->name('overtime.update.bulk');
     Route::get('/overtime/filing', [OvertimeRequestController::class, 'fetchOvertimeRequestsViaStatus'])->name('overtime.filing');
     Route::get('/overtime/pending', [OvertimeRequestController::class, 'fetchOvertimeRequestsViaStatus'])->name('overtime.pending');
     Route::get('/overtime/filed', [OvertimeRequestController::class, 'fetchOvertimeRequestsViaStatus'])->name('overtime.filed');

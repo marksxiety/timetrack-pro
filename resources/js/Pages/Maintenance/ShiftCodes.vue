@@ -3,6 +3,10 @@
     <Head title="Manage Shift Codes" />
     <Modal ref="modalRef" title="Delete Shift Code">
         <p class="text-md mb-4">Are you sure you want to delete this shift code?</p>
+        <div role="alert" class="alert alert-warning text-sm mb-4">
+            <Icon icon="material-symbols:warning-rounded" class="text-lg shrink-0" />
+            Deleting this shift code may affect registered overtime requests associated with it.
+        </div>
         <div class="flex justify-end gap-4">
             <button class="btn btn-sm btn-primary mt-4" @click="handleDeletion()" :disabled="deleteform.processing">
                 <span v-if="deleteform.processing" class="loading loading-spinner"></span>
@@ -20,18 +24,19 @@
         ]" />
 
         <!-- Page Heading -->
-        <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-base-content">Manage Shift Codes</h1>
+        <div>
+            <h1 class="text-lg font-bold">Manage Shift Codes</h1>
+            <p class="text-xs opacity-50 mt-0.5">Register, update, and delete shift codes with their corresponding start and end times.</p>
         </div>
 
         <!-- Main Grid Content -->
         <div class="grid place-items-center">
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 h-[32rem] w-full max-w-7xl">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 w-full max-w-7xl">
 
                 <!-- Form Panel -->
                 <div class="col-span-2">
                     <div
-                        class="bg-base-100 p-8 rounded-md shadow-xs min-h-[50vh] flex flex-col justify-center border border-base-200">
+                        class="bg-base-100 p-8 rounded-md shadow-xs h-[32rem] flex flex-col justify-center border border-base-200">
                         <!-- Title -->
                         <h2 class="text-xl font-bold mb-6 text-center text-primary uppercase tracking-wide">
                             Shift Code Registration
@@ -45,7 +50,7 @@
                                     <label class="join-item flex items-center gap-2 bg-base-200 rounded">
                                         <input type="checkbox" class="checkbox checkbox-primary checkbox-sm"
                                             @change="handleRequiredTS()" v-model="form.is_rest_day" />
-                                        <span class="text-sm text-nowrap">RD / NWS</span>
+                                        <span class="text-sm text-nowrap">RD / DAYOFF</span>
                                     </label>
                                 </label>
                             </div>
@@ -64,8 +69,9 @@
 
                 <!-- Table Panel -->
                 <div class="col-span-3">
-                    <div class="bg-base-100 rounded-md p-6 min-h-[50vh] overflow-auto shadow-xs border border-base-200">
+                    <div class="bg-base-100 rounded-md p-6 h-[32rem] shadow-xs border border-base-200 flex flex-col">
                         <h2 class="text-lg font-semibold mb-4 text-base-content">Registered Shift Codes</h2>
+                        <div class="overflow-auto flex-1">
                         <table class="table w-full text-sm">
                             <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
                                 <tr class="text-center">
@@ -99,6 +105,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
 
@@ -114,6 +121,7 @@ import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, router, Link } from '@inertiajs/vue3'
 import { inject } from 'vue'
 import Modal from '../Components/Modal.vue'
+import { Icon } from "@iconify/vue"
 
 const modalRef = ref(null)
 

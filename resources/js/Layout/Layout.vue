@@ -8,20 +8,26 @@
                     <div tabindex="0" role="button"
                         class="flex gap-2 text-sm items-center hover:bg-base-300 py-2 px-4 rounded-3xl">
                         <Icon icon="tabler:clock-code" width="24" height="24" />
-                        Operations
+                        {{ $page?.props?.auth.user?.role === 'approver' ? 'Administration' : 'Operations' }}
                     </div>
                     <ul tabindex="0"
                         class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-40 p-2 shadow">
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
+                            <Link :href="route('approver.manage.user')" class="justify-between">
+                                <Icon icon="material-symbols:manage-accounts-rounded" width="24" height="24" />
+                                Manage Users
+                            </Link>
+                        </li>
+                        <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('shifts')" class="justify-between">
                                 <Icon icon="jam:code" width="24" height="24" />
-                                Shift Codes
+                                Manage Shifts
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('schedule.manage')" class="justify-between">
                                 <Icon icon="icon-park-outline:schedule" width="24" height="24" />
-                                Schedule
+                                Manage Schedules
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
@@ -33,19 +39,13 @@
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('approver.generate.report')" class="justify-between">
                                 <Icon icon="mdi:report-box-multiple-outline" width="24" height="24" />
-                                Generate Report
-                            </Link>
-                        </li>
-                        <li v-if="$page?.props?.auth.user?.role === 'approver'">
-                            <Link :href="route('approver.manage.user')" class="justify-between">
-                                <Icon icon="material-symbols:manage-accounts-rounded" width="24" height="24" />
-                                Manage Users
+                                Reports
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'employee'">
                             <Link :href="route('schedule')" class="justify-between">
                                 <Icon icon="mingcute:schedule-line" width="24" height="24" />
-                                Schedule
+                                My Schedule
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'employee'">

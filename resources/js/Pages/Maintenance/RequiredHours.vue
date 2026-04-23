@@ -9,18 +9,19 @@
         ]" />
 
         <!-- Page Heading -->
-        <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-base-content">Manage Authorized Hours</h1>
+        <div>
+            <h1 class="text-lg font-bold">Manage Authorized Hours</h1>
+            <p class="text-xs opacity-50 mt-0.5">Set and maintain the limit overtime hours for each week of the year.</p>
         </div>
 
         <!-- Main Grid Content -->
         <div class="grid place-items-center">
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 h-[32rem] w-full max-w-7xl">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 w-full max-w-7xl">
 
                 <!-- Form Panel -->
                 <div class="col-span-2">
                     <div
-                        class="bg-base-100 p-8 rounded-md shadow-xs min-h-[50vh] flex flex-col justify-center border border-base-200">
+                        class="bg-base-100 p-8 rounded-md shadow-xs h-[32rem] flex flex-col justify-center border border-base-200">
                         <!-- Title -->
                         <h2 class="text-xl font-bold mb-6 text-center text-primary uppercase tracking-wide">
                             Weekly Authorization Form
@@ -44,8 +45,9 @@
 
                 <!-- Table Panel -->
                 <div class="col-span-3">
-                    <div class="bg-base-100 rounded-md p-6 min-h-[50vh] overflow-auto shadow-xs border border-base-200">
+                    <div class="bg-base-100 rounded-md p-6 h-[32rem] shadow-xs border border-base-200 flex flex-col">
                         <h2 class="text-lg font-semibold mb-4 text-base-content">Registered Required Hours</h2>
+                        <div class="overflow-auto flex-1">
                         <table class="table w-full text-sm">
                             <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
                                 <tr class="text-center">
@@ -77,6 +79,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
 

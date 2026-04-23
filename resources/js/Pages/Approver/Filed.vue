@@ -159,17 +159,16 @@
                 <Icon icon="material-symbols:comment-outline" width="20" height="20" />
                 Remarks
               </h3>
-              <TextArea type="text" v-model="overtimeRequestForm.remarks" :message="overtimeRequestForm.errors?.remarks"
-                :disabled="['FILED', 'DECLINED', 'CANCELED'].includes(overtime.status)"
-                :placeholder="['FILED', 'DECLINED', 'APPROVED'].includes(overtime.status) ? '' : 'Enter any remarks regarding this request...'" />
+              <p v-if="overtime.remarks" class="opacity-80 leading-relaxed">{{ overtime.remarks }}</p>
+              <p v-else class="opacity-40 italic text-sm">No remarks provided.</p>
             </div>
           </div>
 
           <!-- Close Button -->
-          <button type="submit" class="btn btn-neutral w-full gap-2" @click="closeManageRequestModal()">
-            <Icon icon="material-symbols:close-rounded" width="20" height="20" />
-            <span class="font-medium">Close</span>
-          </button>
+          <div class="divider"></div>
+          <div class="flex justify-start gap-4">
+            <button class="btn btn-neutral" @click="closeManageRequestModal()">CLOSE</button>
+          </div>
         </div>
       </div>
     </div>
@@ -190,11 +189,11 @@
     </div>
 
     <div class="stats stats-horizontal shadow-xs flex-wrap">
-      <Card title="Filed Requests" :value="total_requests" />
-      <Card title="Total Overtime Hours" :value="total_requests_hours" />
+      <Card title="Filed Requests" :value="total_requests" description="Successfully filed" />
+      <Card title="Total Overtime Hours" :value="total_requests_hours" description="Completed hours" />
     </div>
 
-    <!-- Filing Table -->
+    <!-- Filed Table -->
     <div class="card bg-base-100 shadow-xs">
       <div class="card-body">
         <div class="flex justify-between mb-4">
@@ -214,24 +213,21 @@
                 <th>Date</th>
                 <th>Week</th>
                 <th>Hours</th>
-                <th class="text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               <tr v-if="requests.length === 0">
-                <td colspan="6" class="text-center h-48 italic text-gray-400 py-4">
-                  No Awaiting Filing(s)
+                <td colspan="5" class="text-center h-48 italic text-gray-400 py-4">
+                  No filed request(s)
                 </td>
               </tr>
-              <tr v-for="request in requests" :key="request.id">
+              <tr v-for="request in requests" :key="request.id" class="hover cursor-pointer"
+                @click="openManageRequestModal(request)">
                 <td>{{ request.user.employee_id }}</td>
                 <td>{{ request.user.name }}</td>
                 <td>{{ request.schedule.date }}</td>
                 <td>{{ request.schedule.week }}</td>
                 <td>{{ request.overtime.hours }}</td>
-                <td class="flex gap-2 justify-center">
-                  <button class="btn btn-xs text-sm btn-primary" @click="openManageRequestModal(request)">View</button>
-                </td>
               </tr>
             </tbody>
           </table>
@@ -242,15 +238,14 @@
 </template>
 
 <script setup>
-import { onMounted, ref, inject, watch, computed } from 'vue'
+import { ref, inject, watch, computed } from 'vue'
 import Card from '../Components/Card.vue'
 import SelectOption from '../Components/SelectOption.vue'
-import TextArea from '../Components/TextArea.vue'
 import Stepper from '../Components/Stepper.vue'
 import { weeks, years, currentWeek } from '../utils/dropdownOptions.js'
 import Modal from '../Components/Modal.vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
-import { useForm, router, Link } from '@inertiajs/vue3'
+import { router } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 
 const props = defineProps({
@@ -296,13 +291,6 @@ const overtime = ref({
   remarks: '',
 })
 
-const overtimeRequestForm = useForm({
-  id: '',
-  current_status: '',
-  update_status: '',
-  remarks: ''
-})
-
 // ===== Watchers =====
 
 watch(() => props?.info?.requests, (updatedRequest) => {
@@ -317,15 +305,9 @@ watch(() => props.info.payload.year, (newYear) => {
   selectedYear.value = newYear
 })
 
-
-
 const manageRequestModal = ref(null)
 
 const openManageRequestModal = (data) => {
-  manageRequestModal.value?.open()
-
-  // id of the overtime request itself (will use for update status)
-  // for events like approval, disapproval, declining, or filing
   user.value = {
     name: data?.user?.name,
     employee_id: data?.user?.employee_id,
@@ -351,16 +333,12 @@ const openManageRequestModal = (data) => {
     remarks: data?.overtime?.remarks,
   }
 
-  // populate the data for form (to use in updating the request's status)
-  overtimeRequestForm.id = data?.id
-  overtimeRequestForm.current_status = data?.overtime?.status,
-    overtimeRequestForm.remarks = data?.overtime?.remarks
+  manageRequestModal.value?.open()
 }
 
 const closeManageRequestModal = () => {
   manageRequestModal.value?.close()
 }
-
 
 const handleWeekSelection = () => {
   router.get(route('overtime.filing'), {
