@@ -88,12 +88,18 @@
                             'flex items-center gap-3 px-3 py-2.5 rounded-lg border border-transparent',
                             request.status === 'CANCELED' ? 'opacity-50' : ''
                         ]">
+                            <div class="relative shrink-0">
                             <div
                                 class="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-base-200 border-2 flex-shrink-0 transition-colors duration-300 border-base-300">
                                 <img v-if="request.avatar_url" :src="request.avatar_url" alt="Avatar"
                                     class="w-full h-full object-cover" />
                                 <span v-else
                                     class="text-xs font-semibold text-base-content/60">{{ getInitials(request.user_name) }}</span>
+                            </div>
+                            <div :class="[
+                                'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-base-100',
+                                request.user_active ? 'bg-success' : 'bg-error'
+                            ]"></div>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2">
