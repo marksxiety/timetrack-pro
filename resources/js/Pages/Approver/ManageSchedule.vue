@@ -30,109 +30,171 @@
             { label: 'Home', route: 'main' },
             { label: 'Manage Schedule', route: 'schedule.manage', active: true },
         ]" />
-        <!-- Page Heading -->
-        <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Employee Schedule</h1>
-            <div class="flex space-x-4 w-2/4">
-                <div class="flex-1">
-                    <SelectOption :options="years" v-model="selectedYear" :message="alreadyLoaded ? '-' : ''" />
-                </div>
-                <div class="flex-1">
-                    <SelectOption :options="weeks" v-model="selectedWeek" :message="alreadyLoaded ? '-' : ''" />
-                </div>
-                <div>
-                    <button class="btn btn-primary flex items-center gap-2 px-4" @click="handleAddWeek()"
-                        :disabled="isLoading || addingWeek">
-                        <Icon icon="material-symbols:add-rounded" width="24" height="24" v-if="!addingWeek" />
-                        <span v-if="addingWeek"><span class="loading loading-spinner loading-xs"></span>
-                            Add Week</span>
-                        <span v-else>Add Week</span>
-                    </button>
-                </div>
-                <div>
-                    <button class="btn btn-primary flex items-center gap-2 px-4" :disabled="isLoading || addingWeek"
-                        @click="openConfirmModal()">
-                        <Icon icon="mingcute:schedule-line" width="24" height="24" /> Submit
-                        Schedule
-                    </button>
-                </div>
+
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-base-content">Manage Schedule</h1>
+                <p class="text-base-content/60 text-sm mt-1">Assign and manage employee shift schedules</p>
             </div>
-
+            <div class="flex items-center gap-2">
+                <div class="flex items-center bg-base-200 rounded-xl px-1 py-1 gap-0.5">
+                    <select v-model="selectedYear"
+                        class="select select-ghost select-sm bg-transparent font-medium focus:outline-none border-none min-w-28">
+                        <option v-for="y in years" :key="y.value" :value="y.value">{{ y.label }}</option>
+                    </select>
+                    <div class="w-px h-5 bg-base-300"></div>
+                    <select v-model="selectedWeek"
+                        class="select select-ghost select-sm bg-transparent font-medium focus:outline-none border-none min-w-36">
+                        <option v-for="w in weeks" :key="w.value" :value="w.value">{{ w.label }}</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-sm gap-1" @click="handleAddWeek()"
+                    :disabled="isLoading || addingWeek">
+                    <span v-if="addingWeek" class="loading loading-spinner loading-xs"></span>
+                    <Icon v-if="!addingWeek" icon="material-symbols:add-rounded" width="18" height="18" />
+                    <span>Add Week</span>
+                </button>
+            </div>
         </div>
 
-        <div v-if="isLoading" class="flex w-full items-center justify-center rounded-md bg-base-100 py-4">
-            <span class="loading loading-spinner mr-2"></span>
-            Loading current schedule...
-        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:h-[70vh]">
 
-        <div v-else v-for="(sched, index) in employeeSchedules" :key="index"
-            class="bg-base-100 p-6 rounded-lg shadow-xs">
+            <div class="card bg-base-100 lg:col-span-4 flex flex-col min-h-0 h-full">
+        <div class="card-body flex flex-col p-4 min-h-0 h-full">
+            <div class="overflow-auto flex-1 min-h-0 p-4">
+                        <div v-if="isLoading" class="flex w-full items-center justify-center py-12">
+                            <span class="loading loading-spinner mr-2"></span>
+                            Loading schedules...
+                        </div>
 
-            <!-- Top Section (fixed, does not scroll) -->
-            <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <h2
-                    class="text-xl font-semibold tracking-tight leading-tight text-base-content flex items-center gap-2">
-                    <span>Schedule for</span>
-                    <span class="font-bold">Week {{ sched.week }} — {{ sched.year }}</span>
-                </h2>
+                        <div v-else-if="employeeSchedules.length === 0" class="min-h-96 flex items-center justify-center">
+                            <p class="text-base-content/40 italic text-sm">Select a year and week, then click Add Week
+                            </p>
+                        </div>
 
-                <div class="flex flex-row gap-6">
-                    <p class="mt-2 sm:mt-0 text-base-content opacity-70 font-medium">
-                        {{ sched.week_start }} — {{ sched.week_end }}
-                    </p>
-                    <div class="tooltip tooltip-right tooltip-error" data-tip="REMOVE">
-                        <Icon icon="gg:remove" width="28" height="28" @click="removeSchedule(index)"
-                            class="hover:bg-error hover:cursor-pointer rounded-full" />
+                        <template v-else>
+                            <div v-for="(sched, index) in employeeSchedules" :key="index" class="mb-6 last:mb-0">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-semibold text-sm">W{{ sched.week }} — {{ sched.year }}</span>
+                                        <span class="text-xs text-base-content/50">{{ sched.week_start }} — {{
+                                            sched.week_end }}</span>
+                                    </div>
+                                    <div class="tooltip tooltip-left tooltip-error" data-tip="Remove Week">
+                                        <Icon icon="gg:remove" width="18" height="18" @click="removeSchedule(index)"
+                                            class="hover:bg-error hover:cursor-pointer rounded-full" />
+                                    </div>
+                                </div>
+                                <table class="table w-full text-sm">
+                                    <thead class="bg-base-200 rounded">
+                                        <tr>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider">
+                                                Employee</th>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center"
+                                                v-if="defaultShiftCodes.length > 0">Default</th>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                                Sun</th>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                                Mon</th>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                                Tue</th>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                                Wed</th>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                                Thu</th>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                                Fri</th>
+                                            <th
+                                                class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                                Sat</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="(sch, index_sched) in sched.week_schedule"
+                                            :key="index_sched" class="text-sm">
+                                            <td class="font-medium whitespace-nowrap">{{ sch.name }}</td>
+                                            <td v-if="defaultShiftCodes.length > 0" class="text-center">
+                                                <div class="flex justify-center">
+                                                    <label
+                                                        class="label tooltip tooltip-left"
+                                                        data-tip="Default Shift">
+                                                        <input type="checkbox"
+                                                            class="checkbox checkbox-primary checkbox-xs"
+                                                            :checked="isDefaultShift(sch.schedule)"
+                                                            :disabled="isLoading || isSubmitting"
+                                                            @change="handleDefaultShiftFill($event, index, index_sched)" />
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td v-for="day in sch.schedule" :key="day.date">
+                                                <SelectOption :options="shifts" v-model="day.shift_id" margin=""
+                                                    size="select-xs" />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div v-if="index < employeeSchedules.length - 1" class="divider my-4"></div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="divider my-2"></div>
+                    <div class="flex justify-between items-center">
+                        <span v-if="defaultShiftCodes.length > 0" class="text-xs text-base-content/40 italic">
+                            *Check "Default" to auto-fill shifts. Uncheck to erase.
+                        </span>
+                        <span v-else></span>
+                        <button type="submit" class="btn btn-neutral btn-sm rounded-lg"
+                            @click="openConfirmModal()"
+                            :disabled="isSubmitting || isLoading || employeeSchedules.length === 0">
+                            <span v-if="isSubmitting" class="loading loading-spinner"></span>
+                            <span>Submit Schedule</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Scrollable Table -->
-            <div class="max-h-80 overflow-y-auto overflow-x-auto">
-                <table class="table w-full h-auto">
-                    <thead class="sticky top-0 bg-base-200 z-10">
-                        <tr class="text-center">
-                            <th>Employee</th>
-                            <th v-if="defaultShiftCodes.length > 0">Default Shift</th>
-                            <th>Sunday</th>
-                            <th>Monday</th>
-                            <th>Tuesday</th>
-                            <th>Wednesday</th>
-                            <th>Thursday</th>
-                            <th>Friday</th>
-                            <th>Saturday</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(sch, index_sched) in sched.week_schedule" :key="index_sched">
-                            <td class="text-center">{{ sch.name }}</td>
-                            <td v-if="defaultShiftCodes.length > 0" class="text-center">
-                                <div class="flex justify-center">
-                                    <label class="label">
-                                        <input type="checkbox" :checked="isDefaultShift(sch.schedule)"
-                                            class="checkbox checkbox-primary"
-                                            @change="handleDefaultShiftFill($event, index, index_sched)" />
-                                    </label>
-                                </div>
-                            </td>
-                            <td v-for="day in sch.schedule" :key="day.date">
-                                <div class="w-full flex justify-center items-center">
-                                    <span class="loading loading-spinner" v-if="isLoading"></span>
-                                    <span v-else class="w-full">
-                                        <SelectOption :options="shifts" v-model="day.shift_id" margin="" />
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div v-if="shiftReference.length > 0" class="card bg-base-100 overflow-hidden flex flex-col h-full">
+                <div class="p-4 pb-0">
+                    <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
+                        Shift Reference
+                    </h3>
+                </div>
+                <div class="overflow-y-auto px-4 pb-4 flex-1">
+                    <table class="table text-sm">
+                        <thead class="sticky top-0 bg-base-200 rounded z-10">
+                            <tr>
+                                <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Code
+                                </th>
+                                <th
+                                    class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                    Time Range
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="ref in shiftReference" :key="ref.id">
+                                <td class="font-bold text-base-content">{{ ref.code }}</td>
+                                <td class="text-base-content/60 text-center">{{ ref.timeRange }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
+        </div>
     </div>
 </template>
 <script setup>
-import { onMounted, ref, inject } from 'vue'
+import { onMounted, ref, inject, computed } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { Link } from '@inertiajs/vue3'
 import { Icon } from "@iconify/vue"
@@ -167,7 +229,26 @@ const selectedWeek = ref(currentWeek())
 
 const employeeSchedules = ref([])
 const shifts = ref([])
+const shiftData = ref([])
 const defaultShiftCodes = ref([])
+
+const to12hr = (t) => {
+    if (!t) return null
+    const [h, m] = t.split(':').map(Number)
+    const period = h >= 12 ? 'PM' : 'AM'
+    const hour = h % 12 || 12
+    return `${hour}:${String(m).padStart(2, '0')} ${period}`
+}
+
+const shiftReference = computed(() => {
+    return shiftData.value.map(s => ({
+        id: s.id,
+        code: s.code,
+        timeRange: s.start_time && s.end_time
+            ? `${to12hr(s.start_time)} - ${to12hr(s.end_time)}`
+            : 'N/A'
+    }))
+})
 
 
 onMounted(async () => {
@@ -180,11 +261,10 @@ onMounted(async () => {
 
     const shiftsResponse = await fetchShiftList('approver')
 
-    // Format the shift data into { label, value } structure
-    // so it can be used directly in <SelectOption>
-    const shiftData = shiftsResponse?.data ?? []
-    shifts.value = shiftData.map(element => ({
-        label: (element.start_time && element.end_time) ? `${element.code}: ${element.start_time} - ${element.end_time}` : `${element.code}: N/A`,
+    const shiftDataResponse = shiftsResponse?.data ?? []
+    shiftData.value = shiftDataResponse
+    shifts.value = shiftDataResponse.map(element => ({
+        label: element.code,
         value: element.id
     }))
 
@@ -264,7 +344,7 @@ const handleDefaultShiftFill = (event, schedIndex, rowIndex) => {
         }
 
         let default_shiftcodes_id = defaultShiftCodes.value.map(code => {
-            let match = shifts.value.find(shift => shift.label === code)
+            let match = shifts.value.find(shift => (shift.label).includes(code))
             if (!match) {
                 toast(`Shift code "${code}" not found in available shifts.`, 'warning')
             }
@@ -288,10 +368,12 @@ const isDefaultShift = (schedule) => {
     }
 
     // Compare schedule's shift labels with default codes
-    return schedule.every((day, idx) => {
-        let match = shifts.value.find(shift => shift.value === day.shift_id)
-        return match ? match.label === defaultShiftCodes.value[idx] : false
-    })
+    if (shiftData.value.length > 0) {
+        return schedule.every((day, idx) => {
+            let match = shiftData.value.find(shift => shift.id === day.shift_id)
+            return match ? match.code === defaultShiftCodes.value[idx] : false
+        })
+    }
 }
 
 
