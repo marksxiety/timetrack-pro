@@ -586,7 +586,7 @@ class OvertimeRequestController extends Controller
         }, 'schedule.shift' => function ($query) {
             $query->select('id', 'code', 'start_time', 'end_time');
         }, 'schedule.user' => function ($query) {
-            $query->select('id', 'name', 'employeeid');
+            $query->select('id', 'name', 'employeeid', 'avatar');
         }])
             ->whereHas('schedule', function ($query) {
                 $query->whereHas('user', function ($userQuery) {
@@ -606,6 +606,7 @@ class OvertimeRequestController extends Controller
                     'status' => $ot->status,
                     'reason' => $ot->reason,
                     'user_name' => $ot->schedule->user->name ?? 'Unknown',
+                    'avatar_url' => $ot->schedule->user->avatar ? Storage::url($ot->schedule->user->avatar) : null,
                     'created_at' => $ot->created_at ? Carbon::parse($ot->created_at)->setTimezone('Asia/Manila')->format('M j, Y h:i A') : 'N/A',
                 ];
             });
