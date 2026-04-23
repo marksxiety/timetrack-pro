@@ -11,7 +11,5 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(OrganizationUnitSeeder::class);
         $this->call(ShiftCodeSeeder::class);
-        $this->call(RequiredHoursSeeder::class);
-        $this->call(OvertimeRequestSeeder::class);
     }
 }
