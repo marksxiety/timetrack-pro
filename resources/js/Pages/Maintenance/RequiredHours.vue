@@ -9,8 +9,9 @@
         ]" />
 
         <!-- Page Heading -->
-        <div class="flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-base-content">Manage Authorized Hours</h1>
+        <div>
+            <h1 class="text-lg font-bold">Manage Authorized Hours</h1>
+            <p class="text-xs opacity-50 mt-0.5">Set and maintain the limit overtime hours for each week of the year.</p>
         </div>
 
         <!-- Main Grid Content -->
