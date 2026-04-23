@@ -71,7 +71,7 @@
             </div>
             <div class="grid grid-cols-3 gap-4">
                 <div class="col-span-2 flex flex-col gap-4 p-4 bg-base-100 card shadow-xs">
-                    <div ref="overtimeWeeklyBarGraph" class="h-[45vh] w-full"></div>
+                    <div ref="overtimeWeeklyBarGraph" class="h-[44vh] w-full"></div>
                 </div>
 
                 <div class="col-span-1 card bg-base-100 shadow-xs overflow-hidden">
@@ -80,7 +80,7 @@
                             Recent Activities
                         </h2>
                     </div>
-                    <div class="overflow-y-auto max-h-[45vh] p-2">
+                    <div class="overflow-y-auto max-h-[44vh] p-2">
                         <div v-if="recentRequests.length === 0" class="flex items-center justify-center h-full py-8">
                             <p class="text-xs text-base-content/40">No Recent Activities</p>
                         </div>
