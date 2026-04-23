@@ -9,20 +9,21 @@ class ShiftCodeSeeder extends Seeder
 {
     public function run(): void
     {
-        $shifts = [
-            ['code' => 'AA', 'start_time' => null, 'end_time' => null],
-            ['code' => 'BB', 'start_time' => null, 'end_time' => null],
-            ['code' => 'CC', 'start_time' => '08:00', 'end_time' => '17:00'],
-            ['code' => 'DD', 'start_time' => '08:00', 'end_time' => '17:00'],
-            ['code' => 'EE', 'start_time' => '08:00', 'end_time' => '17:00'],
-            ['code' => 'FF', 'start_time' => '08:00', 'end_time' => '17:00'],
-            ['code' => 'GG', 'start_time' => '08:00', 'end_time' => '17:00'],
-        ];
+        $startTimes = ['06:00', '07:00', '08:00', '09:00', '10:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
+        $endTimes = ['14:00', '15:00', '16:00', '17:00', '18:00', '22:00', '00:00', '02:00', '04:00', '06:00'];
 
-        foreach ($shifts as $shift) {
+        for ($i = 1; $i <= 50; $i++) {
+            $letter = chr(65 + (($i - 1) % 26));
+            $suffix = floor(($i - 1) / 26);
+
+            $code = $suffix > 0 ? "{$letter}{$suffix}" : (string) $letter;
+
             Shift::firstOrCreate(
-                ['code' => $shift['code']],
-                ['start_time' => $shift['start_time'], 'end_time' => $shift['end_time']]
+                ['code' => $code],
+                [
+                    'start_time' => $startTimes[array_rand($startTimes)],
+                    'end_time' => $endTimes[array_rand($endTimes)],
+                ]
             );
         }
     }
