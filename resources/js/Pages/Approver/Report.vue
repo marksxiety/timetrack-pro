@@ -188,7 +188,7 @@ import { useForm, Link } from '@inertiajs/vue3'
 import reportImage from '../../images/generate-report.svg'
 import TextInput from '../Components/TextInput.vue'
 import { theme } from '../utils/themeStore.js'
-import { getTailwindColor } from '../utils/tailwindColorIdentifier.js'
+import { getTailwindColor } from '../utils/helpers/color.js'
 import * as echarts from 'echarts'
 import { Icon } from "@iconify/vue"
 import { analyzeWithAI } from "../services/ai.js"
