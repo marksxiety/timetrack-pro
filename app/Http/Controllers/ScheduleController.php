@@ -80,12 +80,18 @@ class ScheduleController extends Controller
         $info = $request->input('schedule');
 
         try {
-            $resultSchedules = DB::transaction(function () use ($info) {
+            $result = DB::transaction(function () use ($info) {
                 $resultSchedules = [];
+                $skippedIds = [];
 
                 foreach ($info as $item) {
 
                     if (!empty($item['id'])) {
+                        if (empty($item['shift_code'])) {
+                            $skippedIds[] = $item['id'];
+                            continue;
+                        }
+
                         Schedule::where('id', $item['id'])->update([
                             'user_id' => Auth::id(),
                             'shift_id' => $item['shift_code'],
@@ -130,13 +136,19 @@ class ScheduleController extends Controller
                     }
                 }
 
-                return $resultSchedules;
+                return [
+                    'schedules' => $resultSchedules,
+                    'skipped_ids' => $skippedIds
+                ];
             });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Submission Successful',
-                'schedules' => $resultSchedules
+                'message' => count($result['skipped_ids']) > 0
+                    ? 'Submission Successful. Note: Some shifts cannot be removed since there are already registered shifts on those days.'
+                    : 'Submission Successful',
+                'schedules' => $result['schedules'],
+                'skipped_ids' => $result['skipped_ids']
             ]);
         } catch (\Throwable $th) {
             return response()->json([
