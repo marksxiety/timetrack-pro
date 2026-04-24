@@ -48,13 +48,7 @@
                                 class="input input-bordered flex items-center gap-2 focus-within:input-primary transition-all w-full">
                                 <Icon icon="material-symbols:lock-outline" width="16" height="16"
                                     class="text-base-content/40 shrink-0" />
-                                <input :type="showPassword ? 'text' : 'password'" class="grow bg-transparent outline-none text-sm"
-                                    placeholder="Enter new password" v-model="form.password" />
-                                <button type="button" @click="showPassword = !showPassword"
-                                    class="text-base-content/30 hover:text-base-content/60 transition-colors">
-                                    <Icon v-if="!showPassword" icon="material-symbols:visibility-outline" width="16" height="16" />
-                                    <Icon v-else icon="material-symbols:visibility-off-outline" width="16" height="16" />
-                                </button>
+                                <PasswordInput v-model="form.password" placeholder="Enter new password" />
                             </label>
                             <span v-if="form.errors.password" class="text-error text-xs mt-0.5">{{ form.errors.password
                             }}</span>
@@ -71,14 +65,7 @@
                                 class="input input-bordered flex items-center gap-2 focus-within:input-primary transition-all w-full">
                                 <Icon icon="material-symbols:shield-outline" width="16" height="16"
                                     class="text-base-content/40 shrink-0" />
-                                <input :type="showConfirmPassword ? 'text' : 'password'"
-                                    class="grow bg-transparent outline-none text-sm" placeholder="Confirm new password"
-                                    v-model="form.password_confirmation" />
-                                <button type="button" @click="showConfirmPassword = !showConfirmPassword"
-                                    class="text-base-content/30 hover:text-base-content/60 transition-colors">
-                                    <Icon v-if="!showConfirmPassword" icon="material-symbols:visibility-outline" width="16" height="16" />
-                                    <Icon v-else icon="material-symbols:visibility-off-outline" width="16" height="16" />
-                                </button>
+                                <PasswordInput v-model="form.password_confirmation" placeholder="Confirm new password" prefix-icon="material-symbols:shield-outline" />
                             </label>
                             <span v-if="form.errors.password_confirmation"
                                 class="text-error text-xs mt-0.5">{{ form.errors.password_confirmation }}</span>
@@ -125,13 +112,13 @@ import { ref } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 import AuthBackground from '../../Components/AuthBackground.vue'
+import PasswordInput from '../Components/PasswordInput.vue'
 
 const props = defineProps({
     token: String,
     email: String,
 })
 
-const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
 const form = useForm({

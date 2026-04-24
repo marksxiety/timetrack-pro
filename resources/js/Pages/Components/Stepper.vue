@@ -16,7 +16,7 @@
 </template>
 
 <script setup>
-import { identifyColorStatus } from '../utils/colorIdentifier.js'
+import { identifyColorStatus } from '../utils/helpers/status.js'
 defineProps({
     status: {
         type: [Object, String],

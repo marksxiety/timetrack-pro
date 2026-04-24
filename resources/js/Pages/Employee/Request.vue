@@ -25,12 +25,7 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="text-xs opacity-60 mb-1">Status</span>
-                                        <div class="badge badge-sm gap-2" :class="[
-                                            formFilledOvertime.current_status === 'PENDING' ? 'badge-warning' :
-                                                (formFilledOvertime.current_status === 'APPROVED' ? 'badge-success' :
-                                                    (['DISAPPROVED', 'CANCELED'].includes(formFilledOvertime.current_status) ? 'badge-error' :
-                                                        (formFilledOvertime.current_status === 'FILED' ? 'badge-primary' : 'badge-ghost')))
-                                        ]">
+                                        <div class="badge badge-sm gap-2" :class="getStatusBadgeClass(formFilledOvertime.current_status)">
                                             {{ formFilledOvertime.current_status }}
                                         </div>
                                     </div>
@@ -46,27 +41,27 @@
                             </div>
                         </div>
 
-                        <div class="card border border-base-300 shadow-sm">
-                            <div class="card-body p-6">
+                        <div class="card border border-base-300 shadow-sm overflow-hidden flex flex-col">
+                            <div class="p-6 pb-0">
                                 <h3 class="card-title text-base mb-4 flex items-center gap-2">
                                     <Icon icon="material-symbols:schedule-outline" width="20" height="20" />
                                     Your Scheduled Shift
                                 </h3>
-                                <div class="grid grid-cols-3 gap-4">
-                                    <div class="col-span-1">
-                                        <TextInput name="Shift Code:" type="text"
-                                            v-model="formFilledOvertime.shift_code" :readonly="true"
-                                            :placeholder="''" />
-                                    </div>
-                                    <div class="col-span-1">
-                                        <TextInput name="Start:" type="text"
-                                            v-model="formFilledOvertime.shift_start_time" :readonly="true"
-                                            :placeholder="''" />
-                                    </div>
-                                    <div class="col-span-1">
-                                        <TextInput name="End:" type="text" v-model="formFilledOvertime.shift_end_time"
-                                            :readonly="true" :placeholder="''" />
-                                    </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 px-6 pb-6">
+                                <div class="col-span-1">
+                                    <TextInput name="Shift Code:" type="text"
+                                        v-model="formFilledOvertime.shift_code" :readonly="true"
+                                        :placeholder="''" />
+                                </div>
+                                <div class="col-span-1">
+                                    <TextInput name="Start:" type="text"
+                                        v-model="formFilledOvertime.shift_start_time" :readonly="true"
+                                        :placeholder="''" />
+                                </div>
+                                <div class="col-span-1">
+                                    <TextInput name="End:" type="text" v-model="formFilledOvertime.shift_end_time"
+                                        :readonly="true" :placeholder="''" />
                                 </div>
                             </div>
                         </div>
@@ -94,12 +89,12 @@
                                         <template v-else>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">Start Time</span>
-                                                <span class="font-semibold">{{ formatTime(formFilledOvertime.start_time)
+                                                <span class="font-semibold">{{ to12hr(formFilledOvertime.start_time)
                                                 }}</span>
                                             </div>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">End Time</span>
-                                                <span class="font-semibold">{{ formatTime(formFilledOvertime.end_time)
+                                                <span class="font-semibold">{{ to12hr(formFilledOvertime.end_time)
                                                 }}</span>
                                             </div>
                                         </template>
@@ -119,7 +114,7 @@
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                            @click="enhanceReason()" :disabled="isEnhancing">
+                                                            @click="enhanceReason(formFilledOvertime, isEnhancing)" :disabled="isEnhancing">
                                                             <span v-if="isEnhancing"
                                                                 class="loading loading-spinner loading-xs"></span>
                                                             <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
@@ -318,12 +313,7 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <div class="badge badge-sm font-semibold gap-1" :class="{
-                                        'badge-primary': req.status === 'FILED',
-                                        'badge-warning': req.status === 'PENDING',
-                                        'badge-success': req.status === 'APPROVED',
-                                        'badge-error': req.status === 'DECLINED' || req.status === 'DISAPPROVED' || req.status === 'CANCELED',
-                                    }">
+                                    <div class="badge badge-sm font-semibold gap-1" :class="getStatusBadgeClass(req.status)">
                                         <Icon :icon="getStatusIcon(req.status)" width="14" height="14" />
                                         {{ req.status }}
                                     </div>
@@ -357,8 +347,10 @@ import { Icon } from "@iconify/vue"
 import { Link, useForm, router } from '@inertiajs/vue3'
 import { ref, computed, watch, inject, onMounted } from 'vue'
 import { weeks, statuses, sortOptions } from '../utils/dropdownOptions.js'
-import { truncateText } from '../utils/truncateText.js'
-import { enhanceReasonWithAI } from "../services/ai.js"
+import { truncateText } from '../utils/helpers/format.js'
+import { getStatusBadgeClass } from '../utils/helpers/status.js'
+import { enhanceReason, submitCancelation as submitCancelationComposable } from '../composables/useOvertimeRequest.js'
+import { to12hr, to24hr } from '../utils/helpers/date.js'
 
 const toast = inject('toast')
 const appConfig = inject('appConfig')
@@ -485,31 +477,6 @@ const applyFilter = () => {
     fetchRequests()
 }
 
-const formatTimeStamp = (timestamp) => {
-    if (!timestamp) return ''
-
-    const match = timestamp.match(/(\d{1,2}):(\d{2})\s?(AM|PM)/i)
-    if (!match) return ''
-
-    let [, hour, minute, period] = match
-    hour = parseInt(hour, 10)
-    minute = parseInt(minute, 10)
-
-    if (period.toUpperCase() === 'PM' && hour !== 12) hour += 12
-    if (period.toUpperCase() === 'AM' && hour === 12) hour = 0
-
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-}
-
-const formatTime = (time) => {
-    if (!time) return ''
-
-    const [hours, minutes] = time.split(':').map(Number)
-    const period = hours >= 12 ? 'PM' : 'AM'
-    const formattedHours = hours % 12 || 12
-    return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`
-}
-
 const openRequestModal = (data) => {
     formFilledOvertime.id = data.id
     formFilledOvertime.employee_schedule_id = data.employee_schedule_id
@@ -517,8 +484,8 @@ const openRequestModal = (data) => {
     formFilledOvertime.created_at = data.created_at
     formFilledOvertime.week = data.week
     formFilledOvertime.hours = data.hours
-    formFilledOvertime.start_time = formatTimeStamp(data.start_time)
-    formFilledOvertime.end_time = formatTimeStamp(data.end_time)
+    formFilledOvertime.start_time = to24hr(data.start_time)
+    formFilledOvertime.end_time = to24hr(data.end_time)
     formFilledOvertime.current_status = data.status
     formFilledOvertime.reason = data.reason
     formFilledOvertime.remarks = data.remarks
@@ -538,64 +505,12 @@ const closeRequestModal = () => {
 }
 
 const submitCancelation = () => {
-    if (modeUpdate.value) {
-        formFilledOvertime.update_status = 'PENDING'
-    } else {
-        formFilledOvertime.update_status = 'CANCELED'
-    }
-
-    formFilledOvertime.post(route('overtime.update.employee'), {
-        onSuccess: () => {
-            if (modeUpdate.value) {
-                toast('Updating Successful', 'success')
-            } else {
-                toast('Cancelation Successful', 'success')
-            }
-            closeRequestModal()
-        },
-        onError: () => {
-            toast('Request failed.', 'error')
-        }
+    submitCancelationComposable(formFilledOvertime, modeUpdate, toast, () => {
+        confirmingCancel.value = false
+        modeUpdate.value = false
+        formFilledOvertime.reset()
+        closeRequestModal()
     })
-}
-
-const enhanceReason = async () => {
-    const form = formFilledOvertime
-    const originalReason = form.reason
-
-    if (form.reason) {
-        if (form.reason.trim().length === 0) {
-            form.errors.reason = 'Please enter a reason to enhance.'
-            return
-        }
-
-        let splitted_reason = form.reason?.trim().split(' ')
-        if (splitted_reason.length < 3) {
-            form.errors.reason = 'Please provide a more detailed reason (at least 3 words).'
-            return
-        }
-        delete form.errors.reason
-        isEnhancing.value = true
-
-        const enhanced = await enhanceReasonWithAI(form.reason, (streamedText) => {
-            form.reason = streamedText
-        })
-
-        if (enhanced.success) {
-            form.reason = enhanced.data
-            isEnhancing.value = false
-        } else {
-            form.reason = originalReason
-            isEnhancing.value = false
-            if (enhanced.status === 422) {
-                form.errors.reason = { message: enhanced.data, type: 'warning' }
-            } else {
-                form.errors.reason = 'Failed to enhance reason. Please try again.'
-            }
-        }
-    } else {
-        form.errors.reason = 'Please enter a reason to enhance.'
-    }
 }
 
 </script>

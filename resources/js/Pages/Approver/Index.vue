@@ -104,14 +104,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="text-sm font-medium truncate">{{ request.user_name }}</p>
-                                    <span :class="[
-                                        'badge badge-xs font-medium flex-shrink-0',
-                                        request.status === 'APPROVED' ? 'badge-success' :
-                                            request.status === 'PENDING' ? 'badge-warning' :
-                                                request.status === 'FILED' ? 'badge-info' :
-                                                    request.status === 'DECLINED' || request.status === 'DISAPPROVED' || request.status === 'CANCELED' ? 'badge-error' :
-                                                        'badge-ghost'
-                                    ]">{{ request.status }}</span>
+                                    <span :class="['badge badge-xs font-medium flex-shrink-0', getStatusBadgeClass(request.status)]">{{ request.status }}</span>
                                 </div>
                                 <p class="text-xs text-base-content/50 mt-0.5">
                                     {{ request.date }} &middot; {{ request.shift_code }} &middot;
@@ -136,7 +129,9 @@ import { weeks, years } from '../utils/dropdownOptions.js'
 import { router } from '@inertiajs/vue3'
 import * as echarts from 'echarts'
 import { theme } from '../utils/themeStore.js'
-import { getInitials } from '../utils/nameHelper.js'
+import { getInitials } from '../utils/helpers/format.js'
+import { getStatusBadgeClass } from '../utils/helpers/status.js'
+import { getTailwindColor } from '../utils/helpers/color.js'
 import { Icon } from "@iconify/vue"
 
 // ===== constant variables =====
@@ -201,16 +196,6 @@ const handleWeekSelection = () => {
         preserveState: true,
         preserveScroll: true
     })
-}
-
-function getTailwindColor(className) {
-    const div = document.createElement('div')
-    div.className = className
-    div.style.display = 'none'
-    document.body.appendChild(div)
-    const color = getComputedStyle(div).backgroundColor
-    document.body.removeChild(div)
-    return color
 }
 
 

@@ -11,7 +11,7 @@
                         {{ $page?.props?.auth.user?.role === 'approver' ? 'Administration' : 'Operations' }}
                     </div>
                     <ul tabindex="0"
-                        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-40 p-2 shadow">
+                        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 min-w-max p-2 shadow text-nowrap">
                         <li v-if="$page?.props?.auth.user?.role === 'approver'">
                             <Link :href="route('approver.manage.user')" class="justify-between">
                                 <Icon icon="material-symbols:manage-accounts-rounded" width="24" height="24" />

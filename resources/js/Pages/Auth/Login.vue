@@ -61,19 +61,7 @@
                                     <span
                                         class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Password</span>
                                 </label>
-                                <label
-                                    class="input input-bordered flex items-center gap-2 focus-within:input-primary transition-all w-full">
-                                    <Icon icon="material-symbols:lock-outline" width="16" height="16"
-                                        class="text-base-content/40 shrink-0" />
-                                    <input :type="showPassword ? 'text' : 'password'"
-                                        class="grow bg-transparent outline-none text-sm" placeholder="••••••••"
-                                        v-model="form.password" autocomplete="off" />
-                                    <button type="button" @click="showPassword = !showPassword"
-                                        class="text-base-content/30 hover:text-base-content/60 transition-colors">
-                                        <Icon v-if="!showPassword" icon="material-symbols:visibility-outline" width="16" height="16" />
-                                        <Icon v-else icon="material-symbols:visibility-off-outline" width="16" height="16" />
-                                    </button>
-                                </label>
+                                <PasswordInput v-model="form.password" placeholder="•••••••••" />
                                 <span v-if="form.errors.password" class="text-error text-xs mt-0.5">{{
                                     form.errors.password }}</span>
                             </div>
@@ -123,8 +111,7 @@ import { useForm, Link } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 import loginImage from '../../images/Secure-login.svg'
 import AuthBackground from '../../Components/AuthBackground.vue'
-
-const showPassword = ref(false)
+import PasswordInput from '../Components/PasswordInput.vue'
 
 const form = useForm({
     email: null,

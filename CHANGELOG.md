@@ -2,7 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
-## [v1.3.4] - 2026-04-23
+## [v1.3.5] - 2026-04-24
+
+### Added
+
+- Reusable `PasswordInput` component with built-in show/hide toggle for auth forms
+- Reusable `OvertimeRequestDetailModal` component for shared overtime request detail rendering
+- Shared composables: `useBulkSelection`, `useOvertimeRequest`, and `useScheduleManager`
+- Shared helper modules under `resources/js/Pages/utils/helpers` for date, status, format, color, and CSRF token handling
+
+### Changed
+
+- Refactor auth pages to use shared `PasswordInput` instead of duplicated inline password controls
+- Refactor approver Filed/Filing/Pending pages to use shared overtime modal and centralized bulk selection logic
+- Refactor employee Index/Request pages to use shared overtime reason enhancement/cancel flow and status/date helpers
+- Refactor approver Manage Schedule and employee Schedule to use shared default-shift fill and shift-reference logic
+- Refactor API/service modules (`schedule`, `ai`) to use shared CSRF helper and improve inline API docs
+
+### Fixed
+
+- Prevent empty `shift_code` updates in `submitSchedule`, and return `skipped_ids` for rows that cannot be removed
+- Add warning state support to `SelectOption` and surface skipped schedule rows after schedule submission
+
+### Style
+
+- Enhance report page layout and improve UI elements
+- Prevent navigation dropdown text wrapping in `Layout` menu
+
+### Documentation
+
+- Add JSDoc annotations across helper/composable/API/store modules for improved maintainability and editor hints`r`n`r`n## [v1.3.4] - 2026-04-23
 
 ### Added
 
@@ -261,3 +290,5 @@ All notable changes to this project will be documented in this file.
 - Role-based access: employee, approver, admin
 - Light/dark theme support
 - Profile management with avatar upload
+
+

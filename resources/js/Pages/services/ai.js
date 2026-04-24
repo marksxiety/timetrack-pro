@@ -1,4 +1,11 @@
-// Shared SSE stream reader
+import { getCsrfToken } from '../utils/helpers/csrf.js';
+
+/**
+ * Read an SSE (Server-Sent Events) stream and invoke a callback for each chunk.
+ * @param {Response} response - fetch Response with a streaming body
+ * @param {(content: string) => void} onChunk - callback invoked per parsed chunk
+ * @returns {Promise<void>}
+ */
 async function readSSEStream(response, onChunk) {
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
@@ -10,15 +17,14 @@ async function readSSEStream(response, onChunk) {
 
         buffer += decoder.decode(value, { stream: true });
 
-        // SSE messages are separated by double newlines
         const parts = buffer.split("\n\n");
-        buffer = parts.pop(); // keep incomplete trailing chunk
+        buffer = parts.pop();
 
         for (const part of parts) {
             const line = part.trim();
             if (!line.startsWith("data: ")) continue;
 
-            const payload = line.slice(6); // strip "data: "
+            const payload = line.slice(6);
             if (payload === "[DONE]") return;
 
             try {
@@ -33,6 +39,19 @@ async function readSSEStream(response, onChunk) {
     }
 }
 
+/**
+ * @typedef {Object} AIResult
+ * @property {boolean} success
+ * @property {string} [data]
+ * @property {number} [status]
+ */
+
+/**
+ * Send report data to the AI analysis endpoint and stream the response.
+ * @param {string|Object} jsonData - JSON string or object to analyze
+ * @param {(content: string) => void} onChunk - streaming callback
+ * @returns {Promise<AIResult>}
+ */
 export async function analyzeWithAI(jsonData, onChunk) {
     try {
         const content =
@@ -62,6 +81,12 @@ export async function analyzeWithAI(jsonData, onChunk) {
     }
 }
 
+/**
+ * Send a reason string to the AI enhancement endpoint and stream the improved version.
+ * @param {string} reason - the overtime reason to enhance
+ * @param {(fullText: string) => void} onChunk - streaming callback with accumulated text
+ * @returns {Promise<AIResult>}
+ */
 export async function enhanceReasonWithAI(reason, onChunk) {
     try {
         const response = await fetch("/ai/enhance", {
@@ -94,9 +119,4 @@ export async function enhanceReasonWithAI(reason, onChunk) {
         console.error("AI Enhancement Error:", error);
         return { success: false, data: error.message };
     }
-}
-
-function getCsrfToken() {
-    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
-    return match ? decodeURIComponent(match[1]) : document.querySelector('meta[name="csrf-token"]')?.content;
 }
