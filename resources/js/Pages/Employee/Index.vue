@@ -91,7 +91,7 @@
                                                         data-tip="The better you describe, the better AI can enhance it!">
                                                         <span tabindex="0" class="inline-block">
                                                             <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                                @click="enhanceReason('register')"
+                                                                @click="enhanceReason(formFiling, isEnhancing)"
                                                                 :disabled="isEnhancing">
                                                                 <span v-if="isEnhancing"
                                                                     class="loading loading-spinner loading-xs"></span>
@@ -211,12 +211,7 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="text-xs opacity-60 mb-1">Status</span>
-                                        <div class="badge badge-sm gap-2" :class="[
-                                            formFilledOvertime.current_status === 'PENDING' ? 'badge-warning' :
-                                                (formFilledOvertime.current_status === 'APPROVED' ? 'badge-success' :
-                                                    (['DISAPPROVED', 'CANCELED'].includes(formFilledOvertime.current_status) ? 'badge-error' :
-                                                        (formFilledOvertime.current_status === 'FILED' ? 'badge-primary' : 'badge-ghost')))
-                                        ]">
+                                        <div class="badge badge-sm gap-2" :class="getStatusBadgeClass(formFilledOvertime.current_status)">
                                             {{ formFilledOvertime.current_status }}
                                         </div>
                                     </div>
@@ -282,12 +277,12 @@
                                         <template v-else>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">Start Time</span>
-                                                <span class="font-semibold">{{ formatTime(formFilledOvertime.start_time)
+                                                <span class="font-semibold">{{ to12hr(formFilledOvertime.start_time)
                                                     }}</span>
                                             </div>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">End Time</span>
-                                                <span class="font-semibold">{{ formatTime(formFilledOvertime.end_time)
+                                                <span class="font-semibold">{{ to12hr(formFilledOvertime.end_time)
                                                     }}</span>
                                             </div>
                                         </template>
@@ -307,7 +302,7 @@
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                            @click="enhanceReason('update')" :disabled="isEnhancing">
+                                                            @click="enhanceReason(formFilledOvertime, isEnhancing)" :disabled="isEnhancing">
                                                             <span v-if="isEnhancing"
                                                                 class="loading loading-spinner loading-xs"></span>
                                                             <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
@@ -453,13 +448,7 @@
                                 {{ getDateHoliday(days).name }}
                             </span>
                             <template v-if="getDateOvertimes(days)">
-                                <span v-for="ot in getDateOvertimes(days).slice(0, 2)" :key="ot.id" :class="[
-                                    'badge badge-xs font-medium max-w-full truncate',
-                                    ot.status === 'APPROVED' ? 'badge-success' :
-                                        ot.status === 'PENDING' ? 'badge-warning' :
-                                            ['DISAPPROVED', 'CANCELED'].includes(ot.status) ? 'badge-error' :
-                                                'badge-info'
-                                ]">
+                                <span v-for="ot in getDateOvertimes(days).slice(0, 2)" :key="ot.id" :class="['badge badge-xs font-medium max-w-full truncate', getStatusBadgeClass(ot.status)]">
                                     {{ ot.shift_code }}: {{ ot.hours }}hrs
                                 </span>
                                 <span v-if="getDateOvertimes(days).length > 2"
@@ -528,22 +517,11 @@
                         <div v-for="request in recentRequests" :key="request.id"
                             @click="showOvertimeRequestModal(request)"
                             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group">
-                            <div class="w-1 h-8 rounded-full flex-shrink-0" :class="[
-                                request.status === 'APPROVED' ? 'bg-success' :
-                                    request.status === 'PENDING' ? 'bg-warning' :
-                                        ['DISAPPROVED', 'CANCELED'].includes(request.status) ? 'bg-error' :
-                                            'bg-info'
-                            ]"></div>
+                            <div class="w-1 h-8 rounded-full flex-shrink-0" :class="getStatusBgClass(request.status)"></div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="text-sm font-medium truncate">{{ request.date }}</p>
-                                    <span :class="[
-                                        'badge badge-xs font-medium flex-shrink-0',
-                                        request.status === 'APPROVED' ? 'badge-success' :
-                                            request.status === 'PENDING' ? 'badge-warning' :
-                                                ['DISAPPROVED', 'CANCELED'].includes(request.status) ? 'badge-error' :
-                                                    'badge-info'
-                                    ]">{{ request.status }}</span>
+                                    <span :class="['badge badge-xs font-medium flex-shrink-0', getStatusBadgeClass(request.status)]">{{ request.status }}</span>
                                 </div>
                                 <p class="text-xs text-base-content/50 mt-0.5">
                                     {{ request.shift_code }} &middot; {{ request.start_time }} &rarr; {{
@@ -571,8 +549,10 @@ import Card from '../Components/Card.vue'
 import { fetchUserSchedule } from '../api/schedule.js'
 import fetchUpcomingHolidays from '../api/upcomingHolidays.js'
 import { getTimeOptions } from '../utils/dropdownOptions.js'
+import { to12hr, to24hr } from '../utils/helpers/date.js'
+import { getStatusBadgeClass, getStatusBgClass } from '../utils/helpers/status.js'
+import { enhanceReason, submitCancelation as submitCancelationComposable } from '../composables/useOvertimeRequest.js'
 import Stepper from '../Components/Stepper.vue'
-import { enhanceReasonWithAI } from "../services/ai.js"
 import { Icon } from "@iconify/vue"
 
 
@@ -801,39 +781,6 @@ const handleMonthSelection = (year, month) => {
     })
 }
 
-const formatTimeStamp = (timestamp) => {
-    if (!timestamp) return ''
-
-    // Match time like "08:00 PM" or "12:30 AM"
-    const match = timestamp.match(/(\d{1,2}):(\d{2})\s?(AM|PM)/i)
-    if (!match) return ''
-
-    let [, hour, minute, period] = match
-    hour = parseInt(hour, 10)
-    minute = parseInt(minute, 10)
-
-    // Convert to 24-hour format
-    if (period.toUpperCase() === 'PM' && hour !== 12) hour += 12
-    if (period.toUpperCase() === 'AM' && hour === 12) hour = 0
-
-    const formatted = `${hour.toString().padStart(2, '0')}:${minute
-        .toString()
-        .padStart(2, '0')}`
-    return formatted
-}
-
-
-const handleDateClick = (day) => {
-    if (isNavigating.value) return
-    if (day.type === 'prev') {
-        handlePreviousMonth()
-    } else if (day.type === 'next') {
-        handleNextMonth()
-    } else {
-        showOvertimeFilingModal(currentYear.value, currentMonth.value, day.day)
-    }
-}
-
 const showOvertimeRequestModal = (data) => {
     formFilledOvertime.id = data.id
     formFilledOvertime.employee_schedule_id = data.employee_schedule_id
@@ -841,8 +788,8 @@ const showOvertimeRequestModal = (data) => {
     formFilledOvertime.created_at = data.created_at
     formFilledOvertime.week = data.week
     formFilledOvertime.hours = data.hours
-    formFilledOvertime.start_time = formatTimeStamp(data.start_time)
-    formFilledOvertime.end_time = formatTimeStamp(data.end_time)
+    formFilledOvertime.start_time = to24hr(data.start_time)
+    formFilledOvertime.end_time = to24hr(data.end_time)
     formFilledOvertime.current_status = data.status
     formFilledOvertime.reason = data.reason
     formFilledOvertime.remarks = data.remarks
@@ -929,16 +876,6 @@ function updateCurrentMonthYear(year, month) {
     }
 }
 
-const formatTime = (time) => {
-
-    if (!time) return ''
-
-    const [hours, minutes] = time.split(':').map(Number)
-    const period = hours >= 12 ? 'PM' : 'AM'
-    const formattedHours = hours % 12 || 12
-    return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`
-}
-
 // ========== useForm Request(s) Handler ==========
 const submitOvertime = () => {
     formFiling.post(route('overtime.request'), {
@@ -955,69 +892,12 @@ const submitOvertime = () => {
 }
 
 const submitCancelation = () => {
-
-    if (modeUpdate.value) {
-        formFilledOvertime.update_status = 'PENDING'
-    } else {
-        formFilledOvertime.update_status = 'CANCELED'
-    }
-
-    formFilledOvertime.post(route('overtime.update.employee'), {
-        onSuccess: () => {
-            if (modeUpdate.value) {
-                toast('Updating Successful', 'success')
-            } else {
-                toast('Cancelation Successful', 'success')
-            }
-            modeUpdate.value = false
-            confirmingCancel.value = false
-            formFilledOvertime.reset()
-            closeOvertimeRequestModal()
-        },
-        onError: () => {
-            toast('Cancelation Request failed.', 'error')
-        }
+    submitCancelationComposable(formFilledOvertime, modeUpdate, toast, () => {
+        modeUpdate.value = false
+        confirmingCancel.value = false
+        formFilledOvertime.reset()
+        closeOvertimeRequestModal()
     })
-}
-
-const enhanceReason = async (context) => {
-
-    let form = context === 'update' ? formFilledOvertime : formFiling
-    const originalReason = form.reason
-
-    if (form.reason) {
-        if (form.reason.trim().length === 0) {
-            form.errors.reason = 'Please enter a reason to enhance.'
-            return
-        }
-
-        let splitted_reason = form.reason?.trim().split(' ')
-        if (splitted_reason.length < 3) {
-            form.errors.reason = 'Please provide a more detailed reason (at least 3 words).'
-            return
-        }
-        delete form.errors.reason
-        isEnhancing.value = true
-
-        const enhanced = await enhanceReasonWithAI(form.reason, (streamedText) => {
-            form.reason = streamedText
-        })
-
-        if (enhanced.success) {
-            form.reason = enhanced.data
-            isEnhancing.value = false
-        } else {
-            form.reason = originalReason
-            isEnhancing.value = false
-            if (enhanced.status === 422) {
-                form.errors.reason = { message: enhanced.data, type: 'warning' }
-            } else {
-                form.errors.reason = 'Failed to enhance reason. Please try again.'
-            }
-        }
-    } else {
-        form.errors.reason = 'Please enter a reason to enhance.'
-    }
 }
 
 
