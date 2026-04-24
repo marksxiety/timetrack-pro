@@ -194,15 +194,16 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref, inject, computed } from 'vue'
+import { onMounted, ref, inject } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { Link } from '@inertiajs/vue3'
 import { Icon } from "@iconify/vue"
 
 import { years, weeks, currentWeek } from '../utils/dropdownOptions.js'
+import { to12hr } from '../utils/helpers/date.js'
 import { fetchShiftList } from '../api/shift.js'
 import { fetchEmployeeSchedule, submitEmployeeSchedule } from '../api/schedule.js'
-
+import { buildShiftReference, isDefaultShift as checkDefaultShift, applyDefaultShiftFill } from '../composables/useScheduleManager.js'
 import SelectOption from '../Components/SelectOption.vue'
 import Modal from '../Components/Modal.vue'
 
@@ -232,23 +233,7 @@ const shifts = ref([])
 const shiftData = ref([])
 const defaultShiftCodes = ref([])
 
-const to12hr = (t) => {
-    if (!t) return null
-    const [h, m] = t.split(':').map(Number)
-    const period = h >= 12 ? 'PM' : 'AM'
-    const hour = h % 12 || 12
-    return `${hour}:${String(m).padStart(2, '0')} ${period}`
-}
-
-const shiftReference = computed(() => {
-    return shiftData.value.map(s => ({
-        id: s.id,
-        code: s.code,
-        timeRange: s.start_time && s.end_time
-            ? `${to12hr(s.start_time)} - ${to12hr(s.end_time)}`
-            : 'N/A'
-    }))
-})
+const shiftReference = buildShiftReference(shiftData)
 
 
 onMounted(async () => {
@@ -328,53 +313,11 @@ const handleAddWeek = async () => {
 }
 
 const handleDefaultShiftFill = (event, schedIndex, rowIndex) => {
-    let targetSchedule = employeeSchedules.value[schedIndex].week_schedule[rowIndex].schedule
-
-    if (event.target.checked) {
-        if (defaultShiftCodes.value.length === 0) {
-            toast('Default shift codes are not configured. Please contact your administrator.', 'error')
-            event.target.checked = false
-            return
-        }
-
-        if (defaultShiftCodes.value.length !== targetSchedule.length) {
-            toast(`Default shift codes (${defaultShiftCodes.value.length}) do not match schedule days (${targetSchedule.length}). Please contact your administrator.`, 'error')
-            event.target.checked = false
-            return
-        }
-
-        let default_shiftcodes_id = defaultShiftCodes.value.map(code => {
-            let match = shifts.value.find(shift => (shift.label).includes(code))
-            if (!match) {
-                toast(`Shift code "${code}" not found in available shifts.`, 'warning')
-            }
-            return match ? match.value : null
-        })
-
-        for (let j = 0; j < targetSchedule.length; j++) {
-            targetSchedule[j].shift_id = default_shiftcodes_id[j]
-        }
-    } else {
-        // Clear all shifts for this row
-        for (let j = 0; j < targetSchedule.length; j++) {
-            targetSchedule[j].shift_id = null
-        }
-    }
+    const targetSchedule = employeeSchedules.value[schedIndex].week_schedule[rowIndex].schedule
+    applyDefaultShiftFill(event.target.checked, targetSchedule, defaultShiftCodes.value, shifts.value, toast, 'shift_id')
 }
 
-const isDefaultShift = (schedule) => {
-    if (defaultShiftCodes.value.length === 0 || defaultShiftCodes.value.length !== schedule.length) {
-        return false
-    }
-
-    // Compare schedule's shift labels with default codes
-    if (shiftData.value.length > 0) {
-        return schedule.every((day, idx) => {
-            let match = shiftData.value.find(shift => shift.id === day.shift_id)
-            return match ? match.code === defaultShiftCodes.value[idx] : false
-        })
-    }
-}
+const isDefaultShift = (schedule) => checkDefaultShift(schedule, defaultShiftCodes.value, shiftData.value, 'shift_id')
 
 
 
