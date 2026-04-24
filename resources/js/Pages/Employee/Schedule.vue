@@ -1,5 +1,4 @@
 <template>
-
     <Head title="Manage Schedule" />
     <div class="flex flex-col gap-6">
         <Breadcrumbs :items="[
@@ -24,43 +23,25 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:h-[70vh]">
 
             <!-- Schedule Card -->
-            <div class="card bg-base-100 lg:col-span-4 h-full">
-                <div class="card-body flex flex-col p-4 h-full">
-                    <div class="overflow-auto flex-1">
+            <div class="card bg-base-100 lg:col-span-4 flex flex-col min-h-0 h-full">
+                <div class="card-body flex flex-col p-4 min-h-0 h-full">
+                    <div class="overflow-auto flex-1 min-h-0">
                         <table class="table min-h-96 w-full text-lg">
                             <thead class="bg-base-200 rounded">
                                 <tr>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Week
-                                    </th>
-                                    <th
-                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider whitespace-nowrap">
-                                        Date Range</th>
-                                    <th
-                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
-                                        Sun</th>
-                                    <th
-                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
-                                        Mon</th>
-                                    <th
-                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
-                                        Tue</th>
-                                    <th
-                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
-                                        Wed</th>
-                                    <th
-                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
-                                        Thu</th>
-                                    <th
-                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
-                                        Fri</th>
-                                    <th
-                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
-                                        Sat</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">
-                                        Actions</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Week</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider whitespace-nowrap">Date Range</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Sun</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Mon</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Tue</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Wed</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Thu</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Fri</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Sat</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -71,15 +52,11 @@
                                 </tr>
 
                                 <template v-else-if="weeklySchedules.length > 0">
-                                    <tr v-for="(week, weekIndex) in weeklySchedules" :key="week.weekNumber"
-                                        class="text-sm">
-                                        <td class="font-semibold text-center whitespace-nowrap">W{{ week.weekNumber }}
-                                        </td>
-                                        <td class="whitespace-nowrap text-xs text-base-content/60">{{ week.startDate }}
-                                            — {{ week.endDate }}</td>
+                                    <tr v-for="(week, weekIndex) in weeklySchedules" :key="week.weekNumber" class="text-sm">
+                                        <td class="font-semibold text-center whitespace-nowrap">W{{ week.weekNumber }}</td>
+                                        <td class="whitespace-nowrap text-xs text-base-content/60">{{ week.startDate }} — {{ week.endDate }}</td>
                                         <td v-for="day in week.schedules" :key="day.date">
-                                            <SelectOption :options="shifts" v-model="day.shift_code" margin=""
-                                                size="select-xs" />
+                                            <SelectOption :options="shifts" v-model="day.shift_code" margin="" size="select-xs" :warning="skippedIds.includes(day.id)" />
                                         </td>
                                         <td>
                                             <div class="flex flex-col items-center gap-2">
@@ -124,28 +101,27 @@
             </div>
 
             <!-- Shift Reference Card -->
-            <div v-if="shiftReference.length > 0" class="card bg-base-100 h-full">
-                <div class="card-body p-4 h-full">
+            <div v-if="shiftReference.length > 0" class="card bg-base-100 overflow-hidden flex flex-col min-h-0 h-full">
+                <div class="card-body p-4 flex flex-col min-h-0 h-full">
                     <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
                         Shift Reference
                     </h3>
-                    <table class="table text-sm">
-                        <thead class="bg-base-200 rounded">
-                            <tr>
-                                <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Code</th>
-                                <th
-                                    class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
-                                    Time Range
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="ref in shiftReference" :key="ref.id">
-                                <td class="font-bold text-base-content">{{ ref.code }}</td>
-                                <td class="text-base-content/60 text-center">{{ ref.timeRange }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-y-auto flex-1 min-h-0">
+                        <table class="table text-sm">
+                            <thead class="sticky top-0 bg-base-200 rounded z-10">
+                                <tr>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Code</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Time Range</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="ref in shiftReference" :key="ref.id">
+                                    <td class="font-bold text-base-content">{{ ref.code }}</td>
+                                    <td class="text-base-content/60 text-center">{{ ref.timeRange }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -159,8 +135,10 @@ import { onMounted, ref, inject, computed } from 'vue'
 import { Link, usePage } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 import { years, months, getWeeksInMonth } from '../utils/dropdownOptions.js'
+import { to12hr } from '../utils/helpers/date.js'
 import { fetchSchedule, submitSchedule } from '../api/schedule.js'
 import { useConfig } from '../utils/configStore.js'
+import { buildShiftReference, isDefaultShift as checkDefaultShift, applyDefaultShiftFill } from '../composables/useScheduleManager.js'
 
 const page = usePage()
 const toast = inject('toast')
@@ -182,24 +160,10 @@ const shifts = ref([])
 const weeklySchedules = ref([])
 const tableText = ref('No registered Schedule.')
 const defaultShiftCodes = ref([])
+const skippedIds = ref([])
 
-const to12hr = (t) => {
-    if (!t) return null
-    const [h, m] = t.split(':').map(Number)
-    const period = h >= 12 ? 'PM' : 'AM'
-    const hour = h % 12 || 12
-    return `${hour}:${String(m).padStart(2, '0')} ${period}`
-}
-
-const shiftReference = computed(() => {
-    return props.shifts.map(s => ({
-        id: s.id,
-        code: s.code,
-        timeRange: s.start_time && s.end_time
-            ? `${to12hr(s.start_time)} - ${to12hr(s.end_time)}`
-            : 'N/A'
-    }))
-})
+const shiftsRef = computed(() => props.shifts)
+const shiftReference = buildShiftReference(shiftsRef)
 
 
 const submitForm = async () => {
@@ -208,6 +172,7 @@ const submitForm = async () => {
     const submitResponse = await submitSchedule(allSchedules)
     if (submitResponse?.success) {
         toast(submitResponse?.message, 'success')
+        skippedIds.value = submitResponse.skipped_ids || []
     } else {
         toast(submitResponse?.message, 'error')
     }
@@ -222,6 +187,7 @@ onMounted(async () => {
 
 async function loadMonthData() {
     isLoading.value = true
+    skippedIds.value = []
 
     const weeksInMonth = getWeeksInMonth(selectedYear.value, selectedMonth.value)
 
@@ -254,52 +220,9 @@ function removeWeek(index) {
 
 const handleDefaultShiftFill = (event, weekIndex) => {
     const schedule = weeklySchedules.value[weekIndex].schedules
-
-    if (defaultShiftCodes.value.length === 0) {
-        toast('Default shift codes are not configured. Please contact your administrator.', 'error')
-        event.target.checked = false
-        return
-    }
-
-    if (defaultShiftCodes.value.length !== schedule.length) {
-        toast(`Default shift codes (${defaultShiftCodes.value.length}) do not match schedule days (${schedule.length}). Please contact your administrator.`, 'error')
-        event.target.checked = false
-        return
-    }
-
-    if (event.target.checked) {
-        let default_shiftcodes_id = defaultShiftCodes.value.map(code => {
-            let match = shifts.value.find(shift => (shift.label).includes(code))
-            if (!match) {
-                toast(`Shift code "${code}" not found in available shifts.`, 'warning')
-            }
-            return match ? match.value : null
-        })
-
-        for (let j = 0; j < schedule.length; j++) {
-            schedule[j].shift_code = default_shiftcodes_id[j]
-        }
-
-    } else {
-        for (let j = 0; j < schedule.length; j++) {
-            schedule[j].shift_code = null
-        }
-    }
+    applyDefaultShiftFill(event.target.checked, schedule, defaultShiftCodes.value, shifts.value, toast, 'shift_code')
 }
 
-const isDefaultShift = (schedule) => {
-    if (defaultShiftCodes.value.length === 0 || defaultShiftCodes.value.length !== schedule.length) {
-        return false
-    }
-
-    if (props.shifts.length > 0) {
-        return schedule.every((day, idx) => {
-            let match = props.shifts.find(shift => shift.id === day.shift_code)
-            return match ? match.code === defaultShiftCodes.value[idx] : false
-        })
-    }
-
-    return false
-}
+const isDefaultShift = (schedule) => checkDefaultShift(schedule, defaultShiftCodes.value, props.shifts, 'shift_code')
 
 </script>
