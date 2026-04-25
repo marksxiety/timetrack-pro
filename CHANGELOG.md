@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.4.0] - 2026-04-25
+
+### Added
+
+- Unit tests for all frontend utilities (date, format, status, color, csrf, overtimeMapper, configStore, themeStore, dropdownOptions) using Vitest with jsdom environment
+- Unit tests for all backend controllers (Auth, RequiredHours, Schedule, Shift, OpenAI) using PHPUnit with RefreshDatabase and WithFaker
+- `resources/tests/` directory for client-side tests organized by module type (helpers, stores)
+- `OrganizationUnitFactory` for test data generation
+- `HasFactory` trait to `OrganizationUnit` model
+- `DB_CONNECTION=mysql` to `phpunit.xml` for consistent test database across local and CI
+- `Schema::defaultStringLength(191)` in `AppServiceProvider` for MySQL index compatibility
+- GitHub Actions workflow `server-test.yml` for automated PHPUnit tests with MySQL service container
+- GitHub Actions workflow `client-test.yml` for automated Vitest tests
+- GitHub Actions workflow `build.yml` for full build verification (migrate, seed, storage link, config generation, frontend build)
+- `npm run test:all` script to run both PHPUnit and Vitest locally
+
+### Changed
+
+- Update `UserFactory` with default values for `employeeid`, `role`, `organization_unit_id`, and `active`
+- Remove `ShiftCodeSeeder` reference from `DatabaseSeeder` (file does not exist)
+- Change `overtime_requests` migration `status` column from `text` to `string(50)` for MySQL index compatibility
+
+### Fixed
+
+- Fix date format mismatch in `ScheduleController::fetchSchedule` where `toDateString()` produces human-readable format that never matches ISO date strings from the database
+
 ## [v1.3.5] - 2026-04-24
 
 ### Added
@@ -31,7 +57,9 @@ All notable changes to this project will be documented in this file.
 
 ### Documentation
 
-- Add JSDoc annotations across helper/composable/API/store modules for improved maintainability and editor hints`r`n`r`n## [v1.3.4] - 2026-04-23
+- Add JSDoc annotations across helper/composable/API/store modules for improved maintainability and editor hints
+
+## [v1.3.4] - 2026-04-23
 
 ### Added
 
