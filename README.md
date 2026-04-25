@@ -1,162 +1,102 @@
+<div align="center">
+
 # TimeTrack Pro
 
-An intelligent overtime tracking and management system designed
-to improve transparency, accountability, and decision-making
-across organizations.
+<p>
+  <a href="https://github.com/marksxiety/timetrack-pro/actions/workflows/build.yml">
+    <img src="https://github.com/marksxiety/timetrack-pro/actions/workflows/build.yml/badge.svg" />
+  </a>
+  <a href="https://github.com/marksxiety/timetrack-pro/actions/workflows/server-test.yml">
+    <img src="https://github.com/marksxiety/timetrack-pro/actions/workflows/server-test.yml/badge.svg" />
+  </a>
+  <a href="https://github.com/marksxiety/timetrack-pro/actions/workflows/client-test.yml">
+    <img src="https://github.com/marksxiety/timetrack-pro/actions/workflows/client-test.yml/badge.svg" />
+  </a>
+</p>
+
+<p>
+  <a href="https://github.com/marksxiety/timetrack-pro/releases/latest">
+    <img src="https://img.shields.io/github/v/release/marksxiety/timetrack-pro?label=release" />
+  </a>
+  <img src="https://img.shields.io/badge/Laravel-11-FF2D20?logo=laravel&logoColor=white" />
+  <img src="https://img.shields.io/badge/license-MIT-green" />
+</p>
+
+</div>
 
 ---
 
 ## Overview
 
-**TimeTrack Pro** digitizes the entire overtime lifecycle -- from
-request filing to final approval and filing -- while enhancing visibility
-into *why* overtime happens.
+TimeTrack Pro digitizes the full overtime lifecycle from request filing to final approval and filing.
 
-Instead of treating overtime as just numbers, the system captures and
-improves the **reasoning behind each request** using AI. This enables
-approvers and management to make better, data-driven decisions.
-
-### Goals
-
-- Eliminate manual overtime tracking
-- Improve justification and auditability of overtime requests
-- Provide actionable insights through analytics and AI
-- Standardize approval workflows across teams
+It focuses not only on tracking overtime hours, but also on improving the **quality of justification** behind each request using structured workflows and AI-assisted processing.
 
 ---
 
 ## Key Features
 
 ### Overtime Filing
-
 - Employees submit overtime requests with reasons
-- AI enhances and standardizes descriptions for clarity
-- Built-in validation against schedules and limits
+- AI-enhanced description formatting for clarity
+- Validation against schedules and policy rules
 
 ### Approval Workflow
-
 - Multi-stage approval process
-- Clear status transitions (Pending -> Approved -> Filed, etc.)
-- Full audit trail of actions and decisions
+- Clear status tracking across the lifecycle
+- Full audit trail of actions and changes
 
 ### Schedule Management
-
 - Weekly shift configuration per employee
-- Custom shift codes and flexible scheduling
+- Flexible shift codes and assignment rules
 
 ### Policy Enforcement
-
-- Configurable overtime limits per department or unit
-- Prevents excessive or invalid filings
+- Configurable overtime limits per department
+- Prevents invalid or excessive submissions
 
 ### Analytics and Insights
-
-- Visual dashboards powered by charts
-- AI-generated summaries and reports
-- Identify trends and root causes of overtime
-
----
-
-## System Flow
-
-The following diagrams show how an overtime request evolves
-through the system.
-
-### State Diagram
-
-```mermaid
-stateDiagram-v2
-    [*] --> Draft
-
-    Draft --> Submitted : Submit Request
-    Submitted --> Approved : Approve
-    Submitted --> Disapproved : Reject
-    Submitted --> Canceled : Cancel
-
-    Approved --> PendingFiling : Ready for Filing
-
-    PendingFiling --> Filed : File
-    PendingFiling --> Declined : Decline Filing
-
-    Filed --> [*]
-    Disapproved --> [*]
-    Declined --> [*]
-    Canceled --> [*]
-```
-
-- **Draft** - Initial state before submission
-- **Submitted** - Waiting for approver action
-- **Approved** - Approved but not yet finalized
-- **Pending Filing** - Awaiting final filing step
-- **Filed** - Completed and recorded
-- **Terminal States** - Disapproved, Declined, Canceled
-
-### Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    participant Employee
-    participant Frontend
-    participant Backend
-    participant AI
-    participant Database
-    participant Approver
-
-    Employee->>Frontend: Submit OT Request
-    Frontend->>Backend: POST /overtime
-    Backend->>AI: Enhance Reason
-    AI-->>Backend: Improved Text
-    Backend->>Database: Save Request
-    Backend-->>Frontend: Response
-
-    Approver->>Frontend: Review Request
-    Frontend->>Backend: Update Status
-    Backend->>Database: Persist Changes
-    Backend-->>Frontend: Updated Status
-```
+- Dashboard with visual reports
+- Trend analysis for overtime patterns
+- AI-assisted summaries and insights
 
 ---
 
-## Who Is This For?
+## Approval Workflow
 
-### Developers
+TimeTrack Pro uses a structured lifecycle to ensure traceability and control over overtime requests.
 
-- Easily extendable Laravel + Vue architecture
-- Clean separation of concerns
-- Ready for API scaling and integrations
+### State Flow
 
-### Managers and Approvers
+Draft → Submitted → Approved → Pending Filing → Filed
 
-- Clear visibility of overtime reasons
-- Data-driven approval decisions
-- AI-assisted insights and summaries
+### Alternative Outcomes
 
-### Employees
+- Disapproved (rejected during approval stage)
+- Declined (rejected during filing stage)
+- Canceled (withdrawn by employee)
 
-- Simple and guided overtime filing
-- Transparent request tracking
-- Faster approvals
+All transitions are logged to ensure full auditability.
 
 ---
 
 ## Tech Stack
 
-- **Backend:** Laravel 11 (PHP 8.2+)
-- **Frontend:** Vue 3 + Inertia.js
-- **Styling:** TailwindCSS + DaisyUI
-- **Database:** MySQL
-- **Charts:** ECharts
-- **AI Integration:** OpenAI API
-- **Build:** Vite 7
-- **Icons:** Iconify
+- Backend: Laravel 11 (PHP 8.2+)
+- Frontend: Vue 3 + Inertia.js
+- Styling: TailwindCSS + DaisyUI
+- Database: MySQL
+- Charts: ECharts
+- AI Integration: OpenAI API
+- Build Tool: Vite 7
 
 ---
 
 ## Documentation
 
-| Document                              | Description                                         |
-| ------------------------------------- | --------------------------------------------------- |
-| [Installation](docs/INSTALLATION.md)   | Clone repo, install PHP and Node dependencies       |
-| [Setup](docs/SETUP.md)                | Environment config, database, seeding, and running  |
-| [Database](docs/DATABASE.md)          | Full schema with column details and ERD              |
-| [Routes](docs/ROUTES.md)              | All web routes organized by role and middleware group |
+| Document | Description |
+|----------|-------------|
+| [Installation](docs/INSTALLATION.md) | Setup project dependencies |
+| [Setup](docs/SETUP.md) | Environment configuration |
+| [Database](docs/DATABASE.md) | Schema and relationships |
+| [Routes](docs/ROUTES.md) | API and web route structure |
+| [Architecture](docs/ARCHITECTURE.md) | System design, approval workflow, and data flow |
