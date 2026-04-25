@@ -1,0 +1,37 @@
+name: Client Tests
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+concurrency:
+    group: client-tests-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    vitest:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Cache npm dependencies
+              uses: actions/cache@v4
+              with:
+                  path: node_modules
+                  key: npm-${{ hashFiles('package-lock.json') }}
+                  restore-keys: npm-
+
+            - name: Install npm dependencies
+              run: npm ci
+
+            - name: Run Vitest
+              run: npm run test:run
