@@ -14,6 +14,13 @@ jobs:
     phpunit:
         runs-on: ubuntu-latest
 
+        env:
+            DB_HOST: 127.0.0.1
+            DB_PORT: 3306
+            DB_DATABASE: timetrack-pro_test
+            DB_USERNAME: root
+            DB_PASSWORD: password
+
         services:
             mysql:
                 image: mysql:8
@@ -56,11 +63,8 @@ jobs:
             - name: Generate application key
               run: php artisan key:generate
 
+            - name: Run database migrations
+              run: php artisan migrate --force
+
             - name: Run PHPUnit tests
               run: php artisan test
-              env:
-                  DB_HOST: 127.0.0.1
-                  DB_PORT: 3306
-                  DB_DATABASE: timetrack-pro_test
-                  DB_USERNAME: root
-                  DB_PASSWORD: password
