@@ -101,13 +101,13 @@
             </div>
 
             <!-- Shift Reference Card -->
-            <div v-if="shiftReference.length > 0" class="card bg-base-100 overflow-hidden flex flex-col min-h-0 h-full">
+            <div class="card bg-base-100 overflow-hidden flex flex-col min-h-0 h-full">
                 <div class="card-body p-4 flex flex-col min-h-0 h-full">
                     <h3 class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-3">
                         Shift Reference
                     </h3>
                     <div class="overflow-y-auto flex-1 min-h-0">
-                        <table class="table text-sm">
+                        <table v-if="shiftReference.length > 0" class="table text-sm">
                             <thead class="sticky top-0 bg-base-200 rounded z-10">
                                 <tr>
                                     <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Code</th>
@@ -121,6 +121,9 @@
                                 </tr>
                             </tbody>
                         </table>
+                        <div v-else class="flex items-center justify-center h-full">
+                            <p class="text-xs text-base-content/40 italic">No registered shift codes</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -162,8 +165,15 @@ const tableText = ref('No registered Schedule.')
 const defaultShiftCodes = ref([])
 const skippedIds = ref([])
 
-const shiftsRef = computed(() => props.shifts)
-const shiftReference = buildShiftReference(shiftsRef)
+const shiftReference = computed(() => {
+    return (props.shifts || []).map(s => ({
+        id: s.id,
+        code: s.code,
+        timeRange: s.start_time && s.end_time
+            ? `${to12hr(s.start_time)} - ${to12hr(s.end_time)}`
+            : 'N/A',
+    }))
+})
 
 
 const submitForm = async () => {
