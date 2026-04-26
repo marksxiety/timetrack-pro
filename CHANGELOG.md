@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.4.1] - 2026-04-26
+
+### Added
+
+- Tentative overtime hours stat with status breakdown stats returned from heatmap endpoint
+- ScheduleSeeder to generate weekday schedules for users across years
+- ShiftCodeSeeder with predefined day and night shift codes
+- OvertimeRequestSeeder to generate sample overtime requests with varied statuses and remarks
+
+### Changed
+
+- Convert Heatmap to controlled component with server-driven stats, props, and events, removing internal data fetching
+- Use server-provided tentative_overtime_hours instead of client-side computed value
+- Format total_hours and required_hours to two decimal places in consumption display
+
+### Fixed
+
+- Show empty state when no shift codes and replace buildShiftReference with computed property
+- Display dynamic AI model name from config and load config on mount in report page
+- Ensure isEnhancing resets properly in finally block during AI reason enhancement
+- Handle missing config file gracefully and include ai_model from env in setup config endpoint
+- Preserve decimal trailing zeros in total overtime hours display
+
 ## [v1.4.0] - 2026-04-25
 
 ### Added
