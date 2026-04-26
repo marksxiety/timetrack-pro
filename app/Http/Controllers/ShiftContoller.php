@@ -78,7 +78,7 @@ class ShiftContoller extends Controller
             $shift->delete();
             return redirect()->back()->with('message', 'Shift code deleted successfully.');
         } catch (QueryException $e) {
-            if ($e->errorInfo[1] == 1451) {
+            if ($e->errorInfo[1] == 1451 || $e->errorInfo[0] == '23000') {
                 // Foreign key violation: shift is in use
                 return redirect()->back()->withErrors([
                     'message' => 'Cannot delete this shift — it is currently assigned to a schedule.'

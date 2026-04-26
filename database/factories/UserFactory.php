@@ -25,9 +25,13 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'employeeid' => fake()->unique()->regexify('EMP[0-9]{3}'),
+            'role' => 'employee',
+            'organization_unit_id' => \App\Models\OrganizationUnit::factory(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'active' => true,
             'remember_token' => Str::random(10),
         ];
     }

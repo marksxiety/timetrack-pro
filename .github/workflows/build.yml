@@ -1,0 +1,93 @@
+name: Build
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+concurrency:
+    group: build-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: 8.2
+                  extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, bcmath, soap, intl, gd, exif, iconv
+                  coverage: none
+                  tools: composer:v2
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+
+            - name: Cache Composer dependencies
+              uses: actions/cache@v4
+              with:
+                  path: vendor
+                  key: composer-${{ hashFiles('composer.lock') }}
+                  restore-keys: composer-
+
+            - name: Cache npm dependencies
+              uses: actions/cache@v4
+              with:
+                  path: node_modules
+                  key: npm-${{ hashFiles('package-lock.json') }}
+                  restore-keys: npm-
+
+            - name: Copy .env
+              run: cp .env.example .env
+
+            - name: Install Composer dependencies
+              run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+            - name: Generate key
+              run: php artisan key:generate
+
+            - name: Run database migrations
+              run: php artisan migrate --force
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"
+
+            - name: Create storage link
+              run: php artisan storage:link
+
+            - name: Seed default data
+              run: php artisan db:seed --force
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"
+
+            - name: Generate setup config
+              run: php artisan make:config
+
+            - name: Remove hot file and clear cache
+              run: |
+                  rm -f public/hot
+                  php artisan optimize:clear
+
+            - name: Install npm dependencies
+              run: npm ci
+
+            - name: Build frontend assets
+              run: npm run build
+
+            - name: Verify build output
+              run: |
+                  if [ ! -f "public/build/manifest.json" ]; then
+                      echo "Error: Vite build manifest not found"
+                      exit 1
+                  fi
+                  echo "Build successful"
+                  ls -la public/build/

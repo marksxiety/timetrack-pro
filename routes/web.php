@@ -97,8 +97,10 @@ Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->n
 
 Route::get('/setup/config', function () {
     $path = base_path('setup/config.json');
-    if (!file_exists($path)) {
-        return response()->json([]);
+    $config = [];
+    if (file_exists($path)) {
+        $config = json_decode(file_get_contents($path), true) ?? [];
     }
-    return response()->json(json_decode(file_get_contents($path), true));
+    $config['ai_model'] = env('AI_MODEL', 'gpt-4o-mini');
+    return response()->json($config);
 });

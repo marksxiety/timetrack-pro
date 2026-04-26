@@ -114,7 +114,7 @@
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                            @click="enhanceReason(formFilledOvertime, isEnhancing)" :disabled="isEnhancing">
+                                                            @click="handleEnhance(formFilledOvertime)" :disabled="isEnhancing">
                                                             <span v-if="isEnhancing"
                                                                 class="loading loading-spinner loading-xs"></span>
                                                             <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
@@ -201,15 +201,23 @@
 
         <!-- Stats Cards -->
         <div class="stats shadow grid grid-cols-5">
-            <Card title="Total Hours" :value="filteredTotalHours + ' hrs'" />
-            <Card title="Filed Requests" :value="filteredFiled" />
-            <Card title="Pending Requests" :value="filteredPending" />
-            <Card title="Approved Requests" :value="filteredApproved" />
-            <Card title="Rejected Requests" :value="filteredRejected" />
+            <Card title="Total Hours" :value="heatmapStats.total_hours + ' hrs'" />
+            <Card title="Filed Requests" :value="heatmapStats.filed" />
+            <Card title="Pending Requests" :value="heatmapStats.pending" />
+            <Card title="Approved Requests" :value="heatmapStats.approved" />
+            <Card title="Rejected Requests" :value="heatmapStats.rejected" />
         </div>
 
         <!-- Heatmap -->
-        <Heatmap />
+        <Heatmap
+            :data="heatmapDataObj"
+            :years="heatmapYears"
+            :stats="heatmapStats"
+            :loading="heatmapLoading"
+            @change-year="handleHeatmapYearChange"
+            @change-filters="handleHeatmapFilterChange"
+            @computed-stats="handleComputedStats"
+        />
 
         <!-- Main Card -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
@@ -351,6 +359,7 @@ import { truncateText } from '../utils/helpers/format.js'
 import { getStatusBadgeClass } from '../utils/helpers/status.js'
 import { enhanceReason, submitCancelation as submitCancelationComposable } from '../composables/useOvertimeRequest.js'
 import { to12hr, to24hr } from '../utils/helpers/date.js'
+import { fetchHeatmapData } from '../api/heatmap.js'
 
 const toast = inject('toast')
 const appConfig = inject('appConfig')
@@ -384,6 +393,7 @@ onMounted(() => {
     if ([1, 5, 10, 15, 30].includes(step)) {
         minuteStep.value = step
     }
+    loadHeatmapData(null, heatmapActiveStatuses.value)
 })
 
 const props = defineProps({
@@ -405,25 +415,91 @@ const searchValue = ref(props.payload?.search ?? '')
 const paginator = ref(props.info?.requests ?? { data: [], links: [] })
 const requests = ref(paginator.value.data ?? [])
 
-const filteredTotalHours = computed(() => {
-    return requests.value.reduce((sum, r) => sum + parseFloat(r.hours || 0), 0).toFixed(2)
+const heatmapStats = ref({
+    total_hours: '0.00',
+    filed: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
 })
 
-const filteredFiled = computed(() => {
-    return requests.value.filter(r => r.status === 'FILED').length
-})
+const heatmapLoading = ref(false)
+const heatmapDataObj = ref({})
+const heatmapYears = ref([])
+const heatmapSelectedYear = ref(null)
+const heatmapActiveStatuses = ref(['APPROVED', 'FILED', 'PENDING'])
 
-const filteredPending = computed(() => {
-    return requests.value.filter(r => r.status === 'PENDING').length
-})
+function dateKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
 
-const filteredApproved = computed(() => {
-    return requests.value.filter(r => r.status === 'APPROVED').length
-})
+function snapToSunday(date) {
+    const d = new Date(date)
+    d.setDate(d.getDate() - d.getDay())
+    return d
+}
 
-const filteredRejected = computed(() => {
-    return requests.value.filter(r => ['DECLINED', 'DISAPPROVED', 'CANCELED'].includes(r.status)).length
-})
+function computeHeatmapRange(year) {
+    if (year === null) {
+        const end = new Date()
+        const start = new Date()
+        start.setDate(start.getDate() - 365)
+        return { start, end }
+    }
+    return { start: new Date(year, 0, 1), end: new Date(year, 11, 31) }
+}
+
+let heatmapAbortController = null
+
+async function loadHeatmapData(year, statuses) {
+    if (statuses.length === 0) {
+        heatmapDataObj.value = {}
+        heatmapStats.value = { total_hours: '0.00', filed: 0, pending: 0, approved: 0, rejected: 0 }
+        return
+    }
+
+    heatmapAbortController?.abort()
+    const controller = new AbortController()
+    heatmapAbortController = controller
+    heatmapLoading.value = true
+
+    try {
+        const { start, end } = computeHeatmapRange(year)
+        const res = await fetchHeatmapData(dateKey(start), dateKey(end), statuses, controller.signal)
+        const data = res.data || {}
+
+        if (res.years && res.years.length > 0) {
+            heatmapYears.value = [...res.years].sort((a, b) => b - a)
+        }
+
+        heatmapDataObj.value = data
+
+        if (res.stats) {
+            heatmapStats.value = res.stats
+        }
+    } catch (e) {
+        if (e.name === 'AbortError') return
+        heatmapDataObj.value = {}
+    } finally {
+        if (controller === heatmapAbortController) {
+            heatmapLoading.value = false
+        }
+    }
+}
+
+function handleHeatmapYearChange(year) {
+    heatmapSelectedYear.value = year
+    loadHeatmapData(year, heatmapActiveStatuses.value)
+}
+
+function handleHeatmapFilterChange(statuses) {
+    heatmapActiveStatuses.value = statuses
+    loadHeatmapData(heatmapSelectedYear.value, statuses)
+}
+
+function handleComputedStats(stats) {
+    heatmapStats.value = { ...heatmapStats.value, ...stats }
+}
 
 // Watch for props changes and update local data
 watch(() => props.info?.requests, (newRequests) => {
@@ -503,6 +579,8 @@ const closeRequestModal = () => {
     confirmingCancel.value = false
     modeUpdate.value = false
 }
+
+const handleEnhance = (form) => enhanceReason(form, isEnhancing)
 
 const submitCancelation = () => {
     submitCancelationComposable(formFilledOvertime, modeUpdate, toast, () => {

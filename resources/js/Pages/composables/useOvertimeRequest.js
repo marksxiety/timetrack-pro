@@ -47,21 +47,23 @@ export async function enhanceReason(form, isEnhancing) {
     delete form.errors.reason;
     isEnhancing.value = true;
 
-    const enhanced = await enhanceReasonWithAI(form.reason, (streamedText) => {
-        form.reason = streamedText;
-    });
+    try {
+        const enhanced = await enhanceReasonWithAI(form.reason, (streamedText) => {
+            form.reason = streamedText;
+        });
 
-    if (enhanced.success) {
-        form.reason = enhanced.data;
-        isEnhancing.value = false;
-    } else {
-        form.reason = originalReason;
-        isEnhancing.value = false;
-        if (enhanced.status === 422) {
-            form.errors.reason = { message: enhanced.data, type: 'warning' };
+        if (enhanced.success) {
+            form.reason = enhanced.data;
         } else {
-            form.errors.reason = 'Failed to enhance reason. Please try again.';
+            form.reason = originalReason;
+            if (enhanced.status === 422) {
+                form.errors.reason = { message: enhanced.data, type: 'warning' };
+            } else {
+                form.errors.reason = 'Failed to enhance reason. Please try again.';
+            }
         }
+    } finally {
+        isEnhancing.value = false;
     }
 }
 
