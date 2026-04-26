@@ -1,11 +1,11 @@
 <template>
     <div class="card bg-base-100 shadow-sm border border-base-300 w-full relative heatmap-root">
-        <div v-if="isLoading" class="absolute inset-0 z-40 flex items-center justify-center bg-base-100/80 rounded-xl">
+        <div v-if="loading" class="absolute inset-0 z-40 flex items-center justify-center bg-base-100/80 rounded-xl">
             <span class="loading loading-bars loading-xl text-primary"></span>
         </div>
         <div class="card-body px-[2.5rem] py-4">
             <div class="mt-4 flex justify-center gap-4 overflow-x-auto transition-opacity duration-300 min-w-0"
-                :class="{ 'opacity-0': isLoading }">
+                :class="{ 'opacity-0': loading }">
 
                 <div ref="heatmapBox" class="flex justify-center border border-base-300 rounded-xl p-3">
                     <svg :width="svgWidth" :height="svgHeight" xmlns="http://www.w3.org/2000/svg">
@@ -32,11 +32,11 @@
 
 
                 <!-- Year pills -->
-                <div class="flex flex-col shrink-0 w-32" :class="{ 'opacity-50 pointer-events-none': isLoading }">
+                <div class="flex flex-col shrink-0 w-32" :class="{ 'opacity-50 pointer-events-none': loading }">
                     <div
                         class="flex flex-col gap-1 border border-base-300 rounded-xl p-1 overflow-y-auto justify-center"
                         :style="{ maxHeight: heatmapBoxHeight > 0 ? heatmapBoxHeight + 'px' : undefined }">
-                        <button v-for="y in yearPills" :key="y" type="button" @click="year = y"
+                        <button v-for="y in years" :key="y" type="button" @click="selectYear(y)"
                             class="btn btn-sm w-full"
                             :class="year === y ? 'btn-primary shadow-sm' : 'btn-ghost text-base-content/50'">{{ y
                             }}</button>
@@ -75,7 +75,7 @@
                             <span class="text-[11px] font-semibold uppercase tracking-wide opacity-60">Status
                                 Filter</span>
                         </li>
-                        <li v-for="status in AVAILABLE_STATUSES" :key="status">
+                        <li v-for="status in availableStatuses" :key="status">
                             <label class="label cursor-pointer gap-3 justify-start">
                                 <input type="checkbox" v-model="statusFilters[status]"
                                     class="checkbox checkbox-xs checkbox-primary" />
@@ -99,7 +99,31 @@
 
 <script setup>
 import { ref, shallowRef, watch, onMounted, computed, reactive, nextTick } from 'vue'
-import { fetchHeatmapData } from '../api/heatmap.js'
+
+const props = defineProps({
+    data: {
+        type: Object,
+        default: () => ({})
+    },
+    years: {
+        type: Array,
+        default: () => []
+    },
+    stats: {
+        type: Object,
+        default: () => ({})
+    },
+    loading: {
+        type: Boolean,
+        default: false
+    },
+    availableStatuses: {
+        type: Array,
+        default: () => ['APPROVED', 'FILED', 'PENDING']
+    }
+})
+
+const emit = defineEmits(['change-year', 'change-filters'])
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', '']
@@ -108,8 +132,6 @@ const CELL_R_H = 17
 const CELL_GAP = 5
 const MONTH_ROW_H = 20
 const DAY_LABEL_W = 28
-
-const AVAILABLE_STATUSES = ['APPROVED', 'FILED', 'PENDING']
 
 const STATUS_COLORS = {
     APPROVED: '#570df8',
@@ -124,21 +146,35 @@ const PRIMARY_COLORS = {
 }
 const PRIMARY_COLORS_LIST = [PRIMARY_COLORS.low, PRIMARY_COLORS.mid, PRIMARY_COLORS.high]
 
-const isLoading = ref(true)
-const heatmapData = shallowRef({})
-const yearPills = ref([])
 const year = ref(null)
-const totalHours = ref('0')
 const cells = shallowRef([])
 const monthLabels = shallowRef([])
 const tooltip = ref({ visible: false, text: '', x: 0, y: 0 })
-const statusFilters = reactive({
-    APPROVED: true,
-    FILED: true,
-    PENDING: true,
-})
+const statusFilters = reactive({})
 const heatmapBox = ref(null)
 const heatmapBoxHeight = ref(0)
+
+function initStatusFilters() {
+    props.availableStatuses.forEach(s => {
+        if (!(s in statusFilters)) {
+            statusFilters[s] = true
+        }
+    })
+    Object.keys(statusFilters).forEach(s => {
+        if (!props.availableStatuses.includes(s)) {
+            delete statusFilters[s]
+        }
+    })
+}
+
+initStatusFilters()
+watch(() => props.availableStatuses, initStatusFilters)
+
+let skipYearEmit = true
+
+onMounted(() => {
+    nextTick(() => { skipYearEmit = false })
+})
 
 async function syncBoxHeight() {
     await nextTick()
@@ -148,7 +184,7 @@ async function syncBoxHeight() {
 }
 
 function activeStatuses() {
-    return AVAILABLE_STATUSES.filter(s => statusFilters[s])
+    return props.availableStatuses.filter(s => statusFilters[s])
 }
 
 const NUM_WEEKS = computed(() => {
@@ -226,9 +262,8 @@ function buildGrid(data) {
                 lastMonth = month
                 labels.push({ text: MONTHS[month], x })
             }
+            total += hours
         }
-
-        if (inRange) total += hours
 
         result.push({ i, x, y, fill: dateStr ? getCellFill(hours) : '', date: dateStr, hours, tip: dateStr ? formatTip(dateStr, hours) : '' })
 
@@ -240,8 +275,27 @@ function buildGrid(data) {
 
     cells.value = result
     monthLabels.value = labels
-    totalHours.value = total.toFixed(1)
+    emit('computed-stats', { total_hours: total.toFixed(2) })
     syncBoxHeight()
+}
+
+watch(() => props.data, (newData) => {
+    buildGrid(newData)
+}, { immediate: true, deep: true })
+
+watch(year, (newYear) => {
+    buildGrid(props.data)
+    if (!skipYearEmit) {
+        emit('change-year', newYear)
+    }
+})
+
+watch(statusFilters, () => {
+    emit('change-filters', activeStatuses())
+}, { deep: true })
+
+function selectYear(y) {
+    year.value = y
 }
 
 function showTooltip(event, cell) {
@@ -251,48 +305,6 @@ function showTooltip(event, cell) {
 function hideTooltip() {
     tooltip.value.visible = false
 }
-
-let abortController = null
-
-async function loadData() {
-    const statuses = activeStatuses()
-    if (statuses.length === 0) {
-        buildGrid({})
-        return
-    }
-
-    abortController?.abort()
-    const controller = new AbortController()
-    abortController = controller
-    isLoading.value = true
-    buildGrid({})
-    try {
-        const { start: rangeStart, end: rangeEnd } = computeRange()
-        const res = await fetchHeatmapData(dateKey(rangeStart), dateKey(rangeEnd), statuses, controller.signal)
-        const data = res.data || {}
-
-        if (res.years && res.years.length > 0) {
-            yearPills.value = [...res.years].sort((a, b) => b - a)
-        }
-
-        heatmapData.value = data
-        buildGrid(data)
-    } catch (e) {
-        if (e.name === 'AbortError') return
-        heatmapData.value = {}
-        buildGrid({})
-    } finally {
-        if (controller === abortController) {
-            isLoading.value = false
-        }
-    }
-}
-
-watch(year, loadData)
-watch(statusFilters, loadData, { deep: true })
-onMounted(() => {
-    loadData()
-})
 </script>
 
 <style scoped>
