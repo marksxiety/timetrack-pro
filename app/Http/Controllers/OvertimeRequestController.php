@@ -296,7 +296,7 @@ class OvertimeRequestController extends Controller
                 }
             }
 
-            $stats['total_overtime_hours'] = rtrim(rtrim(number_format($stats['total_overtime_hours'], 2), '0'), '.');
+            $stats['total_overtime_hours'] = number_format($stats['total_overtime_hours'], 2);
 
             $recentRequestsList = [];
             $recentOvertimes = OvertimeRequest::with(['schedule' => function ($query) {
