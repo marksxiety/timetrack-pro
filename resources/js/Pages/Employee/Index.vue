@@ -615,6 +615,7 @@ const holidays = ref([])
 
 // ========== Card Stats ==========
 const totalovertime = ref(props?.stats?.total_overtime_hours ?? 0)
+const tentativeHours = ref(props?.stats?.tentative_overtime_hours ?? 0)
 const pendingovertime = ref(props?.stats?.pending_requests ?? 0)
 const approvedovertime = ref(props?.stats?.approved_requests ?? 0)
 const rejectedovertime = ref(props?.stats?.rejected_requests ?? 0)
@@ -626,14 +627,6 @@ const overtimeMapByDate = computed(() => {
         map[req.date].push(req)
     }
     return map
-})
-
-const tentativeHours = computed(() => {
-    const eligible = ['PENDING', 'APPROVED', 'FILED']
-    return monthOvertimes.value
-        .filter(r => eligible.includes(r.status))
-        .reduce((sum, r) => sum + parseFloat(r.hours || 0), 0)
-        .toFixed(2)
 })
 
 const holidayMapByDate = computed(() => {
@@ -701,6 +694,7 @@ onMounted(async () => {
     }
 
     totalovertime.value = props?.stats?.total_overtime_hours ?? 0
+    tentativeHours.value = props?.stats?.tentative_overtime_hours ?? 0
     approvedovertime.value = props?.stats?.approved_requests ?? 0
     pendingovertime.value = props?.stats?.pending_requests ?? 0
     rejectedovertime.value = props?.stats?.rejected_requests ?? 0
@@ -912,6 +906,7 @@ const handleEnhance = (form) => enhanceReason(form, isEnhancing)
 watch(() => props.info?.overtimelist, (updatedRequests) => {
     monthOvertimes.value = [...updatedRequests]
     totalovertime.value = props?.stats?.total_overtime_hours ?? 0
+    tentativeHours.value = props?.stats?.tentative_overtime_hours ?? 0
     approvedovertime.value = props?.stats?.approved_requests ?? 0
     pendingovertime.value = props?.stats?.pending_requests ?? 0
     rejectedovertime.value = props?.stats?.rejected_requests ?? 0
