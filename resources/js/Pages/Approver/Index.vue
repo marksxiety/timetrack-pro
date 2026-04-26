@@ -63,7 +63,7 @@
                         </progress>
 
                         <p class="text-sm text-right mt-1">
-                            {{ (card.total_hours ?? 0) }} / {{ card.required_hours }} hrs consumed
+                            {{ (card.total_hours ?? 0).toFixed(2) }} / {{ (card.required_hours ?? 0).toFixed(2) }} hrs consumed
                         </p>
 
                     </div>
