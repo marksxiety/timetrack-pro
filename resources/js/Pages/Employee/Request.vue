@@ -114,7 +114,7 @@
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                            @click="enhanceReason(formFilledOvertime, isEnhancing)" :disabled="isEnhancing">
+                                                            @click="handleEnhance(formFilledOvertime)" :disabled="isEnhancing">
                                                             <span v-if="isEnhancing"
                                                                 class="loading loading-spinner loading-xs"></span>
                                                             <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
@@ -503,6 +503,8 @@ const closeRequestModal = () => {
     confirmingCancel.value = false
     modeUpdate.value = false
 }
+
+const handleEnhance = (form) => enhanceReason(form, isEnhancing)
 
 const submitCancelation = () => {
     submitCancelationComposable(formFilledOvertime, modeUpdate, toast, () => {
