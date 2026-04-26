@@ -950,7 +950,7 @@ class OvertimeRequestController extends Controller
         })
             ->whereIn('status', (array) $statuses)
             ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')
-            ->min(DB::raw('YEAR(schedules.date)'));
+            ->min(DB::raw("strftime('%Y', schedules.date)"));
 
         if (!$firstYear) {
             return response()->json([
