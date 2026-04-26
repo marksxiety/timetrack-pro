@@ -18,7 +18,7 @@ return new class extends Migration
             $table->time('end_time');
             $table->float('hours')->default(0);
             $table->text('reason')->nullable();
-            $table->text('status')->default('PENDING');
+            $table->string('status')->default('PENDING');
             $table->text('remarks')->nullable();
             $table->timestamps();
         });
