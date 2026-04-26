@@ -273,6 +273,7 @@ class OvertimeRequestController extends Controller
         $message = '';
         $stats = [
             'total_overtime_hours' => 0,
+            'tentative_overtime_hours' => 0,
             'approved_requests' => 0,
             'pending_requests' => 0,
             'rejected_requests' => 0,
@@ -288,6 +289,9 @@ class OvertimeRequestController extends Controller
                     $stats['approved_requests']++;
                     $stats['total_overtime_hours'] += (float) $ot->hours;
                 }
+                if ($status === 'PENDING' || $status === 'APPROVED' || $status === 'FILED') {
+                    $stats['tentative_overtime_hours'] += (float) $ot->hours;
+                }
                 if ($status === 'PENDING') {
                     $stats['pending_requests']++;
                 }
@@ -297,6 +301,7 @@ class OvertimeRequestController extends Controller
             }
 
             $stats['total_overtime_hours'] = number_format($stats['total_overtime_hours'], 2);
+            $stats['tentative_overtime_hours'] = number_format($stats['tentative_overtime_hours'], 2);
 
             $recentRequestsList = [];
             $recentOvertimes = OvertimeRequest::with(['schedule' => function ($query) {
@@ -951,17 +956,28 @@ class OvertimeRequestController extends Controller
             return response()->json([
                 'years' => [Carbon::now()->year],
                 'data' => [],
+                'stats' => [
+                    'total_hours' => '0.00',
+                    'filed' => 0,
+                    'pending' => 0,
+                    'approved' => 0,
+                    'rejected' => 0,
+                ],
             ]);
         }
 
         $years = range((int) $firstYear, Carbon::now()->year);
 
-        $data = OvertimeRequest::whereIn('status', (array) $statuses)
-            ->whereHas('schedule', function ($query) use ($startDate, $endDate) {
-                $query->where('user_id', Auth::id())
-                    ->whereBetween('date', [$startDate, $endDate]);
-            })
-            ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')
+        $baseQuery = OvertimeRequest::whereHas('schedule', function ($query) use ($startDate, $endDate) {
+            $query->where('user_id', Auth::id())
+                ->whereBetween('date', [$startDate, $endDate]);
+        })
+            ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id');
+
+        $filteredQuery = clone $baseQuery;
+        $filteredQuery->whereIn('overtime_requests.status', (array) $statuses);
+
+        $data = $filteredQuery
             ->select('schedules.date', DB::raw('SUM(overtime_requests.hours) as total_hours'))
             ->groupBy('schedules.date')
             ->orderBy('schedules.date')
@@ -970,9 +986,24 @@ class OvertimeRequestController extends Controller
                 $item->date => (float) $item->total_hours,
             ]);
 
+        $stats = [
+            'total_hours' => $filteredQuery->clone()->sum('overtime_requests.hours'),
+            'filed' => $filteredQuery->clone()->where('overtime_requests.status', 'FILED')->count(DB::raw('DISTINCT overtime_requests.id')),
+            'pending' => $filteredQuery->clone()->where('overtime_requests.status', 'PENDING')->count(DB::raw('DISTINCT overtime_requests.id')),
+            'approved' => $filteredQuery->clone()->where('overtime_requests.status', 'APPROVED')->count(DB::raw('DISTINCT overtime_requests.id')),
+            'rejected' => $baseQuery->clone()->whereIn('overtime_requests.status', ['DECLINED', 'DISAPPROVED', 'CANCELED'])->count(DB::raw('DISTINCT overtime_requests.id')),
+        ];
+
         return response()->json([
             'years' => $years,
             'data'  => $data,
+            'stats' => [
+                'total_hours' => number_format($stats['total_hours'], 2),
+                'filed' => $stats['filed'],
+                'pending' => $stats['pending'],
+                'approved' => $stats['approved'],
+                'rejected' => $stats['rejected'],
+            ],
         ]);
     }
 
