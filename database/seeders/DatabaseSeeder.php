@@ -10,7 +10,5 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(OrganizationUnitSeeder::class);
-        $this->call(ShiftCodeSeeder::class);
-        $this->call(OvertimeRequestSeeder::class);
     }
 }
