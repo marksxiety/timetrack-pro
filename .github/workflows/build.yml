@@ -59,13 +59,14 @@ jobs:
                   key: npm-${{ hashFiles('package-lock.json') }}
                   restore-keys: npm-
 
-            - name: Copy .env and generate key
-              run: |
-                  cp .env.example .env
-                  php artisan key:generate
+            - name: Copy .env
+              run: cp .env.example .env
 
             - name: Install Composer dependencies
               run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+            - name: Generate key
+              run: php artisan key:generate
 
             - name: Run database migrations
               run: php artisan migrate --force
