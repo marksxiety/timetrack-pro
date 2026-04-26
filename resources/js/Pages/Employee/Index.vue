@@ -91,8 +91,8 @@
                                                         data-tip="The better you describe, the better AI can enhance it!">
                                                         <span tabindex="0" class="inline-block">
                                                             <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                                @click="enhanceReason(formFiling, isEnhancing)"
-                                                                :disabled="isEnhancing">
+                                                                @click="handleEnhance(formFiling)"
+                                                                 :disabled="isEnhancing">
                                                                 <span v-if="isEnhancing"
                                                                     class="loading loading-spinner loading-xs"></span>
                                                                 <Icon v-if="!isEnhancing" icon="mingcute:ai-line"
@@ -302,7 +302,7 @@
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                            @click="enhanceReason(formFilledOvertime, isEnhancing)" :disabled="isEnhancing">
+                                                            @click="handleEnhance(formFilledOvertime)" :disabled="isEnhancing">
                                                             <span v-if="isEnhancing"
                                                                 class="loading loading-spinner loading-xs"></span>
                                                             <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
@@ -737,6 +737,10 @@ const closeOvertimeRequestModal = () => {
 }
 
 
+const handleDateClick = (days) => {
+    showOvertimeFilingModal(days.year, days.month, days.day)
+}
+
 const showOvertimeFilingModal = async (year, month, day) => {
     overtimeFilingModal.value?.open()
     fetchingSchedule.value = true
@@ -901,7 +905,9 @@ const submitCancelation = () => {
 }
 
 
-// ======== Watchers ===========
+// ======== Watchers ==========
+
+const handleEnhance = (form) => enhanceReason(form, isEnhancing)
 
 watch(() => props.info?.overtimelist, (updatedRequests) => {
     monthOvertimes.value = [...updatedRequests]
