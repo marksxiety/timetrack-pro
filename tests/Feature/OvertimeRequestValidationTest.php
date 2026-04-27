@@ -606,39 +606,39 @@ class OvertimeRequestValidationTest extends TestCase
 
     public function test_calculate_hours_2hr_difference(): void
     {
-        $controller = new \App\Http\Controllers\OvertimeRequestController();
+        $calculator = new \App\Services\OvertimeCalculator();
         $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 06:00');
         $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 08:00');
 
-        $this->assertEquals('2.00', $controller->calculateOvertimeHours($start, $end));
+        $this->assertEquals('2.00', $calculator->calculateOvertimeHours($start, $end));
     }
 
     public function test_calculate_hours_30min_difference(): void
     {
-        $controller = new \App\Http\Controllers\OvertimeRequestController();
+        $calculator = new \App\Services\OvertimeCalculator();
         $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 18:00');
         $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 18:30');
 
-        $this->assertEquals('0.50', $controller->calculateOvertimeHours($start, $end));
+        $this->assertEquals('0.50', $calculator->calculateOvertimeHours($start, $end));
     }
 
     public function test_calculate_hours_crosses_midnight(): void
     {
-        $controller = new \App\Http\Controllers\OvertimeRequestController();
+        $calculator = new \App\Services\OvertimeCalculator();
         $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 22:00');
         $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 02:00');
 
-        $this->assertEquals('4.00', $controller->calculateOvertimeHours($start, $end));
+        $this->assertEquals('4.00', $calculator->calculateOvertimeHours($start, $end));
     }
 
     public function test_calculate_hours_does_not_mutate_end(): void
     {
-        $controller = new \App\Http\Controllers\OvertimeRequestController();
+        $calculator = new \App\Services\OvertimeCalculator();
         $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 22:00');
         $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 02:00');
 
         $originalEndDay = $end->day;
-        $controller->calculateOvertimeHours($start, $end);
+        $calculator->calculateOvertimeHours($start, $end);
 
         $this->assertEquals($originalEndDay, $end->day);
     }
@@ -649,55 +649,40 @@ class OvertimeRequestValidationTest extends TestCase
 
     public function test_config_accepts_valid_quarter_increments(): void
     {
-        $controller = new \App\Http\Controllers\OvertimeRequestController();
-        $method = new \ReflectionMethod($controller, 'getMinimumOvertimeHours');
-        $method->setAccessible(true);
+        $calculator = new \App\Services\OvertimeCalculator();
 
         foreach ([0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00, 3.00] as $value) {
             $this->writeTestConfig($value);
-            $this->assertEquals($value, $method->invoke($controller), "Config value {$value} should be accepted.");
+            $this->assertEquals($value, $calculator->getMinimumOvertimeHours(), "Config value {$value} should be accepted.");
         }
     }
 
     public function test_config_rejects_non_quarter_increments(): void
     {
-        $controller = new \App\Http\Controllers\OvertimeRequestController();
-        $method = new \ReflectionMethod($controller, 'getMinimumOvertimeHours');
-        $method->setAccessible(true);
+        $calculator = new \App\Services\OvertimeCalculator();
 
         foreach ([0.20, 0.33, 0.40, 0.10, 0.99, 1.13] as $value) {
             $this->writeTestConfig($value);
-            $this->assertEquals(1.0, $method->invoke($controller), "Config value {$value} should fall back to 1.0.");
+            $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours(), "Config value {$value} should fall back to 1.0.");
         }
     }
 
     public function test_config_rejects_zero_and_negative(): void
     {
-        $controller = new \App\Http\Controllers\OvertimeRequestController();
-        $method = new \ReflectionMethod($controller, 'getMinimumOvertimeHours');
-        $method->setAccessible(true);
+        $calculator = new \App\Services\OvertimeCalculator();
 
         $this->writeTestConfig(0);
-        $this->assertEquals(1.0, $method->invoke($controller));
+        $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
 
         $this->writeTestConfig(-1.0);
-        $this->assertEquals(1.0, $method->invoke($controller));
+        $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
     }
 
     public function test_config_missing_file_returns_default(): void
     {
-        $controller = new \App\Http\Controllers\OvertimeRequestController();
-        $method = new \ReflectionMethod($controller, 'getMinimumOvertimeHours');
-        $method->setAccessible(true);
+        $calculator = new \App\Services\OvertimeCalculator('/nonexistent/path/config.json');
 
-        $path = base_path('setup/config.json');
-        $backup = file_get_contents($path);
-        rename($path, $path . '.bak');
-
-        $this->assertEquals(1.0, $method->invoke($controller));
-
-        file_put_contents($path . '.bak', $backup);
-        rename($path . '.bak', $path);
+        $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
     }
 
     private function writeTestConfig(float $value): void
