@@ -6,13 +6,12 @@ use App\Models\User;
 use App\Models\OrganizationUnit;
 use App\Models\Shift;
 use App\Models\Schedule;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class ShiftContollerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     private User $approver;
     private OrganizationUnit $orgUnit;

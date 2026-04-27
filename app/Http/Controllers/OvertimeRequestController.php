@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\OvertimeRequest;
 use App\Models\Schedule;
 use App\Models\RequiredHours;
+use App\Services\OvertimeCalculator;
+use App\Services\OvertimeOverlapValidator;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +20,15 @@ use Illuminate\Support\Facades\Storage;
 
 class OvertimeRequestController extends Controller
 {
+    private OvertimeCalculator $calculator;
+    private OvertimeOverlapValidator $overlapValidator;
+
+    public function __construct(OvertimeCalculator $calculator, OvertimeOverlapValidator $overlapValidator)
+    {
+        $this->calculator = $calculator;
+        $this->overlapValidator = $overlapValidator;
+    }
+
     public function insertOvertimeRequest(Request $request)
     {
         $rules = [
@@ -43,57 +54,26 @@ class OvertimeRequestController extends Controller
         $schedule = Schedule::with('shift')->findOrFail($request->employee_schedule_id);
         $shift = $schedule->shift;
 
-        // Determine if the schedule has a shift with actual time values
-        $hasShiftTimes = $shift && $shift->start_time && $shift->end_time;
+        $validation = $this->overlapValidator->validate(
+            $submittedStart,
+            $submittedEnd,
+            $shift?->start_time,
+            $shift?->end_time,
+            $request->date
+        );
 
-        if ($hasShiftTimes) {
-            // Reject swapped/inverted times when a shift exists: end time must be strictly after start time
-            // e.g., 8AM-6AM is invalid — crosses midnight ambiguously and always wraps through the shift
-            if ($submittedEnd->lessThanOrEqualTo($submittedStart)) {
-                $errors->add('end_time', 'End time must be after start time.');
-                return redirect()->back()->withErrors($errors)->withInput();
-            }
-
-            // Parse shift start/end into Carbon instances on the schedule date
-            $shiftStart = Carbon::createFromFormat('Y-m-d H:i:s', $request->date . ' ' . $shift->start_time);
-            $shiftEnd   = Carbon::createFromFormat('Y-m-d H:i:s', $request->date . ' ' . $shift->end_time);
-
-            // Detect night shift: raw end time is earlier than raw start time (e.g., 10PM–6AM)
-            $isNightShift = $shiftEnd->lessThan($shiftStart);
-
-            if ($isNightShift) {
-                // Night shift crosses midnight, so shift the end forward by 1 day
-                // e.g., Jan 1 10PM → Jan 2 6AM
-                $shiftEnd = $shiftEnd->copy()->addDay();
-
-                // For night shifts, AM submitted times (e.g., 2AM-4AM) are logically
-                // in the "next day" portion of the shift. Only shift AM times (before noon)
-                // forward by 1 day so they compare correctly against the adjusted shiftEnd.
-                // PM times before shift start (e.g., 9PM before 10PM) stay on the same day.
-                if ($submittedStart->hour < 12) {
-                    $submittedStart = $submittedStart->copy()->addDay();
-                    $submittedEnd   = $submittedEnd->copy()->addDay();
-                }
-            }
-
-            // Classify the overtime: must be entirely BEFORE or entirely AFTER the shift
-            // Touching the shift boundary is allowed (e.g., 7AM-8AM before 8AM-6PM is valid)
-            $isBeforeShift = $submittedEnd->lessThanOrEqualTo($shiftStart);
-            $isAfterShift  = $submittedStart->greaterThanOrEqualTo($shiftEnd);
-
-            // Reject if the overtime is neither before nor after (overlaps, wraps, or straddles the shift)
-            if (!$isBeforeShift && !$isAfterShift) {
-                $errors->add('start_time', 'Overtime must be entirely before or after the scheduled shift.');
-                $errors->add('end_time', 'Overtime must be entirely before or after the scheduled shift.');
-                return redirect()->back()->withErrors($errors)->withInput();
-            }
+        if (!$validation['valid']) {
+            return redirect()->back()->withErrors($validation['errors'])->withInput();
         }
 
+        $submittedStart = $validation['start'];
+        $submittedEnd = $validation['end'];
+
         // Calculate overtime duration in decimal hours
-        $hours = $this->calculateOvertimeHours($submittedStart, $submittedEnd);
+        $hours = $this->calculator->calculateOvertimeHours($submittedStart, $submittedEnd);
 
         // Enforce the minimum overtime hours from config
-        $minimumHours = (float) $this->getMinimumOvertimeHours();
+        $minimumHours = $this->calculator->getMinimumOvertimeHours();
         if ((float) $hours < $minimumHours) {
             $errors->add('start_time', "Overtime request must be at least {$minimumHours} hour(s).");
             $errors->add('end_time', "Overtime request must be at least {$minimumHours} hour(s).");
@@ -109,19 +89,6 @@ class OvertimeRequestController extends Controller
         ]);
 
         return redirect()->back()->with(['message' => 'Overtime Request has been filed!']);
-    }
-
-    public function calculateOvertimeHours(Carbon $start, Carbon $end)
-    {
-        $adjustedEnd = $end->copy();
-
-        if ($adjustedEnd->lessThan($start)) {
-            $adjustedEnd->addDay();
-        }
-
-        $minutes = $start->diffInMinutes($adjustedEnd);
-        $decimalHours = $minutes / 60;
-        return number_format($decimalHours, 2);
     }
 
 
@@ -182,53 +149,26 @@ class OvertimeRequestController extends Controller
                 $schedule = Schedule::with('shift')->findOrFail($request->employee_schedule_id);
                 $shift = $schedule->shift;
 
-                // Determine if the schedule has a shift with actual time values
-                $hasShiftTimes = $shift && $shift->start_time && $shift->end_time;
+                $validation = $this->overlapValidator->validate(
+                    $submittedStart,
+                    $submittedEnd,
+                    $shift?->start_time,
+                    $shift?->end_time,
+                    $request->date
+                );
 
-                if ($hasShiftTimes) {
-                    // Reject swapped/inverted times when a shift exists
-                    if ($submittedEnd->lessThanOrEqualTo($submittedStart)) {
-                        $errors->add('end_time', 'End time must be after start time.');
-                        return redirect()->back()->withErrors($errors)->withInput();
-                    }
-
-                    // Parse shift start/end into Carbon instances on the schedule date
-                    $shiftStart = Carbon::createFromFormat('Y-m-d H:i:s', $request->date . ' ' . $shift->start_time);
-                    $shiftEnd   = Carbon::createFromFormat('Y-m-d H:i:s', $request->date . ' ' . $shift->end_time);
-
-                    // Detect night shift: raw end time is earlier than raw start time (e.g., 10PM–6AM)
-                    $isNightShift = $shiftEnd->lessThan($shiftStart);
-
-                    if ($isNightShift) {
-                        // Night shift crosses midnight, so shift the end forward by 1 day
-                        $shiftEnd = $shiftEnd->copy()->addDay();
-
-                        // For night shifts, AM submitted times (e.g., 2AM-4AM) are logically
-                        // in the "next day" portion of the shift. Only shift AM times (before noon)
-                        // forward by 1 day so they compare correctly against the adjusted shiftEnd.
-                        if ($submittedStart->hour < 12) {
-                            $submittedStart = $submittedStart->copy()->addDay();
-                            $submittedEnd   = $submittedEnd->copy()->addDay();
-                        }
-                    }
-
-                    // Classify the overtime: must be entirely BEFORE or entirely AFTER the shift
-                    $isBeforeShift = $submittedEnd->lessThanOrEqualTo($shiftStart);
-                    $isAfterShift  = $submittedStart->greaterThanOrEqualTo($shiftEnd);
-
-                    // Reject if the overtime is neither before nor after
-                    if (!$isBeforeShift && !$isAfterShift) {
-                        $errors->add('start_time', 'Overtime must be entirely before or after the scheduled shift.');
-                        $errors->add('end_time', 'Overtime must be entirely before or after the scheduled shift.');
-                        return redirect()->back()->withErrors($errors)->withInput();
-                    }
+                if (!$validation['valid']) {
+                    return redirect()->back()->withErrors($validation['errors'])->withInput();
                 }
 
+                $submittedStart = $validation['start'];
+                $submittedEnd = $validation['end'];
+
                 // Calculate overtime duration in decimal hours
-                $hours = $this->calculateOvertimeHours($submittedStart, $submittedEnd);
+                $hours = $this->calculator->calculateOvertimeHours($submittedStart, $submittedEnd);
 
                 // Enforce the minimum overtime hours from config
-                $minimumHours = (float) $this->getMinimumOvertimeHours();
+                $minimumHours = $this->calculator->getMinimumOvertimeHours();
                 if ((float) $hours < $minimumHours) {
                     $errors->add('start_time', "Overtime request must be at least {$minimumHours} hour(s).");
                     $errors->add('end_time', "Overtime request must be at least {$minimumHours} hour(s).");
@@ -405,7 +345,7 @@ class OvertimeRequestController extends Controller
 
     public function fetchTotalOvertimeRequests(Request $request)
     {
-        $week = $request->input('week', $this->currentWeekSundayBased());
+        $week = $request->input('week', $this->calculator->currentWeekSundayBased());
         $year = $request->input('year', Carbon::now()->year);
         $message = '';
         try {
@@ -651,7 +591,7 @@ class OvertimeRequestController extends Controller
 
     public function fetchOvertimeRequestsViaStatus(Request $request)
     {
-        $week = $request->input('week', $this->currentWeekSundayBased());
+        $week = $request->input('week', $this->calculator->currentWeekSundayBased());
         $year = $request->input('year', Carbon::now()->year);
         $status = $request->input('status', '');
         $page = $request->input('page', null);
@@ -749,20 +689,6 @@ class OvertimeRequestController extends Controller
             'success' => $success,
             'message' => $message
         ]);
-    }
-
-    public function currentWeekSundayBased($date = null)
-    {
-        $date = $date ?: Carbon::now();
-        $firstDayOfYear = Carbon::create($date->year, 1, 1);
-
-        // get the number of days passed since Jan 1
-        $pastDays = $firstDayOfYear->diffInDays($date);
-
-        // add firstDayOfYear weekday (0=Sunday, 6=Saturday)
-        $weekNumber = (int) ceil(($pastDays + $firstDayOfYear->dayOfWeek + 1) / 7);
-
-        return $weekNumber;
     }
 
     public function computeRemainingHours($year, $week, $required_hours)
@@ -885,7 +811,7 @@ class OvertimeRequestController extends Controller
                 ->when(!in_array($sort, ['date_asc', 'date_desc', 'status_asc', 'status_desc']),
                     fn($q) => $q->orderBy('overtime_requests.updated_at', 'desc'))
                 ->select('overtime_requests.*')
-                ->paginate(10)
+                ->paginate(10)->onEachSide(1)
                 ->appends($request->query());
 
             // Transform each item while keeping pagination
@@ -945,14 +871,14 @@ class OvertimeRequestController extends Controller
             $startDate = Carbon::now()->subDays(365)->toDateString();
         }
 
-        $firstYear = OvertimeRequest::whereHas('schedule', function ($query) {
+        $firstDate = OvertimeRequest::whereHas('schedule', function ($query) {
             $query->where('user_id', Auth::id());
         })
             ->whereIn('status', (array) $statuses)
             ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')
-            ->min(DB::raw("strftime('%Y', schedules.date)"));
+            ->min('schedules.date');
 
-        if (!$firstYear) {
+        if (!$firstDate) {
             return response()->json([
                 'years' => [Carbon::now()->year],
                 'data' => [],
@@ -966,7 +892,7 @@ class OvertimeRequestController extends Controller
             ]);
         }
 
-        $years = range((int) $firstYear, Carbon::now()->year);
+        $years = range((int) Carbon::parse($firstDate)->year, Carbon::now()->year);
 
         $baseQuery = OvertimeRequest::whereHas('schedule', function ($query) use ($startDate, $endDate) {
             $query->where('user_id', Auth::id())
@@ -1045,23 +971,6 @@ class OvertimeRequestController extends Controller
         }
     }
 
-    private function getMinimumOvertimeHours(): float
-    {
-        $path = base_path('setup/config.json');
-        if (file_exists($path)) {
-            $config = json_decode(file_get_contents($path), true);
-            $value = (float) ($config['minimum_overtime_hours'] ?? 1);
-
-            // Enforce 15-minute (0.25) increments: 0.25, 0.50, 0.75, 1.00, 1.25, etc.
-            // Values like 0.20 or 0.33 are invalid and fall back to default.
-            if ($value <= 0 || abs(fmod($value, 0.25)) > 0.001) {
-                return 1.0;
-            }
-
-            return $value;
-        }
-        return 1.0;
-    }
 
 
 }

@@ -5,13 +5,12 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use App\Models\OrganizationUnit;
 use App\Models\RequiredHours;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class RequiredHoursControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     private User $approver;
     private OrganizationUnit $orgUnit;

@@ -40,10 +40,19 @@ jobs:
               run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
             - name: Generate application key
-              run: php artisan key:generate
+              run: php artisan key:generate --force
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"
 
             - name: Run database migrations
               run: php artisan migrate --force
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"
 
             - name: Run PHPUnit tests
               run: php artisan test
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"

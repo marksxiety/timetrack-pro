@@ -4,7 +4,6 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use App\Models\OrganizationUnit;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -12,7 +11,7 @@ use Tests\TestCase;
 
 class AuthControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     private OrganizationUnit $orgUnit;
 

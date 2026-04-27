@@ -6,13 +6,12 @@ use App\Models\User;
 use App\Models\OrganizationUnit;
 use App\Models\Schedule;
 use App\Models\Shift;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class ScheduleControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     private User $employee;
     private OrganizationUnit $orgUnit;
