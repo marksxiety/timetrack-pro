@@ -8,4 +8,10 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 abstract class TestCase extends BaseTestCase
 {
     use DatabaseMigrations;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutVite();
+    }
 }
