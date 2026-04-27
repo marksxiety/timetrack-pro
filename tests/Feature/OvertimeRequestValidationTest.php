@@ -7,12 +7,10 @@ use App\Models\User;
 use App\Models\Schedule;
 use App\Models\Shift;
 use App\Models\OvertimeRequest;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\OrganizationUnit;
 
 class OvertimeRequestValidationTest extends TestCase
 {
-    use RefreshDatabase;
-
     private User $user;
     private Shift $dayShift;
     private Shift $nightShift;
@@ -25,9 +23,7 @@ class OvertimeRequestValidationTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\OrganizationUnitSeeder::class);
-
-        $orgUnit = \App\Models\OrganizationUnit::first();
+        $orgUnit = OrganizationUnit::factory()->create();
 
         $this->user = User::factory()->create([
             'employeeid' => 'EMP001',
