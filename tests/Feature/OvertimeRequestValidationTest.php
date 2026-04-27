@@ -683,7 +683,14 @@ class OvertimeRequestValidationTest extends TestCase
 
     private function writeTestConfig(float $value): void
     {
-        file_put_contents(base_path('setup/config.json'), json_encode(['minimum_overtime_hours' => $value], JSON_PRETTY_PRINT));
+        $configPath = base_path('setup/config.json');
+        $configDir = dirname($configPath);
+
+        if (!is_dir($configDir)) {
+            mkdir($configDir, 0755, true);
+        }
+
+        file_put_contents($configPath, json_encode(['minimum_overtime_hours' => $value], JSON_PRETTY_PRINT));
     }
 
     protected function tearDown(): void
