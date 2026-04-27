@@ -7,13 +7,10 @@ use App\Models\OvertimeRequest;
 use App\Models\Schedule;
 use App\Models\Shift;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class UpdateOvertimeRequestStatusTest extends TestCase
 {
-    use RefreshDatabase;
-
     private User $employee;
     private User $approver;
     private OrganizationUnit $orgUnit;

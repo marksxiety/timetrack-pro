@@ -4,13 +4,12 @@ namespace Tests\Feature\OpenAI;
 
 use App\Models\User;
 use App\Models\OrganizationUnit;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class OpenAIControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use WithFaker;
 
     private User $user;
     private OrganizationUnit $orgUnit;
