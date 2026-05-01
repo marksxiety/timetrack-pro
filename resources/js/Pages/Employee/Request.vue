@@ -306,12 +306,16 @@
                                     </div>
                                 </td>
                                 <td class="max-w-xs">
-                                    <div class="tooltip tooltip-top tooltip-break"
+                                    <div v-if="req.reason && req.reason.length > 40"
+                                        class="tooltip tooltip-left tooltip-break"
                                         :data-tip="req.reason">
                                         <p class="text-sm text-base-content/80 break-words">
                                             {{ truncateText(req.reason) }}
                                         </p>
                                     </div>
+                                    <p v-else class="text-sm text-base-content/80 break-words">
+                                        {{ req.reason }}
+                                    </p>
                                 </td>
 
                                 <td>
