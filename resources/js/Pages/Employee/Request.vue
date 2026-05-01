@@ -110,7 +110,7 @@
                                                 Reason
                                             </label>
                                             <div v-if="formFilledOvertime.current_status === 'PENDING'">
-                                                <div class="tooltip tooltip-top tooltip-break"
+                                    <div class="tooltip tooltip-left tooltip-break"
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
@@ -306,7 +306,7 @@
                                     </div>
                                 </td>
                                 <td class="max-w-xs">
-                                    <div class="tooltip tooltip-left tooltip-break"
+                                    <div class="tooltip tooltip-top tooltip-break"
                                         :data-tip="req.reason">
                                         <p class="text-sm text-base-content/80 break-words">
                                             {{ truncateText(req.reason) }}
@@ -599,5 +599,6 @@ const submitCancelation = () => {
     word-break: break-word;
     width: 16rem;
     text-align: center;
+    z-index: 50 !important;
 }
 </style>
