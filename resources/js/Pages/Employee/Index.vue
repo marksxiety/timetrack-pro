@@ -476,8 +476,8 @@
                             <span class="loading loading-spinner loading-sm"></span>
                             <span class="text-xs ml-2 text-base-content/50">Loading...</span>
                         </div>
-                        <template v-else-if="holidays.length > 0">
-                            <div v-for="(h, idx) in holidays" :key="idx"
+                        <template v-else-if="upcomingHolidays.length > 0">
+                            <div v-for="(h, idx) in upcomingHolidays" :key="idx"
                                 class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group">
                                 <div
                                     class="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10 text-primary flex-shrink-0">
@@ -627,6 +627,11 @@ const overtimeMapByDate = computed(() => {
         map[req.date].push(req)
     }
     return map
+})
+
+const upcomingHolidays = computed(() => {
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" })
+    return holidays.value.filter(h => h.rawDate >= today)
 })
 
 const holidayMapByDate = computed(() => {
