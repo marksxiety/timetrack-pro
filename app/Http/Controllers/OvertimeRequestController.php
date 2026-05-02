@@ -17,6 +17,7 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class OvertimeRequestController extends Controller
 {
@@ -27,6 +28,11 @@ class OvertimeRequestController extends Controller
     {
         $this->calculator = $calculator;
         $this->overlapValidator = $overlapValidator;
+    }
+
+    public function overtimeFilingPage(Request $request)
+    {
+        return Inertia::render('Employee/Filing');
     }
 
     public function insertOvertimeRequest(Request $request)
