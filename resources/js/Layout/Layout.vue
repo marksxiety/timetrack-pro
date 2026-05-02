@@ -49,6 +49,12 @@
                             </Link>
                         </li>
                         <li v-if="$page?.props?.auth.user?.role === 'employee'">
+                            <Link :href="route('overtime.file')" class="justify-between">
+                                <Icon icon="material-symbols:alarm-add-outline" width="24" height="24" />
+                                Request Overtime
+                            </Link>
+                        </li>
+                        <li v-if="$page?.props?.auth.user?.role === 'employee'">
                             <Link :href="route('overtime.requests.employee')" class="justify-between">
                                 <Icon icon="material-symbols:assignment-outline" width="24" height="24" />
                                 My Requests
