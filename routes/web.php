@@ -44,6 +44,7 @@ Route::middleware('employee')->group(function () {
     Route::post('/schedule/submit', [ScheduleController::class, 'submitSchedule'])->name('schedule.submit');
 
     // overtime request routes
+    Route::get('/overtime/file', [OvertimeRequestController::class, 'overtimeFilingPage'])->name('overtime.file');
     Route::post('/overtime/request', [OvertimeRequestController::class, 'insertOvertimeRequest'])->name('overtime.request');
     Route::post('/overtime/update/employee', [OvertimeRequestController::class, 'updateOvertimeRequestStatus'])->name('overtime.update.employee');
 
