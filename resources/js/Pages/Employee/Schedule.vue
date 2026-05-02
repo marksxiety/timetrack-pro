@@ -151,11 +151,15 @@ const props = defineProps({
     shifts: {
         type: Array,
         default: () => []
+    },
+    payload: {
+        type: Object,
+        default: () => ({})
     }
 })
 
-const selectedYear = ref(new Date().getFullYear())
-const selectedMonth = ref(new Date().getMonth() + 1)
+const selectedYear = ref(parseInt(props.payload?.year) || new Date().getFullYear())
+const selectedMonth = ref(parseInt(props.payload?.month) || new Date().getMonth() + 1)
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)
