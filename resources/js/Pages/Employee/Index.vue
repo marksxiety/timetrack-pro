@@ -11,7 +11,7 @@
                             <span class="text-lg opacity-70">Loading Schedule...</span>
                         </div>
 
-                        <div v-else class="space-y-6">
+                        <div v-else-if="withShedule" class="space-y-6">
                             <!-- Requested Overtime Date -->
                             <div class="card border border-base-300 shadow-sm">
                                 <div class="card-body p-6">
@@ -79,34 +79,29 @@
                                         <div class="divider my-0"></div>
 
                                         <div class="w-full space-y-3">
-                                            <!-- Label + Button row -->
                                             <div class="flex items-center justify-between">
                                                 <label class="font-semibold text-sm flex items-center gap-2">
                                                     <Icon icon="material-symbols:edit-note-outline" width="18"
                                                         height="18" />
                                                     Reason
                                                 </label>
-                                                <div v-if="withShedule">
-                                                    <div class="tooltip tooltip-top tooltip-break"
-                                                        data-tip="The better you describe, the better AI can enhance it!">
-                                                        <span tabindex="0" class="inline-block">
-                                                            <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                                @click="handleEnhance(formFiling)"
-                                                                 :disabled="isEnhancing">
-                                                                <span v-if="isEnhancing"
-                                                                    class="loading loading-spinner loading-xs"></span>
-                                                                <Icon v-if="!isEnhancing" icon="mingcute:ai-line"
-                                                                    width="18" height="18" />
-                                                                <span class="font-medium">{{ isEnhancing ?
-                                                                    'Enhancing...' :
-                                                                    'Enhance with AI' }}</span>
-                                                            </button>
-                                                        </span>
-                                                    </div>
+                                                <div class="tooltip tooltip-top tooltip-break"
+                                                    data-tip="The better you describe, the better AI can enhance it!">
+                                                    <span tabindex="0" class="inline-block">
+                                                        <button type="button" class="btn btn-sm gap-2 btn-primary"
+                                                            @click="handleEnhance(formFiling)" :disabled="isEnhancing">
+                                                            <span v-if="isEnhancing"
+                                                                class="loading loading-spinner loading-xs"></span>
+                                                            <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
+                                                                height="18" />
+                                                            <span class="font-medium">{{ isEnhancing ?
+                                                                'Enhancing...' :
+                                                                'Enhance with AI' }}</span>
+                                                        </button>
+                                                    </span>
                                                 </div>
                                             </div>
 
-                                            <!-- Auto-expanding textarea -->
                                             <textarea ref="reasonTextarea" v-model="formFiling.reason"
                                                 placeholder="Enter your reason for overtime request..."
                                                 :disabled="isEnhancing" :class="['textarea break-words whitespace-normal w-full min-h-24', {
@@ -114,7 +109,6 @@
                                                     'textarea-warning': typeof formFiling.errors?.reason === 'object'
                                                 }]" @input="autoResize"></textarea>
 
-                                            <!-- Error/warning message -->
                                             <p v-if="formFiling.errors?.reason" :class="[
                                                 'text-sm flex items-center gap-2',
                                                 typeof formFiling.errors?.reason === 'object' ? 'text-warning' : 'text-error'
@@ -126,7 +120,6 @@
                                                     formFiling.errors?.reason.message : formFiling.errors?.reason }}
                                             </p>
 
-                                            <!-- enhancing message -->
                                             <p v-if="isEnhancing" class="text-sm text-primary flex items-center gap-2">
                                                 <Icon icon="hugeicons:chat-gpt" width="16" height="16" />
                                                 Currently Enhancing.. The longer the reason, the more time it will take
@@ -136,8 +129,8 @@
                                 </div>
                             </div>
 
-                            <!-- Action Buttons - With Schedule -->
-                            <div v-if="withShedule" class="flex justify-end gap-3 pt-2">
+                            <!-- Action Buttons -->
+                            <div class="flex justify-end gap-3 pt-2">
                                 <button type="button" class="btn btn-outline gap-2" :disabled="formFiling.processing"
                                     @click="closeOvertimeFilingModal()">
                                     <Icon icon="material-symbols:close-rounded" width="20" height="20" />
@@ -151,26 +144,27 @@
                                     <span class="font-medium">Submit Request</span>
                                 </button>
                             </div>
+                        </div>
 
-                            <!-- No Schedule Warning -->
-                            <div v-else class="alert alert-warning shadow-lg border border-error/20">
-                                <Icon icon="material-symbols:warning-outline" width="28" height="28" />
-                                <div class="flex-1 text-center">
-                                    <h3 class="font-bold text-sm">No Registered Schedule</h3>
-                                    <div class="text-xs opacity-90 mt-1">
-                                        You need to have a registered schedule before filing an overtime request.
-                                    </div>
-                                </div>
+                        <div v-else class="flex flex-col items-center justify-center min-h-[50vh] gap-5 text-center">
+                            <Icon icon="material-symbols:calendar-month-outline" width="56" height="56"
+                                class="text-base-content/20" />
+                            <h3 class="font-semibold text-lg text-base-content/70">No Registered Schedule</h3>
+                            <p class="text-sm text-base-content/50 max-w-xs leading-relaxed">
+                                You need to have a registered schedule before filing an overtime request.
+                            </p>
+                            <div class="badge badge-ghost badge-lg font-medium gap-1.5 text-base-content/50">
+                                <Icon icon="material-symbols:calendar-today-outline" width="16" height="16" />
+                                {{ clickedDate }}
                             </div>
-
-                            <!-- No Schedule Action Buttons -->
-                            <div v-if="!withShedule" class="flex gap-3 pt-2">
-                                <button type="button" class="btn btn-outline flex-1 gap-2"
+                            <div class="w-full max-w-xs flex flex-col gap-2.5 mt-2">
+                                <button type="button" class="btn btn-outline w-full gap-2"
                                     @click="closeOvertimeFilingModal()">
                                     <Icon icon="material-symbols:close-rounded" width="20" height="20" />
                                     <span class="font-medium">Close</span>
                                 </button>
-                                <Link :href="route('schedule')" class="btn btn-primary flex-1 gap-2">
+                                <Link :href="route('schedule', { month: currentMonth + 1, year: currentYear })"
+                                    class="btn btn-primary w-full gap-2">
                                     <Icon icon="material-symbols:add-circle-outline" width="20" height="20" />
                                     <span class="font-medium">Add Schedule</span>
                                 </Link>
@@ -211,7 +205,8 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <span class="text-xs opacity-60 mb-1">Status</span>
-                                        <div class="badge badge-sm gap-2" :class="getStatusBadgeClass(formFilledOvertime.current_status)">
+                                        <div class="badge badge-sm gap-2"
+                                            :class="getStatusBadgeClass(formFilledOvertime.current_status)">
                                             {{ formFilledOvertime.current_status }}
                                         </div>
                                     </div>
@@ -278,12 +273,12 @@
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">Start Time</span>
                                                 <span class="font-semibold">{{ to12hr(formFilledOvertime.start_time)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">End Time</span>
                                                 <span class="font-semibold">{{ to12hr(formFilledOvertime.end_time)
-                                                    }}</span>
+                                                }}</span>
                                             </div>
                                         </template>
                                     </div>
@@ -302,7 +297,8 @@
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                            @click="handleEnhance(formFilledOvertime)" :disabled="isEnhancing">
+                                                            @click="handleEnhance(formFilledOvertime)"
+                                                            :disabled="isEnhancing">
                                                             <span v-if="isEnhancing"
                                                                 class="loading loading-spinner loading-xs"></span>
                                                             <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
@@ -448,7 +444,8 @@
                                 {{ getDateHoliday(days).name }}
                             </span>
                             <template v-if="getDateOvertimes(days)">
-                                <span v-for="ot in getDateOvertimes(days).slice(0, 2)" :key="ot.id" :class="['badge badge-xs font-medium max-w-full truncate', getStatusBadgeClass(ot.status)]">
+                                <span v-for="ot in getDateOvertimes(days).slice(0, 2)" :key="ot.id"
+                                    :class="['badge badge-xs font-medium max-w-full truncate block', getStatusBadgeClass(ot.status)]">
                                     {{ ot.shift_code }}: {{ ot.hours }}hrs
                                 </span>
                                 <span v-if="getDateOvertimes(days).length > 2"
@@ -517,11 +514,14 @@
                         <div v-for="request in recentRequests" :key="request.id"
                             @click="showOvertimeRequestModal(request)"
                             class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group">
-                            <div class="w-1 h-8 rounded-full flex-shrink-0" :class="getStatusBgClass(request.status)"></div>
+                            <div class="w-1 h-8 rounded-full flex-shrink-0" :class="getStatusBgClass(request.status)">
+                            </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="text-sm font-medium truncate">{{ request.date }}</p>
-                                    <span :class="['badge badge-xs font-medium flex-shrink-0', getStatusBadgeClass(request.status)]">{{ request.status }}</span>
+                                    <span
+                                        :class="['badge badge-xs font-medium flex-shrink-0', getStatusBadgeClass(request.status)]">{{
+                                        request.status }}</span>
                                 </div>
                                 <p class="text-xs text-base-content/50 mt-0.5">
                                     {{ request.shift_code }} &middot; {{ request.start_time }} &rarr; {{
@@ -606,6 +606,7 @@ const overtimeFilingModal = ref(null)
 const overtimeRequestModal = ref(null)
 const fetchingSchedule = ref(false)
 const withShedule = ref(true)
+const clickedDate = ref('')
 
 // ========== Overtime Request ==========
 const recentRequests = ref([...props.info?.recentRequestsList] ?? [])
@@ -743,7 +744,14 @@ const handleDateClick = (days) => {
 const showOvertimeFilingModal = async (year, month, day) => {
     overtimeFilingModal.value?.open()
     fetchingSchedule.value = true
+    withShedule.value = true
     formFiling.reset()
+    clickedDate.value = new Date(year, month, day).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    })
 
     let scheduleResponse = await fetchUserSchedule(year, month + 1, day)
 
