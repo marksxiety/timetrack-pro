@@ -85,7 +85,7 @@
                                                         height="18" />
                                                     Reason
                                                 </label>
-                                                <div class="tooltip tooltip-top tooltip-break"
+                                                <div class="tooltip tooltip-left tooltip-break"
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
@@ -290,7 +290,7 @@
                                                 Reason
                                             </label>
                                             <div v-if="withShedule && formFilledOvertime.current_status === 'PENDING'">
-                                                <div class="tooltip tooltip-top tooltip-break"
+                                                <div class="tooltip tooltip-left tooltip-break"
                                                     data-tip="The better you describe, the better AI can enhance it!">
                                                     <span tabindex="0" class="inline-block">
                                                         <button type="button" class="btn btn-sm gap-2 btn-primary"
