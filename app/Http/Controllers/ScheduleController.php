@@ -18,10 +18,14 @@ use function PHPUnit\Framework\isEmpty;
 
 class ScheduleController extends Controller
 {
-    public function schedulePage()
+    public function schedulePage(Request $request)
     {
         return Inertia::render('Employee/Schedule', [
             'shifts' => Shift::all('id', 'code', 'start_time', 'end_time'),
+            'payload' => [
+                'month' => $request->query('month'),
+                'year'  => $request->query('year'),
+            ],
         ]);
     }
 
