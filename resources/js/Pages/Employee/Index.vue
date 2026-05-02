@@ -146,23 +146,20 @@
                             </div>
                         </div>
 
-                        <div v-else class="flex flex-col items-center justify-center min-h-[50vh] gap-5 text-center">
-                            <Icon icon="material-symbols:calendar-month-outline" width="56" height="56"
-                                class="text-base-content/20" />
-                            <h3 class="font-semibold text-lg text-base-content/70">No Registered Schedule</h3>
-                            <p class="text-sm text-base-content/50 max-w-xs leading-relaxed">
-                                You need to have a registered schedule before filing an overtime request.
-                            </p>
-                            <div class="badge badge-ghost badge-lg font-medium gap-1.5 text-base-content/50">
-                                <Icon icon="material-symbols:calendar-today-outline" width="16" height="16" />
-                                {{ clickedDate }}
+                        <div v-else class="flex flex-col items-center justify-between min-h-[50vh] text-center py-8">
+                            <div class="flex flex-col items-center gap-5 px-5">
+                                <Icon icon="material-symbols:edit-calendar-outline" width="56" height="56"
+                                    class="text-base-content/20" />
+                                <h3 class="font-semibold text-lg text-base-content/70">No Registered Schedule</h3>
+                                <p class="text-sm text-base-content/50 max-w-xs leading-relaxed">
+                                    You need to have a registered schedule before filing an overtime request.
+                                </p>
+                                <div class="badge badge-ghost badge-lg font-medium gap-1.5 text-base-content/50">
+                                    <Icon icon="material-symbols:calendar-today-outline" width="16" height="16" />
+                                    {{ clickedDate }}
+                                </div>
                             </div>
-                            <div class="w-full max-w-xs flex flex-col gap-2.5 mt-2">
-                                <button type="button" class="btn btn-outline w-full gap-2"
-                                    @click="closeOvertimeFilingModal()">
-                                    <Icon icon="material-symbols:close-rounded" width="20" height="20" />
-                                    <span class="font-medium">Close</span>
-                                </button>
+                            <div class="w-full max-w-xs flex flex-col gap-2.5">
                                 <Link :href="route('schedule', { month: currentMonth + 1, year: currentYear })"
                                     class="btn btn-primary w-full gap-2">
                                     <Icon icon="material-symbols:add-circle-outline" width="20" height="20" />
@@ -521,7 +518,7 @@
                                     <p class="text-sm font-medium truncate">{{ request.date }}</p>
                                     <span
                                         :class="['badge badge-xs font-medium flex-shrink-0', getStatusBadgeClass(request.status)]">{{
-                                        request.status }}</span>
+                                            request.status }}</span>
                                 </div>
                                 <p class="text-xs text-base-content/50 mt-0.5">
                                     {{ request.shift_code }} &middot; {{ request.start_time }} &rarr; {{
