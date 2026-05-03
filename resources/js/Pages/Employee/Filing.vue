@@ -1,4 +1,5 @@
 <template>
+
     <Head title="Request Overtime" />
     <div class="flex flex-col gap-6">
         <Breadcrumbs :items="[
@@ -13,50 +14,64 @@
             </div>
         </div>
 
-        <div class="gap-4 grid grid-cols-12">
+        <div class="gap-6 grid grid-cols-12">
 
+            <!-- ── LEFT: Form ── -->
             <div class="col-span-7">
                 <form @submit.prevent="editingIndex === null ? addToQueue() : updateInQueue()">
-                    <div class="card border border-base-300 shadow-sm bg-base-100">
-                        <div class="card-body p-8 space-y-8">
+                    <div class="card bg-base-100 border border-base-300 shadow-sm">
+                        <div class="card-body p-0 gap-0">
 
-                            <div class="space-y-4">
-                                <h3 class="card-title text-base flex items-center gap-2">
-                                    <Icon icon="material-symbols:calendar-month-outline" width="20" height="20" />
-                                    Requested Overtime Date
-                                </h3>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="col-span-1">
+                            <!-- Section 1: Date -->
+                            <div class="px-6 pt-6 pb-5">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="bg-primary/10 text-primary rounded-lg p-1.5">
+                                        <Icon icon="material-symbols:calendar-month-outline" width="16" height="16" />
+                                    </div>
+                                    <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
+                                        Overtime Date
+                                    </h3>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
                                         <TextInput name="Date:" type="date" v-model="selectedDate" />
                                     </div>
-                                    <div class="col-span-1">
-                                        <TextInput name="Week:" type="text" v-model="form.week"
-                                            :readonly="true" :placeholder="selectedDate ? '' : 'Select a date first'" />
+                                    <div>
+                                        <TextInput name="Week:" type="text" v-model="form.week" :readonly="true"
+                                            :placeholder="selectedDate ? '' : 'Select a date first'" />
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="divider my-0"></div>
+                            <div class="divider mx-6 my-0"></div>
 
-                            <div class="space-y-4">
-                                <h3 class="card-title text-base flex items-center gap-2">
-                                    <Icon icon="material-symbols:work-outline" width="20" height="20" />
-                                    Your Scheduled Shift
-                                </h3>
-
-                                <div v-if="selectedDate && fetchingSchedule"
-                                    class="flex items-center justify-center h-24 gap-4">
-                                    <span class="loading loading-spinner loading-lg"></span>
-                                    <span class="text-lg opacity-70">Loading Schedule...</span>
+                            <!-- Section 2: Shift -->
+                            <div class="px-6 py-5">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="bg-secondary/10 text-secondary rounded-lg p-1.5">
+                                        <Icon icon="material-symbols:work-outline" width="16" height="16" />
+                                    </div>
+                                    <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
+                                        Scheduled Shift
+                                    </h3>
                                 </div>
 
+                                <!-- Loading -->
+                                <div v-if="selectedDate && fetchingSchedule"
+                                    class="flex items-center gap-3 py-5 px-4 rounded-xl bg-base-200/60">
+                                    <span class="loading loading-spinner loading-sm text-primary"></span>
+                                    <span class="text-sm text-base-content/60">Fetching your schedule...</span>
+                                </div>
+
+                                <!-- No schedule -->
                                 <template v-else-if="selectedDate && !withSchedule">
-                                    <div class="alert alert-warning">
-                                        <Icon icon="material-symbols:warning-outline" width="24" height="24" />
+                                    <div class="alert alert-warning rounded-xl">
+                                        <Icon icon="material-symbols:warning-outline" width="20" height="20" />
                                         <div>
-                                            <h3 class="font-bold">No Registered Schedule</h3>
-                                            <div class="text-xs opacity-70">You need to have a registered schedule
-                                                before filing an overtime request.</div>
+                                            <h3 class="font-semibold text-sm">No Schedule Found</h3>
+                                            <div class="text-xs opacity-70 mt-0.5">
+                                                You need a registered schedule before filing an overtime request.
+                                            </div>
                                         </div>
                                         <Link :href="route('schedule')" class="btn btn-sm btn-ghost">
                                             Add Schedule
@@ -64,102 +79,91 @@
                                     </div>
                                 </template>
 
+                                <!-- Shift details -->
                                 <template v-else>
-                                    <div class="grid grid-cols-3 gap-4" :class="{ 'opacity-50': !withSchedule }">
-                                        <div class="col-span-1">
-                                            <TextInput name="Shift Code:" type="text" v-model="form.shift_code"
-                                                :readonly="true"
-                                                :placeholder="!withSchedule ? 'Select a date first' : ''" />
-                                        </div>
-                                        <div class="col-span-1">
-                                            <TextInput name="Start:" type="text"
-                                                v-model="form.shift_start_time" :readonly="true"
-                                                :placeholder="!withSchedule ? 'Select a date first' : ''" />
-                                        </div>
-                                        <div class="col-span-1">
-                                            <TextInput name="End:" type="text" v-model="form.shift_end_time"
-                                                :readonly="true"
-                                                :placeholder="!withSchedule ? 'Select a date first' : ''" />
-                                        </div>
+                                    <div class="grid grid-cols-3 gap-3"
+                                        :class="{ 'opacity-40 pointer-events-none': !withSchedule }">
+                                        <TextInput name="Shift Code:" type="text" v-model="form.shift_code"
+                                            :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
+                                        <TextInput name="Start:" type="text" v-model="form.shift_start_time"
+                                            :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
+                                        <TextInput name="End:" type="text" v-model="form.shift_end_time"
+                                            :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
                                     </div>
                                 </template>
                             </div>
 
-                            <div class="divider my-0"></div>
+                            <div class="divider mx-6 my-0"></div>
 
-                            <div class="space-y-4" :class="{ 'opacity-50 pointer-events-none': fieldsDisabled }">
-                                <h3 class="card-title text-base flex items-center gap-2">
-                                    <Icon icon="material-symbols:timer-outline" width="20" height="20" />
-                                    Overtime Duration and Reason
-                                </h3>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="col-span-1">
-                                        <TimePickerInput name="Start Time:"
-                                            :message="form.errors?.start_time" :minuteStep="minuteStep"
-                                            :disabled="fieldsDisabled" v-model="form.start_time" />
+                            <!-- Section 3: Duration & Reason -->
+                            <div class="px-6 py-5" :class="{ 'opacity-40 pointer-events-none': fieldsDisabled }">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="bg-accent/10 text-accent rounded-lg p-1.5">
+                                        <Icon icon="material-symbols:timer-outline" width="16" height="16" />
                                     </div>
-                                    <div class="col-span-1">
-                                        <TimePickerInput name="End Time:" :message="form.errors?.end_time"
-                                            :minuteStep="minuteStep" :disabled="fieldsDisabled"
-                                            v-model="form.end_time" />
-                                    </div>
+                                    <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
+                                        Duration &amp; Reason
+                                    </h3>
                                 </div>
 
-                                <div class="divider my-0"></div>
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <TimePickerInput name="Start Time:" :message="form.errors?.start_time"
+                                        :minuteStep="minuteStep" :disabled="fieldsDisabled" v-model="form.start_time" />
+                                    <TimePickerInput name="End Time:" :message="form.errors?.end_time"
+                                        :minuteStep="minuteStep" :disabled="fieldsDisabled" v-model="form.end_time" />
+                                </div>
 
-                                <div class="w-full space-y-3">
+                                <div class="space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <label class="font-semibold text-sm flex items-center gap-2">
-                                            <Icon icon="material-symbols:edit-note-outline" width="18" height="18" />
+                                        <label
+                                            class="text-sm font-medium flex items-center gap-1.5 text-base-content/80">
+                                            <Icon icon="material-symbols:edit-note-outline" width="16" height="16" />
                                             Reason
                                         </label>
                                         <div v-if="withSchedule" class="tooltip tooltip-left tooltip-break"
                                             data-tip="The better you describe, the better AI can enhance it!">
                                             <span tabindex="0" class="inline-block">
-                                                <button type="button" class="btn btn-sm gap-2 btn-primary"
+                                                <button type="button" class="btn btn-sm btn-primary gap-1.5"
                                                     @click="handleEnhance(form)" :disabled="isEnhancing">
                                                     <span v-if="isEnhancing"
                                                         class="loading loading-spinner loading-xs"></span>
-                                                    <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
-                                                        height="18" />
-                                                    <span class="font-medium">{{ isEnhancing ? 'Enhancing...' :
-                                                        'Enhance with AI' }}</span>
+                                                    <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="16"
+                                                        height="16" />
+                                                    {{ isEnhancing ? 'Enhancing...' : 'Enhance with AI' }}
                                                 </button>
                                             </span>
                                         </div>
                                     </div>
 
-                                    <TextArea type="text" v-model="form.reason"
-                                        :message="form.errors?.reason" :disabled="fieldsDisabled" />
+                                    <TextArea type="text" v-model="form.reason" :message="form.errors?.reason"
+                                        :disabled="fieldsDisabled" />
 
                                     <p v-if="form.errors?.reason && typeof form.errors?.reason === 'object'"
-                                        class="text-sm text-warning flex items-center gap-2">
-                                        <Icon icon="material-symbols:warning-outline" width="16" height="16" />
+                                        class="text-xs text-warning flex items-center gap-1.5">
+                                        <Icon icon="material-symbols:warning-outline" width="14" height="14" />
                                         {{ form.errors?.reason.message }}
                                     </p>
 
-                                    <p v-if="isEnhancing" class="text-sm text-primary flex items-center gap-2">
-                                        <Icon icon="hugeicons:chat-gpt" width="16" height="16" />
-                                        Currently Enhancing.. The longer the reason, the more time it will take
+                                    <p v-if="isEnhancing" class="text-xs text-primary flex items-center gap-1.5">
+                                        <Icon icon="hugeicons:chat-gpt" width="14" height="14" />
+                                        Enhancing your reason — longer text takes more time.
                                     </p>
                                 </div>
                             </div>
 
-                            <div class="divider my-0"></div>
-
-                            <div class="flex justify-end gap-3 pt-2">
-                                <button v-if="editingIndex !== null" type="button"
-                                    class="btn btn-ghost gap-2" @click="cancelEdit()">
-                                    <Icon icon="material-symbols:close-rounded" width="20" height="20" />
-                                    <span class="font-medium">Cancel Edit</span>
+                            <!-- Footer actions -->
+                            <div class="px-6 pb-6 flex justify-end gap-2">
+                                <button v-if="editingIndex !== null" type="button" class="btn btn-ghost btn-sm gap-1.5"
+                                    @click="cancelEdit()">
+                                    <Icon icon="material-symbols:close-rounded" width="16" height="16" />
+                                    Cancel Edit
                                 </button>
-                                <button type="submit" class="btn btn-primary gap-2"
+                                <button type="submit" class="btn btn-primary btn-sm gap-1.5"
                                     :disabled="fieldsDisabled || isSubmitting">
-                                    <Icon
-                                        :icon="editingIndex !== null ? 'material-symbols:edit-outline' : 'material-symbols:add-circle-outline'"
-                                        width="20" height="20" />
-                                    <span class="font-medium">{{ editingIndex !== null ? 'Update in List' :
-                                        'Add to List' }}</span>
+                                    <Icon :icon="editingIndex !== null
+                                        ? 'material-symbols:edit-outline'
+                                        : 'material-symbols:add-circle-outline'" width="16" height="16" />
+                                    {{ editingIndex !== null ? 'Update in List' : 'Add to List' }}
                                 </button>
                             </div>
 
@@ -168,78 +172,129 @@
                 </form>
             </div>
 
+            <!-- ── RIGHT: Queue ── -->
             <div class="col-span-5">
-                <div
-                    class="rounded-xl border border-base-300 bg-base-100 overflow-hidden flex flex-col h-full max-h-[85vh]">
-                    <div class="px-4 py-3 border-b border-base-300 flex items-center justify-between">
-                        <h2 class="text-sm font-semibold tracking-tight">
-                            Queued Requests
-                            <span v-if="queue.length > 0"
-                                class="badge badge-sm badge-ghost ml-1">{{ queue.length }}</span>
-                        </h2>
+                <div class="card bg-base-100 border border-base-300 shadow-sm flex flex-col h-full max-h-[85vh]">
+
+                    <!-- Queue header -->
+                    <div class="flex items-center justify-between px-5 py-3.5 border-b border-base-300">
                         <div class="flex items-center gap-2">
-                            <button v-if="pendingItems.length > 0" type="button"
-                                class="btn btn-xs btn-primary gap-1" :disabled="isSubmitting"
-                                @click="submitBulk()">
+                            <span class="text-sm font-semibold text-base-content">Queued Requests</span>
+                            <span v-if="queue.length > 0" class="badge badge-sm badge-neutral">
+                                {{ queue.length }}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button v-if="pendingItems.length > 0" type="button" class="btn btn-xs btn-primary gap-1"
+                                :disabled="isSubmitting" @click="submitBulk()">
                                 <span v-if="isSubmitting" class="loading loading-spinner loading-xs"></span>
-                                <Icon icon="material-symbols:send-outline" width="16" height="16" />
+                                <Icon icon="material-symbols:send-outline" width="14" height="14" />
                                 Submit All
                             </button>
                             <button v-if="queue.length > 0 && !isSubmitting" type="button"
-                                class="btn btn-xs btn-ghost" @click="clearQueue()">
-                                Clear
+                                class="btn btn-xs btn-ghost text-base-content/40 hover:text-error"
+                                @click="clearQueue()">
+                                Clear all
                             </button>
                         </div>
                     </div>
-                    <div class="flex-1 overflow-y-auto p-2">
-                        <div v-if="queue.length === 0" class="flex items-center justify-center h-full">
-                            <p class="text-xs text-base-content/40">No queued requests yet</p>
+
+                    <!-- Queue body -->
+                    <div class="flex-1 overflow-y-auto p-3 space-y-2">
+
+                        <!-- Empty state -->
+                        <div v-if="queue.length === 0"
+                            class="flex flex-col items-center justify-center h-full gap-3 py-12">
+                            <div class="bg-base-200 rounded-full p-4">
+                                <Icon icon="material-symbols:inbox-outline" width="28" height="28"
+                                    class="text-base-content/30" />
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm font-medium text-base-content/40">No requests queued</p>
+                                <p class="text-xs text-base-content/30 mt-0.5">Fill the form and click "Add to List"</p>
+                            </div>
                         </div>
+
+                        <!-- Queue items -->
                         <div v-for="(item, index) in queue" :key="item._uid"
-                            class="flex items-start gap-3 px-3 py-2.5 rounded-lg transition-colors mb-1"
+                            class="group flex items-start gap-3 p-3 rounded-xl border transition-all duration-150"
                             :class="[
-                                item.state === 'error' ? 'bg-error/10 hover:bg-error/20' : 'hover:bg-accent/50',
-                                item.state === 'submitting' ? 'opacity-70' : '',
+                                item.state === 'error'
+                                    ? 'bg-error/5 border-error/30 hover:bg-error/10'
+                                    : item.state === 'success'
+                                        ? 'bg-success/5 border-success/20'
+                                        : item.state === 'submitting'
+                                            ? 'bg-base-200/60 border-base-300 opacity-70'
+                                            : 'bg-base-100 border-base-200 hover:border-primary/30 hover:bg-primary/5',
                                 (item.state === 'pending' || item.state === 'error') ? 'cursor-pointer' : ''
                             ]" @click="(item.state === 'pending' || item.state === 'error') && editItem(index)">
+                            <!-- State indicator dot -->
+                            <div class="mt-1 flex-shrink-0">
+                                <span class="block w-2 h-2 rounded-full" :class="getItemStateColor(item.state)"></span>
+                            </div>
 
-                            <div class="w-1 h-8 rounded-full flex-shrink-0 mt-0.5"
-                                :class="getItemStateColor(item.state)"></div>
+                            <!-- Content -->
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-2">
-                                    <p class="text-sm font-medium truncate">{{ item.displayDate }}</p>
-                                    <span
-                                        :class="['badge badge-xs font-medium flex-shrink-0', getItemStateBadge(item.state)]">
-                                        <span v-if="item.state === 'submitting'"
-                                            class="loading loading-spinner loading-[10px]"></span>
+                                <div class="flex items-start justify-between gap-2">
+                                    <p class="text-sm font-semibold text-base-content truncate leading-tight">
+                                        {{ item.displayDate }}
+                                    </p>
+                                    <span class="badge badge-xs font-medium flex-shrink-0 gap-1"
+                                        :class="getItemStateBadge(item.state)">
+                                        <span v-if="item.state === 'submitting'" class="loading loading-spinner"
+                                            style="width:8px;height:8px"></span>
                                         {{ getItemStateLabel(item.state) }}
                                     </span>
                                 </div>
-                                <p class="text-xs text-base-content/50 mt-0.5">
-                                    {{ item.shift_code }} &middot; {{ to12hr(item.start_time) }} &rarr;
-                                    {{ to12hr(item.end_time) }}
-                                </p>
-                                <p v-if="item.state === 'error' && item.error" class="text-xs text-error mt-1">
+
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    <span class="badge badge-xs badge-ghost font-mono">{{ item.shift_code }}</span>
+                                    <span class="text-xs text-base-content/50">
+                                        {{ to12hr(item.start_time) }} → {{ to12hr(item.end_time) }}
+                                    </span>
+                                </div>
+
+                                <p v-if="item.state === 'error' && item.error"
+                                    class="text-xs text-error mt-1.5 leading-snug">
                                     {{ item.error }}
                                 </p>
                                 <p v-if="(item.state === 'pending' || item.state === 'error') && editingIndex === index"
-                                    class="text-xs text-primary mt-1">
-                                    Currently editing...
+                                    class="text-xs text-primary mt-1 flex items-center gap-1">
+                                    <Icon icon="material-symbols:edit-outline" width="12" height="12" />
+                                    Currently editing…
                                 </p>
                             </div>
+
+                            <!-- Remove button -->
                             <button v-if="item.state !== 'submitting'" type="button"
-                                class="btn btn-ghost btn-xs flex-shrink-0 opacity-40 hover:opacity-100 hover:text-error"
+                                class="btn btn-ghost btn-xs flex-shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-error transition-opacity"
                                 @click.stop="removeFromQueue(index)">
-                                <Icon icon="material-symbols:close-rounded" width="16" height="16" />
+                                <Icon icon="material-symbols:close-rounded" width="14" height="14" />
                             </button>
                         </div>
+
                     </div>
+
+                    <!-- Queue footer summary -->
+                    <div v-if="queue.length > 0"
+                        class="px-4 py-2.5 border-t border-base-300 flex items-center justify-between">
+                        <span class="text-xs text-base-content/40">
+                            {{ pendingItems.length }} pending
+                            <template v-if="queue.filter(i => i.state === 'error').length > 0">
+                                · <span class="text-error">{{queue.filter(i => i.state === 'error').length}}
+                                    failed</span>
+                            </template>
+                        </span>
+                        <span class="text-xs text-base-content/30">Click an item to edit</span>
+                    </div>
+
                 </div>
             </div>
 
         </div>
     </div>
 </template>
+
 <script setup>
 import { Link, useForm } from '@inertiajs/vue3'
 import { onMounted, ref, inject, watch, computed } from 'vue'
@@ -323,21 +378,12 @@ const validateBeforeAdd = () => {
 
 const addToQueue = () => {
     if (!validateBeforeAdd()) return
-
     const data = getFormData()
-
     if (isDuplicate(data)) {
         toast('This date, start time, and end time already exists in the queue.', 'error')
         return
     }
-
-    queue.value.push({
-        _uid: ++uid,
-        ...data,
-        state: 'pending',
-        error: null
-    })
-
+    queue.value.push({ _uid: ++uid, ...data, state: 'pending', error: null })
     toast('Request added to queue.', 'success')
     resetForm()
 }
@@ -345,19 +391,15 @@ const addToQueue = () => {
 const updateInQueue = () => {
     if (editingIndex.value === null) return
     if (!validateBeforeAdd()) return
-
     const data = getFormData()
-
     if (isDuplicate(data, editingIndex.value)) {
         toast('This date, start time, and end time already exists in the queue.', 'error')
         return
     }
-
     const item = queue.value[editingIndex.value]
     Object.assign(item, data)
     item.state = 'pending'
     item.error = null
-
     toast('Request updated in queue.', 'success')
     editingIndex.value = null
     resetForm()
@@ -456,11 +498,11 @@ const submitBulk = async () => {
 
 const getItemStateColor = (state) => {
     switch (state) {
-        case 'pending': return 'bg-base-content/20'
-        case 'submitting': return 'bg-warning'
+        case 'pending': return 'bg-base-content/25'
+        case 'submitting': return 'bg-warning animate-pulse'
         case 'success': return 'bg-success'
         case 'error': return 'bg-error'
-        default: return 'bg-base-content/20'
+        default: return 'bg-base-content/25'
     }
 }
 
