@@ -46,6 +46,7 @@ Route::middleware('employee')->group(function () {
     // overtime request routes
     Route::get('/overtime/file', [OvertimeRequestController::class, 'overtimeFilingPage'])->name('overtime.file');
     Route::post('/overtime/request', [OvertimeRequestController::class, 'insertOvertimeRequest'])->name('overtime.request');
+    Route::post('/overtime/request/bulk', [OvertimeRequestController::class, 'insertBulkOvertimeRequest'])->name('overtime.request.bulk');
     Route::post('/overtime/update/employee', [OvertimeRequestController::class, 'updateOvertimeRequestStatus'])->name('overtime.update.employee');
 
     Route::get('/employee/profile', [AuthController::class, 'loadUserProfile'])->name('profile.employee');
