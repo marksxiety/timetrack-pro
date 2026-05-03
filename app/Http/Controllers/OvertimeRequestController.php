@@ -97,6 +97,82 @@ class OvertimeRequestController extends Controller
         return redirect()->back()->with(['message' => 'Overtime Request has been filed!']);
     }
 
+    public function insertBulkOvertimeRequest(Request $request)
+    {
+        $rules = [
+            'employee_schedule_id' => 'exists:schedules,id|required',
+            'date' => 'required|date_format:Y-m-d',
+            'reason' => 'required|string|min:1',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i',
+        ];
+
+        $validator = Validator::make($request->all(), $rules);
+        $errors = $validator->errors();
+
+        if ($errors->any()) {
+            $errorMessages = [];
+            foreach ($errors->all() as $message) {
+                $errorMessages[] = $message;
+            }
+            return response()->json(['success' => false, 'errors' => $errorMessages], 422);
+        }
+
+        try {
+            $submittedStart = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->start_time));
+            $submittedEnd   = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->end_time));
+        } catch (\Throwable $th) {
+            return response()->json(['success' => false, 'errors' => ['Invalid date or time format.']], 422);
+        }
+
+        try {
+            $schedule = Schedule::with('shift')->findOrFail($request->employee_schedule_id);
+        } catch (\Throwable $th) {
+            return response()->json(['success' => false, 'errors' => ['Schedule not found.']], 422);
+        }
+
+        $shift = $schedule->shift;
+
+        $validation = $this->overlapValidator->validate(
+            $submittedStart,
+            $submittedEnd,
+            $shift?->start_time,
+            $shift?->end_time,
+            $request->date
+        );
+
+        if (!$validation['valid']) {
+            $errorMessages = [];
+            foreach ($validation['errors']->all() as $message) {
+                $errorMessages[] = $message;
+            }
+            return response()->json(['success' => false, 'errors' => $errorMessages], 422);
+        }
+
+        $submittedStart = $validation['start'];
+        $submittedEnd = $validation['end'];
+
+        $hours = $this->calculator->calculateOvertimeHours($submittedStart, $submittedEnd);
+
+        $minimumHours = $this->calculator->getMinimumOvertimeHours();
+        if ((float) $hours < $minimumHours) {
+            return response()->json([
+                'success' => false,
+                'errors' => ["Overtime request must be at least {$minimumHours} hour(s)."]
+            ], 422);
+        }
+
+        OvertimeRequest::create([
+            'employee_schedule_id' => $request->employee_schedule_id,
+            'start_time' => $request->start_time,
+            'end_time' => $request->end_time,
+            'hours' => $hours,
+            'reason' => $request->reason,
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Overtime Request has been filed!']);
+    }
+
 
     public function updateOvertimeRequestStatus(Request $request)
     {
