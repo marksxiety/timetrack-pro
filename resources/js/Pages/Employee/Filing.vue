@@ -14,7 +14,68 @@
             </div>
         </div>
 
-        <div class="gap-6 grid grid-cols-12">
+        <!-- Submit Confirmation Modal -->
+        <dialog ref="modalSubmitConfirm" class="modal">
+            <div class="modal-box max-w-md">
+                <h3 class="font-bold text-base flex items-center gap-2 mb-1">
+                    <Icon icon="material-symbols:send-outline" width="18" height="18" />
+                    Confirm Submission
+                </h3>
+                <p class="text-sm text-base-content/60 mb-4">
+                    You are about to submit {{ pendingItems.length }} overtime request{{ pendingItems.length > 1 ? 's' :
+                        '' }}. Please review before proceeding.
+                </p>
+                <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    <div v-for="item in pendingItems" :key="item._uid"
+                        class="flex items-center justify-between bg-base-200 rounded-lg px-3 py-2 gap-3">
+                        <div class="min-w-0">
+                            <p class="text-sm font-medium text-base-content truncate">{{ item.displayDate }}</p>
+                            <p class="text-xs text-base-content/50 mt-0.5">
+                                <span class="font-mono">{{ item.shift_code }}</span>
+                                &nbsp;·&nbsp;{{ to12hr(item.start_time) }} → {{ to12hr(item.end_time) }}
+                            </p>
+                        </div>
+                        <span class="badge badge-xs badge-warning flex-shrink-0">Pending</span>
+                    </div>
+                </div>
+                <div class="modal-action mt-5">
+                    <form method="dialog">
+                        <button class="btn btn-ghost btn-sm">Cancel</button>
+                    </form>
+                    <button class="btn btn-primary btn-sm gap-1.5" @click="confirmSubmitBulk()">
+                        <Icon icon="material-symbols:send-outline" width="14" height="14" />
+                        Submit All
+                    </button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
+
+        <!-- Clear Queue Confirmation Modal -->
+        <dialog ref="modalClearConfirm" class="modal">
+            <div class="modal-box max-w-sm">
+                <h3 class="font-bold text-base flex items-center gap-2 mb-1">
+                    <Icon icon="material-symbols:delete-outline" width="18" height="18" />
+                    Clear Queue?
+                </h3>
+                <p class="text-sm text-base-content/60">
+                    This will remove all <span class="font-semibold text-base-content">{{ queue.length }}</span> queued
+                    request{{ queue.length > 1 ? 's' : '' }} from the list. This action cannot be undone.
+                </p>
+                <div class="modal-action mt-5">
+                    <form method="dialog">
+                        <button class="btn btn-ghost btn-sm">Cancel</button>
+                    </form>
+                    <button class="btn btn-error btn-sm gap-1.5" @click="confirmClearQueue()">
+                        <Icon icon="material-symbols:delete-outline" width="14" height="14" />
+                        Clear All
+                    </button>
+                </div>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>close</button></form>
+        </dialog>
+
+        <div class="gap-6 grid grid-cols-12 max-w-7xl mx-auto w-full">
 
             <!-- ── LEFT: Form ── -->
             <div class="col-span-7">
@@ -25,7 +86,7 @@
                             <!-- Section 1: Date -->
                             <div class="px-6 pt-6 pb-5">
                                 <div class="flex items-center gap-2 mb-4">
-                                    <div class="bg-primary/10 text-primary rounded-lg p-1.5">
+                                    <div class="bg-base-200 rounded-lg p-1.5">
                                         <Icon icon="material-symbols:calendar-month-outline" width="16" height="16" />
                                     </div>
                                     <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
@@ -48,7 +109,7 @@
                             <!-- Section 2: Shift -->
                             <div class="px-6 py-5">
                                 <div class="flex items-center gap-2 mb-4">
-                                    <div class="bg-secondary/10 text-secondary rounded-lg p-1.5">
+                                    <div class="bg-base-200 rounded-lg p-1.5">
                                         <Icon icon="material-symbols:work-outline" width="16" height="16" />
                                     </div>
                                     <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
@@ -98,7 +159,7 @@
                             <!-- Section 3: Duration & Reason -->
                             <div class="px-6 py-5" :class="{ 'opacity-40 pointer-events-none': fieldsDisabled }">
                                 <div class="flex items-center gap-2 mb-4">
-                                    <div class="bg-accent/10 text-accent rounded-lg p-1.5">
+                                    <div class="bg-base-200 rounded-lg p-1.5">
                                         <Icon icon="material-symbols:timer-outline" width="16" height="16" />
                                     </div>
                                     <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
@@ -186,14 +247,15 @@
                         </div>
                         <div class="flex items-center gap-2">
                             <button v-if="pendingItems.length > 0" type="button" class="btn btn-xs btn-primary gap-1"
-                                :disabled="isSubmitting" @click="submitBulk()">
+                                :disabled="isSubmitting"
+                                @click="modalSubmitConfirm.showModal()">
                                 <span v-if="isSubmitting" class="loading loading-spinner loading-xs"></span>
                                 <Icon icon="material-symbols:send-outline" width="14" height="14" />
                                 Submit All
                             </button>
                             <button v-if="queue.length > 0 && !isSubmitting" type="button"
                                 class="btn btn-xs btn-ghost text-base-content/40 hover:text-error"
-                                @click="clearQueue()">
+                                @click="modalClearConfirm.showModal()">
                                 Clear all
                             </button>
                         </div>
@@ -228,23 +290,12 @@
                                             : 'bg-base-100 border-base-200 hover:border-primary/30 hover:bg-primary/5',
                                 (item.state === 'pending' || item.state === 'error') ? 'cursor-pointer' : ''
                             ]" @click="(item.state === 'pending' || item.state === 'error') && editItem(index)">
-                            <!-- State indicator dot -->
-                            <div class="mt-1 flex-shrink-0">
-                                <span class="block w-2 h-2 rounded-full" :class="getItemStateColor(item.state)"></span>
-                            </div>
-
                             <!-- Content -->
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-start justify-between gap-2">
                                     <p class="text-sm font-semibold text-base-content truncate leading-tight">
                                         {{ item.displayDate }}
                                     </p>
-                                    <span class="badge badge-xs font-medium flex-shrink-0 gap-1"
-                                        :class="getItemStateBadge(item.state)">
-                                        <span v-if="item.state === 'submitting'" class="loading loading-spinner"
-                                            style="width:8px;height:8px"></span>
-                                        {{ getItemStateLabel(item.state) }}
-                                    </span>
                                 </div>
 
                                 <div class="flex items-center gap-1.5 mt-1">
@@ -263,6 +314,16 @@
                                     <Icon icon="material-symbols:edit-outline" width="12" height="12" />
                                     Currently editing…
                                 </p>
+
+                                <!-- Status badge row -->
+                                <div class="mt-2">
+                                    <span class="badge badge-sm font-medium gap-1"
+                                        :class="getItemStateBadge(item.state)">
+                                        <span v-if="item.state === 'submitting'" class="loading loading-spinner"
+                                            style="width:8px;height:8px"></span>
+                                        {{ getItemStateLabel(item.state) }}
+                                    </span>
+                                </div>
                             </div>
 
                             <!-- Remove button -->
@@ -277,21 +338,27 @@
 
                     <!-- Queue footer summary -->
                     <div v-if="queue.length > 0"
-                        class="px-4 py-2.5 border-t border-base-300 flex items-center justify-between">
-                        <span class="text-xs text-base-content/40">
-                            {{ pendingItems.length }} pending
-                            <template v-if="queue.filter(i => i.state === 'error').length > 0">
-                                · <span class="text-error">{{queue.filter(i => i.state === 'error').length}}
-                                    failed</span>
-                            </template>
-                        </span>
-                        <span class="text-xs text-base-content/30">Click an item to edit</span>
+                        class="px-4 py-2.5 border-t border-base-300 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span v-if="pendingItems.length > 0" class="badge badge-sm badge-warning gap-1">
+                                {{ pendingItems.length }} Pending
+                            </span>
+                            <span v-if="queue.filter(i => i.state === 'error').length > 0"
+                                class="badge badge-sm badge-error gap-1">
+                                {{queue.filter(i => i.state === 'error').length}} Failed
+                            </span>
+                            <span v-if="queue.filter(i => i.state === 'success').length > 0"
+                                class="badge badge-sm badge-success gap-1">
+                                {{queue.filter(i => i.state === 'success').length}} Done
+                            </span>
+                        </div>
+                        <span class="text-xs text-base-content/30 flex-shrink-0">Click an item to edit</span>
                     </div>
 
                 </div>
             </div>
 
-        </div>
+        </div><!-- end grid -->
     </div>
 </template>
 
@@ -317,6 +384,8 @@ const selectedDate = ref('')
 const minuteStep = ref(15)
 const isSubmitting = ref(false)
 const editingIndex = ref(null)
+const modalSubmitConfirm = ref(null)
+const modalClearConfirm = ref(null)
 let uid = 0
 
 const queue = ref([])
@@ -337,7 +406,7 @@ const form = useForm({
     reason: ''
 })
 
-onMounted(async () => {
+onMounted(() => {
     const step = appConfig.value?.overtime_minute_step
     if ([1, 5, 10, 15, 30].includes(step)) {
         minuteStep.value = step
@@ -397,9 +466,7 @@ const updateInQueue = () => {
         return
     }
     const item = queue.value[editingIndex.value]
-    Object.assign(item, data)
-    item.state = 'pending'
-    item.error = null
+    queue.value[editingIndex.value] = { ...item, ...data, state: 'pending', error: null }
     toast('Request updated in queue.', 'success')
     editingIndex.value = null
     resetForm()
@@ -461,55 +528,63 @@ const submitBulk = async () => {
     const items = queue.value.filter(i => i.state === 'pending' || i.state === 'error')
     let successCount = 0
 
-    for (const item of items) {
-        item.state = 'submitting'
-        item.error = null
+    try {
+        for (const item of items) {
+            item.state = 'submitting'
+            item.error = null
 
-        const result = await submitBulkOvertime({
-            employee_schedule_id: item.employee_schedule_id,
-            date: item.dateRaw,
-            start_time: item.start_time,
-            end_time: item.end_time,
-            reason: item.reason
-        })
+            try {
+                const result = await submitBulkOvertime({
+                    employee_schedule_id: item.employee_schedule_id,
+                    date: item.dateRaw,
+                    start_time: item.start_time,
+                    end_time: item.end_time,
+                    reason: item.reason
+                })
 
-        if (result.success) {
-            item.state = 'success'
-            successCount++
-        } else {
-            item.state = 'error'
-            item.error = result.errors?.join(', ') || 'Submission failed.'
+                if (result.success) {
+                    item.state = 'success'
+                    successCount++
+                } else {
+                    item.state = 'error'
+                    item.error = result.errors?.join(', ') || 'Submission failed.'
+                }
+            } catch (e) {
+                item.state = 'error'
+                item.error = 'Submission failed.'
+            }
         }
-    }
 
-    queue.value = queue.value.filter(i => i.state !== 'success')
+        queue.value = queue.value.filter(i => i.state !== 'success')
 
-    if (successCount > 0 && queue.value.length === 0) {
-        toast(`${successCount} request${successCount > 1 ? 's' : ''} submitted successfully!`, 'success')
-    } else if (successCount > 0 && queue.value.length > 0) {
-        toast(`${successCount} submitted, ${queue.value.length} failed.`, 'warning')
-    } else {
-        toast('All requests failed. Please review the errors.', 'error')
-    }
-
-    isSubmitting.value = false
-    editingIndex.value = null
-}
-
-const getItemStateColor = (state) => {
-    switch (state) {
-        case 'pending': return 'bg-base-content/25'
-        case 'submitting': return 'bg-warning animate-pulse'
-        case 'success': return 'bg-success'
-        case 'error': return 'bg-error'
-        default: return 'bg-base-content/25'
+        if (successCount > 0 && queue.value.length === 0) {
+            toast(`${successCount} request${successCount > 1 ? 's' : ''} submitted successfully!`, 'success')
+        } else if (successCount > 0 && queue.value.length > 0) {
+            toast(`${successCount} submitted, ${queue.value.length} failed.`, 'warning')
+        } else {
+            toast('All requests failed. Please review the errors.', 'error')
+        }
+    } finally {
+        isSubmitting.value = false
+        editingIndex.value = null
     }
 }
+
+const confirmSubmitBulk = () => {
+    modalSubmitConfirm.value.close()
+    submitBulk()
+}
+
+const confirmClearQueue = () => {
+    modalClearConfirm.value.close()
+    clearQueue()
+}
+
 
 const getItemStateBadge = (state) => {
     switch (state) {
-        case 'pending': return 'badge-ghost border border-base-300'
-        case 'submitting': return 'badge-warning'
+        case 'pending': return 'badge-warning'
+        case 'submitting': return 'badge-ghost border border-base-300'
         case 'success': return 'badge-success'
         case 'error': return 'badge-error'
         default: return 'badge-ghost'
@@ -556,26 +631,29 @@ watch(selectedDate, async (newDate) => {
     form.end_time = ''
     form.reason = ''
 
-    let scheduleResponse = await fetchUserSchedule(year, month + 1, day)
+    try {
+        let scheduleResponse = await fetchUserSchedule(year, month + 1, day)
 
-    if (scheduleResponse?.success) {
-        let scheduledata = scheduleResponse?.schedule
+        if (scheduleResponse?.success) {
+            let scheduledata = scheduleResponse?.schedule
 
-        if (Object.keys(scheduledata).length > 0) {
-            withSchedule.value = true
-            form.date = scheduledata.date
-            form.week = scheduledata.week
-            form.shift_code = scheduledata.shift_code
-            form.employee_schedule_id = scheduledata.id
-            form.shift_start_time = scheduledata.shift_start_time
-            form.shift_end_time = scheduledata.shift_end_time
+            if (Object.keys(scheduledata).length > 0) {
+                withSchedule.value = true
+                form.date = scheduledata.date
+                form.week = scheduledata.week
+                form.shift_code = scheduledata.shift_code
+                form.employee_schedule_id = scheduledata.id
+                form.shift_start_time = scheduledata.shift_start_time
+                form.shift_end_time = scheduledata.shift_end_time
+            } else {
+                withSchedule.value = false
+            }
         } else {
-            withSchedule.value = false
+            toast('Failed to load schedule. Please try again', 'error')
         }
-
-        fetchingSchedule.value = false
-    } else {
+    } catch (e) {
         toast('Failed to load schedule. Please try again', 'error')
+    } finally {
         fetchingSchedule.value = false
     }
 })
