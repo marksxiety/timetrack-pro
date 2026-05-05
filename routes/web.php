@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\OpenAIController;
+use App\Http\Controllers\SettingsController;
+use App\Models\Setting;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/register', [AuthController::class, 'directRegisterForm'])->name('register');
@@ -26,8 +28,7 @@ Route::middleware(['guest'])->group(function () {
 Route::get('/', function (Request $request) {
     $role = Auth::user()->role;
     return match ($role) {
-        'admin' => Inertia::render('Admin/Index'),
-        'approver' => app(OvertimeRequestController::class)->fetchTotalOvertimeRequests($request),
+        'admin', 'approver' => app(OvertimeRequestController::class)->fetchTotalOvertimeRequests($request),
         'employee' => app(OvertimeRequestController::class)->fetchOvertimeRequestsBySession($request),
         default => redirect()->route('unauthorized'),
     };
@@ -57,7 +58,7 @@ Route::middleware('employee')->group(function () {
     Route::get('/overtime/heatmap', [OvertimeRequestController::class, 'fetchOvertimeHeatmap']);
 });
 
-Route::middleware('approver')->group(function () {
+Route::middleware('admin-approver')->group(function () {
 
     Route::get('/shift', [ShiftContoller::class, 'registeredShiftCodes'])->name('shifts');
     Route::post('/shift/register', [ShiftContoller::class, 'insertShiftCode'])->name('shift.register'); // insertion route
@@ -97,12 +98,17 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+Route::middleware('admin')->group(function () {
+    Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
+    Route::put('/admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+});
+
 Route::get('/setup/config', function () {
-    $path = base_path('setup/config.json');
-    $config = [];
-    if (file_exists($path)) {
-        $config = json_decode(file_get_contents($path), true) ?? [];
-    }
-    $config['ai_model'] = env('AI_MODEL', 'gpt-4o-mini');
-    return response()->json($config);
+    $settings = Setting::all()->pluck('value', 'key')->map(function ($value) {
+        $decoded = json_decode($value, true);
+        return $decoded !== null ? $decoded : $value;
+    })->toArray();
+
+    $settings['ai_model'] = env('AI_MODEL', 'gpt-4o-mini');
+    return response()->json($settings);
 });
