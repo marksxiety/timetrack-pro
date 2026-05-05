@@ -1,0 +1,34 @@
+{
+    "default_shift_codes": [
+        {
+            "day": "Sunday",
+            "code": "AA"
+        },
+        {
+            "day": "Monday",
+            "code": "BB"
+        },
+        {
+            "day": "Tuesday",
+            "code": "CC"
+        },
+        {
+            "day": "Wednesday",
+            "code": "DD"
+        },
+        {
+            "day": "Thursday",
+            "code": "EE"
+        },
+        {
+            "day": "Friday",
+            "code": "FF"
+        },
+        {
+            "day": "Saturday",
+            "code": "GG"
+        }
+    ],
+    "minimum_overtime_hours": 1,
+    "overtime_minute_step": 15
+}
