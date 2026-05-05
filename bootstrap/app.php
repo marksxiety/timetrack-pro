@@ -28,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'role:admin',
         ]);
 
+        $middleware->group('admin-approver', [
+            'auth',
+            'role:admin,approver',
+        ]);
+
         $middleware->group('approver', [
             'auth',
             'role:approver',
