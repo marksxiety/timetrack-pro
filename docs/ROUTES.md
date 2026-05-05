@@ -13,7 +13,7 @@ with Inertia.js.
 | POST   | `/login`       | —         | Authenticate user                     |
 | GET    | `/register`    | `register` | Registration page                     |
 | POST   | `/register`    | —         | Register new user                     |
-| GET    | `/setup/config` | —        | Returns setup/config.json as JSON     |
+| GET    | `/setup/config` | —        | Returns system settings as JSON       |
 | GET    | `/404`         | `404`     | Unauthorized / not found page         |
 
 ---
@@ -69,7 +69,9 @@ with Inertia.js.
 
 ## Approver
 
-*Requires `approver` middleware (auth + role: approver).*
+*Requires `admin-approver` middleware (auth + role: admin or approver).*
+
+> **Note:** Admin users also have access to all approver routes.
 
 ### Shift Codes (CRUD)
 
@@ -119,3 +121,14 @@ with Inertia.js.
 | ------ | -------------------------- | ------------------------------- | ------------ |
 | GET    | `/generate/report/option`  | `approver.generate.report`      | Report page  |
 | GET    | `/generate/report`         | `approver.generate.report.daterange` | Generate by date range |
+
+---
+
+## Admin
+
+*Requires `admin` middleware (auth + role: admin).*
+
+| Method | URI               | Name                 | Description           |
+| ------ | ----------------- | -------------------- | --------------------- |
+| GET    | `/admin/settings` | `admin.settings`     | Settings page         |
+| PUT    | `/admin/settings` | `admin.settings.update` | Update settings    |
