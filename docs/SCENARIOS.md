@@ -1,6 +1,6 @@
 # Overtime Filing Scenarios
 
-> **Config:** `minimum_overtime_hours = 1` (configurable via `setup/config.json`)
+> **Config:** `minimum_overtime_hours = 1` (configurable via Admin Settings page, stored in database)
 > **Rules:**
 > - Overtime must be **entirely before** OR **entirely after** the shift
 > - Touching the shift boundary is allowed
