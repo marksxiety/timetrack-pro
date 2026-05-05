@@ -8,35 +8,35 @@
                     <div tabindex="0" role="button"
                         class="flex gap-2 text-sm items-center hover:bg-base-300 py-2 px-4 rounded-3xl">
                         <Icon icon="tabler:clock-code" width="24" height="24" />
-                        {{ $page?.props?.auth.user?.role === 'approver' ? 'Administration' : 'Operations' }}
+                        {{ $page?.props?.auth.user?.role === 'employee' ? 'Operations' : 'Administration' }}
                     </div>
                     <ul tabindex="0"
                         class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 min-w-max p-2 shadow text-nowrap">
-                        <li v-if="$page?.props?.auth.user?.role === 'approver'">
+                        <li v-if="$page?.props?.auth.user?.role === 'approver' || $page?.props?.auth.user?.role === 'admin'">
                             <Link :href="route('approver.manage.user')" class="justify-between">
                                 <Icon icon="material-symbols:manage-accounts-rounded" width="24" height="24" />
                                 Manage Users
                             </Link>
                         </li>
-                        <li v-if="$page?.props?.auth.user?.role === 'approver'">
+                        <li v-if="$page?.props?.auth.user?.role === 'approver' || $page?.props?.auth.user?.role === 'admin'">
                             <Link :href="route('shifts')" class="justify-between">
                                 <Icon icon="jam:code" width="24" height="24" />
                                 Manage Shifts
                             </Link>
                         </li>
-                        <li v-if="$page?.props?.auth.user?.role === 'approver'">
+                        <li v-if="$page?.props?.auth.user?.role === 'approver' || $page?.props?.auth.user?.role === 'admin'">
                             <Link :href="route('schedule.manage')" class="justify-between">
                                 <Icon icon="icon-park-outline:schedule" width="24" height="24" />
                                 Manage Schedules
                             </Link>
                         </li>
-                        <li v-if="$page?.props?.auth.user?.role === 'approver'">
+                        <li v-if="$page?.props?.auth.user?.role === 'approver' || $page?.props?.auth.user?.role === 'admin'">
                             <Link :href="route('hours')" class="justify-between">
                                 <Icon icon="tabler:clock-check" width="24" height="24" />
                                 Overtime Limits
                             </Link>
                         </li>
-                        <li v-if="$page?.props?.auth.user?.role === 'approver'">
+                        <li v-if="$page?.props?.auth.user?.role === 'approver' || $page?.props?.auth.user?.role === 'admin'">
                             <Link :href="route('approver.generate.report')" class="justify-between">
                                 <Icon icon="mdi:report-box-multiple-outline" width="24" height="24" />
                                 Reports
@@ -58,6 +58,22 @@
                             <Link :href="route('overtime.requests.employee')" class="justify-between">
                                 <Icon icon="material-symbols:assignment-outline" width="24" height="24" />
                                 My Requests
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
+                <div v-if="$page?.props?.auth.user?.role === 'admin'" class="dropdown dropdown-end">
+                    <div tabindex="0" role="button"
+                        class="flex gap-2 text-sm items-center hover:bg-base-300 py-2 px-4 rounded-3xl">
+                        <Icon icon="tabler:settings" width="24" height="24" />
+                        System
+                    </div>
+                    <ul tabindex="0"
+                        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 min-w-max p-2 shadow text-nowrap">
+                        <li>
+                            <Link :href="route('admin.settings')" class="justify-between">
+                                <Icon icon="tabler:settings" width="24" height="24" />
+                                Settings
                             </Link>
                         </li>
                     </ul>
