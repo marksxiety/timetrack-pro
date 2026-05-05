@@ -22,7 +22,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'employeeid' => 'required|unique:users|string|max:255',
             'organization_unit_id' => 'required|exists:organization_units,id',
-            'role' => ['required', Rule::in(['employee', 'approver', 'admin'])],
+            'role' => ['required', Rule::in(['employee', 'approver'])],
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ], [
