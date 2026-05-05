@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services;
 
+use App\Models\Setting;
 use App\Services\OvertimeCalculator;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -10,23 +11,11 @@ class OvertimeCalculatorTest extends TestCase
 {
     private OvertimeCalculator $calculator;
 
-    private string $tempConfigPath;
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->tempConfigPath = tempnam(sys_get_temp_dir(), 'ot_config_');
-        $this->calculator = new OvertimeCalculator($this->tempConfigPath);
-    }
-
-    protected function tearDown(): void
-    {
-        if (file_exists($this->tempConfigPath)) {
-            unlink($this->tempConfigPath);
-        }
-
-        parent::tearDown();
+        $this->calculator = new OvertimeCalculator();
     }
 
     // -- calculateOvertimeHours --
@@ -116,7 +105,7 @@ class OvertimeCalculatorTest extends TestCase
 
     public function test_sunday_after_jan_first_is_week_two()
     {
-        $date = Carbon::create(2026, 1, 4); // Sunday Jan 4, 2026
+        $date = Carbon::create(2026, 1, 4);
 
         $result = $this->calculator->currentWeekSundayBased($date);
 
@@ -125,7 +114,7 @@ class OvertimeCalculatorTest extends TestCase
 
     public function test_monday_january_fifth_is_week_two()
     {
-        $date = Carbon::create(2026, 1, 5); // Monday Jan 5, 2026
+        $date = Carbon::create(2026, 1, 5);
 
         $result = $this->calculator->currentWeekSundayBased($date);
 
@@ -153,7 +142,7 @@ class OvertimeCalculatorTest extends TestCase
 
     public function test_valid_quarter_increment_025()
     {
-        file_put_contents($this->tempConfigPath, json_encode(['minimum_overtime_hours' => 0.25]));
+        Setting::set('minimum_overtime_hours', 0.25);
 
         $result = $this->calculator->getMinimumOvertimeHours();
 
@@ -162,7 +151,7 @@ class OvertimeCalculatorTest extends TestCase
 
     public function test_valid_quarter_increment_100()
     {
-        file_put_contents($this->tempConfigPath, json_encode(['minimum_overtime_hours' => 1.0]));
+        Setting::set('minimum_overtime_hours', 1.0);
 
         $result = $this->calculator->getMinimumOvertimeHours();
 
@@ -171,7 +160,7 @@ class OvertimeCalculatorTest extends TestCase
 
     public function test_valid_quarter_increment_175()
     {
-        file_put_contents($this->tempConfigPath, json_encode(['minimum_overtime_hours' => 1.75]));
+        Setting::set('minimum_overtime_hours', 1.75);
 
         $result = $this->calculator->getMinimumOvertimeHours();
 
@@ -180,7 +169,7 @@ class OvertimeCalculatorTest extends TestCase
 
     public function test_invalid_non_quarter_value_falls_back_to_default()
     {
-        file_put_contents($this->tempConfigPath, json_encode(['minimum_overtime_hours' => 0.20]));
+        Setting::set('minimum_overtime_hours', 0.20);
 
         $result = $this->calculator->getMinimumOvertimeHours();
 
@@ -189,7 +178,7 @@ class OvertimeCalculatorTest extends TestCase
 
     public function test_negative_value_falls_back_to_default()
     {
-        file_put_contents($this->tempConfigPath, json_encode(['minimum_overtime_hours' => -0.5]));
+        Setting::set('minimum_overtime_hours', -0.5);
 
         $result = $this->calculator->getMinimumOvertimeHours();
 
@@ -198,26 +187,15 @@ class OvertimeCalculatorTest extends TestCase
 
     public function test_zero_value_falls_back_to_default()
     {
-        file_put_contents($this->tempConfigPath, json_encode(['minimum_overtime_hours' => 0]));
+        Setting::set('minimum_overtime_hours', 0);
 
         $result = $this->calculator->getMinimumOvertimeHours();
 
         $this->assertSame(1.0, $result);
     }
 
-    public function test_missing_config_file_returns_default()
+    public function test_missing_setting_returns_default()
     {
-        $calculator = new OvertimeCalculator('/nonexistent/path/config.json');
-
-        $result = $calculator->getMinimumOvertimeHours();
-
-        $this->assertSame(1.0, $result);
-    }
-
-    public function test_missing_key_in_config_returns_default()
-    {
-        file_put_contents($this->tempConfigPath, json_encode(['other_key' => 'value']));
-
         $result = $this->calculator->getMinimumOvertimeHours();
 
         $this->assertSame(1.0, $result);
