@@ -21,7 +21,7 @@ graph TD
 
     subgraph Data
         DB[("MySQL")]
-        Config["setup/config.json"]
+        Config["Settings Table"]
     end
 
     subgraph External
@@ -229,7 +229,7 @@ graph TD
 | Guest | `guest` | Login, register, password reset |
 | Employee | `employee` | Own overtime CRUD, own schedule, profile, heatmap |
 | Approver | `approver` | All employee access + approve/file/decline requests, manage shifts/hours/users/schedules, reports |
-| Admin | `auth` | Full access (same as approver in current implementation) |
+| Admin | `admin-approver` | Full approver access + system settings management |
 | Any Auth | `auth` | AI enhance/analyze |
 
 ---
