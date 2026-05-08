@@ -111,27 +111,26 @@ class OvertimeRequestController extends Controller
         ];
 
         $validator = Validator::make($request->all(), $rules);
-        $errors = $validator->errors();
 
-        if ($errors->any()) {
-            $errorMessages = [];
-            foreach ($errors->all() as $message) {
-                $errorMessages[] = $message;
+        if ($validator->fails()) {
+            $fieldErrors = [];
+            foreach ($validator->errors()->messages() as $field => $msgs) {
+                $fieldErrors[$field] = $msgs[0];
             }
-            return response()->json(['success' => false, 'errors' => $errorMessages], 422);
+            return response()->json(['success' => false, 'errors' => $fieldErrors], 422);
         }
 
         try {
             $submittedStart = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->start_time));
             $submittedEnd   = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->end_time));
         } catch (\Throwable $th) {
-            return response()->json(['success' => false, 'errors' => ['Invalid date or time format.']], 422);
+            return response()->json(['success' => false, 'errors' => ['_general' => 'Invalid date or time format.']], 422);
         }
 
         try {
             $schedule = Schedule::with('shift')->findOrFail($request->employee_schedule_id);
         } catch (\Throwable $th) {
-            return response()->json(['success' => false, 'errors' => ['Schedule not found.']], 422);
+            return response()->json(['success' => false, 'errors' => ['_general' => 'Schedule not found.']], 422);
         }
 
         $shift = $schedule->shift;
@@ -145,11 +144,7 @@ class OvertimeRequestController extends Controller
         );
 
         if (!$validation['valid']) {
-            $errorMessages = [];
-            foreach ($validation['errors']->all() as $message) {
-                $errorMessages[] = $message;
-            }
-            return response()->json(['success' => false, 'errors' => $errorMessages], 422);
+            return response()->json(['success' => false, 'errors' => $validation['errors']], 422);
         }
 
         $submittedStart = $validation['start'];
@@ -161,7 +156,7 @@ class OvertimeRequestController extends Controller
         if ((float) $hours < $minimumHours) {
             return response()->json([
                 'success' => false,
-                'errors' => ["Overtime request must be at least {$minimumHours} hour(s)."]
+                'errors' => ['start_time' => "Overtime request must be at least {$minimumHours} hour(s)."]
             ], 422);
         }
 
