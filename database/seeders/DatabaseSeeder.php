@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
 
         $adminEmail = env('ADMIN_EMAIL', 'admin@example.com');
 
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => $adminEmail],
             [
                 'name' => env('ADMIN_NAME', 'Admin'),
