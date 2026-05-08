@@ -22,7 +22,8 @@
                     Confirm Submission
                 </h3>
                 <p class="text-sm text-base-content/60 mb-4">
-                    You are about to submit {{ submittableItems.length }} overtime request{{ submittableItems.length > 1 ? 's' :
+                    You are about to submit {{ submittableItems.length }} overtime request{{ submittableItems.length > 1
+                        ? 's' :
                         '' }}. Please review before proceeding.
                 </p>
                 <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
@@ -85,7 +86,7 @@
 
                             <!-- Section 1: Date -->
                             <div class="px-6 pt-6 pb-5">
-                                <div class="flex items-center gap-2 mb-4">
+                                <div class="flex items-center gap-2 mb-2">
                                     <div class="bg-base-200 rounded-lg p-1.5">
                                         <Icon icon="material-symbols:calendar-month-outline" width="16" height="16" />
                                     </div>
@@ -108,7 +109,7 @@
 
                             <!-- Section 2: Shift -->
                             <div class="px-6 py-5">
-                                <div class="flex items-center gap-2 mb-4">
+                                <div class="flex items-center gap-2 mb-2">
                                     <div class="bg-base-200 rounded-lg p-1.5">
                                         <Icon icon="material-symbols:work-outline" width="16" height="16" />
                                     </div>
@@ -167,7 +168,7 @@
                                     </h3>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                <div class="grid grid-cols-2 gap-3 mb-2">
                                     <TimePickerInput name="Start Time:" :message="form.errors?.start_time"
                                         :minuteStep="minuteStep" :disabled="fieldsDisabled" v-model="form.start_time" />
                                     <TimePickerInput name="End Time:" :message="form.errors?.end_time"
@@ -213,7 +214,7 @@
                             </div>
 
                             <!-- Footer actions -->
-                            <div class="px-6 pb-6 flex justify-end gap-2">
+                            <div class="px-6 pb-4 flex justify-end gap-2">
                                 <button v-if="editingIndex !== null" type="button" class="btn btn-ghost btn-sm gap-1.5"
                                     @click="cancelEdit()">
                                     <Icon icon="material-symbols:close-rounded" width="16" height="16" />
@@ -238,26 +239,37 @@
                 <div class="card bg-base-100 border border-base-300 shadow-sm flex flex-col h-full max-h-[85vh]">
 
                     <!-- Queue header -->
-                    <div class="flex items-center justify-between px-5 py-3.5 border-b border-base-300">
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm font-semibold text-base-content">Queued Requests</span>
-                            <span v-if="queue.length > 0" class="badge badge-sm badge-neutral">
-                                {{ queue.length }}
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button v-if="submittableItems.length > 0" type="button" class="btn btn-xs btn-primary gap-1"
-                                :disabled="isSubmitting"
-                                @click="modalSubmitConfirm.showModal()">
-                                <span v-if="isSubmitting" class="loading loading-spinner loading-xs"></span>
-                                <Icon icon="material-symbols:send-outline" width="14" height="14" />
-                                Submit All
-                            </button>
-                            <button v-if="queue.length > 0 && !isSubmitting" type="button"
-                                class="btn btn-xs btn-ghost text-base-content/40 hover:text-error"
-                                @click="modalClearConfirm.showModal()">
-                                Clear all
-                            </button>
+                    <div class="px-5 py-4 border-b border-base-300">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="bg-base-200 rounded-lg p-1.5">
+                                    <Icon icon="material-symbols:list-alt-outline" width="16" height="16"
+                                        class="text-base-content/60" />
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-semibold text-base-content">Request List</span>
+                                        <span v-if="queue.length > 0" class="badge badge-xs badge-neutral font-mono">
+                                            {{ queue.length }}
+                                        </span>
+                                    </div>
+                                    <p class="text-[11px] text-base-content/40 mt-0.5">Items to submit</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button v-if="submittableItems.length > 0" type="button"
+                                    class="btn btn-xs btn-primary gap-1" :disabled="isSubmitting"
+                                    @click="modalSubmitConfirm.showModal()">
+                                    <span v-if="isSubmitting" class="loading loading-spinner loading-xs"></span>
+                                    <Icon v-else icon="material-symbols:send-outline" width="14" height="14" />
+                                    Submit
+                                </button>
+                                <button v-if="queue.length > 0 && !isSubmitting" type="button"
+                                    class="btn btn-xs btn-ghost text-base-content/40 hover:text-error"
+                                    @click="modalClearConfirm.showModal()">
+                                    Clear
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -266,93 +278,98 @@
 
                         <!-- Empty state -->
                         <div v-if="queue.length === 0"
-                            class="flex flex-col items-center justify-center h-full gap-3 py-12">
-                            <div class="bg-base-200 rounded-full p-4">
-                                <Icon icon="material-symbols:inbox-outline" width="28" height="28"
-                                    class="text-base-content/30" />
+                            class="flex flex-col items-center justify-center h-full gap-3 py-16">
+                            <div class="bg-base-200/70 rounded-2xl p-5">
+                                <Icon icon="material-symbols:inbox-outline" width="32" height="32"
+                                    class="text-base-content/20" />
                             </div>
                             <div class="text-center">
-                                <p class="text-sm font-medium text-base-content/40">No requests queued</p>
-                                <p class="text-xs text-base-content/30 mt-0.5">Fill the form and click "Add to List"</p>
+                                <p class="text-sm font-medium text-base-content/40">No requests yet</p>
+                                <p class="text-xs text-base-content/25 mt-1">Fill the form and click "Add to List"</p>
                             </div>
                         </div>
 
                         <!-- Queue items -->
                         <div v-for="(item, index) in queue" :key="item._uid"
-                            class="group flex items-start gap-3 p-3 rounded-xl border transition-all duration-150"
+                            class="group relative flex items-stretch rounded-xl border overflow-hidden transition-all duration-200"
                             :class="[
                                 item.state === 'error'
-                                    ? 'bg-error/5 border-error/30 hover:bg-error/10'
+                                    ? 'bg-error/5 border-error/25'
                                     : item.state === 'success'
                                         ? 'bg-success/5 border-success/20'
                                         : item.state === 'submitting'
-                                            ? 'bg-base-200/60 border-base-300 opacity-70'
-                                            : 'bg-base-100 border-base-200 hover:border-primary/30 hover:bg-primary/5',
-                                (item.state === 'pending' || item.state === 'error') ? 'cursor-pointer' : ''
+                                            ? 'bg-base-200/50 border-base-300'
+                                            : 'bg-base-100 border-base-200 hover:border-primary/25 hover:bg-primary/[0.03]',
+                                (item.state === 'pending' || item.state === 'error') ? 'cursor-pointer' : '',
+                                editingIndex === index ? 'ring-2 ring-primary/20 border-primary/40 bg-primary/[0.03]' : ''
                             ]" @click="(item.state === 'pending' || item.state === 'error') && editItem(index)">
+
+                            <!-- Status accent bar -->
+                            <div class="w-1 flex-shrink-0 transition-colors" :class="[
+                                item.state === 'pending' ? 'bg-warning' : '',
+                                item.state === 'submitting' ? 'bg-base-300' : '',
+                                item.state === 'success' ? 'bg-success' : '',
+                                item.state === 'error' ? 'bg-error' : ''
+                            ]"></div>
+
                             <!-- Content -->
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between gap-2">
-                                    <p class="text-sm font-semibold text-base-content truncate leading-tight">
+                            <div class="flex-1 min-w-0 px-3 py-2.5">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-medium text-base-content truncate">
                                         {{ item.displayDate }}
                                     </p>
+                                    <button v-if="item.state !== 'submitting'" type="button"
+                                        class="btn btn-ghost btn-xs flex-shrink-0 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:text-error transition-opacity -mr-1"
+                                        @click.stop="removeFromQueue(index)">
+                                        <Icon icon="material-symbols:close-rounded" width="14" height="14" />
+                                    </button>
                                 </div>
 
                                 <div class="flex items-center gap-1.5 mt-1">
-                                    <span class="badge badge-xs badge-ghost font-mono">{{ item.shift_code }}</span>
-                                    <span class="text-xs text-base-content/50">
-                                        {{ to12hr(item.start_time) }} → {{ to12hr(item.end_time) }}
+                                    <span
+                                        class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-base-200 text-base-content/50">{{
+                                            item.shift_code }}</span>
+                                    <span class="text-xs text-base-content/45">
+                                        {{ to12hr(item.start_time) }} &rarr; {{ to12hr(item.end_time) }}
                                     </span>
                                 </div>
 
-                                <ul v-if="item.state === 'error' && item.errors"
-                                    class="text-xs text-error mt-1.5 leading-snug space-y-0.5 list-disc list-inside">
-                                    <li v-for="(msg, key) in item.errors" :key="key">{{ msg }}</li>
-                                </ul>
-                                <p v-if="(item.state === 'pending' || item.state === 'error') && editingIndex === index"
-                                    class="text-xs text-primary mt-1 flex items-center gap-1">
-                                    <Icon icon="material-symbols:edit-outline" width="12" height="12" />
-                                    Currently editing…
-                                </p>
+                                <!-- Errors -->
+                                <div v-if="item.state === 'error' && item.errors" class="mt-2 space-y-1">
+                                    <div v-for="(msg, key) in item.errors" :key="key"
+                                        class="flex items-start gap-1.5 text-xs text-error/80 leading-snug">
+                                        <Icon icon="material-symbols:error-circle-outline" width="12" height="12"
+                                            class="flex-shrink-0 mt-0.5 text-error/60" />
+                                        <span>{{ msg }}</span>
+                                    </div>
+                                </div>
 
-                                <!-- Status badge row -->
-                                <div class="mt-2">
-                                    <span class="badge badge-sm font-medium gap-1"
-                                        :class="getItemStateBadge(item.state)">
-                                        <span v-if="item.state === 'submitting'" class="loading loading-spinner"
-                                            style="width:8px;height:8px"></span>
-                                        {{ getItemStateLabel(item.state) }}
-                                    </span>
+                                <!-- Editing indicator -->
+                                <div v-if="(item.state === 'pending' || item.state === 'error') && editingIndex === index"
+                                    class="mt-2 inline-flex items-center gap-1 text-[11px] text-primary font-medium">
+                                    <Icon icon="material-symbols:edit-outline" width="11" height="11" />
+                                    Editing
+                                </div>
+
+                                <!-- Status indicator (non-pending) -->
+                                <div v-if="item.state === 'submitting'"
+                                    class="mt-1.5 inline-flex items-center gap-1 text-[11px] text-base-content/40">
+                                    <span class="loading loading-spinner" style="width:10px;height:10px"></span>
+                                    Submitting...
+                                </div>
+                                <div v-if="item.state === 'success'"
+                                    class="mt-1.5 inline-flex items-center gap-1 text-[11px] text-success/70 font-medium">
+                                    <Icon icon="material-symbols:check-circle-outline" width="12" height="12" />
+                                    Submitted
+                                </div>
+                                <div v-if="item.state === 'error' && editingIndex !== index"
+                                    class="mt-1.5 inline-flex items-center gap-1 text-[11px] text-error/60 font-medium">
+                                    <Icon icon="material-symbols:refresh" width="11" height="11" />
+                                    Click to retry
                                 </div>
                             </div>
-
-                            <!-- Remove button -->
-                            <button v-if="item.state !== 'submitting'" type="button"
-                                class="btn btn-ghost btn-xs flex-shrink-0 opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:text-error transition-opacity"
-                                @click.stop="removeFromQueue(index)">
-                                <Icon icon="material-symbols:close-rounded" width="14" height="14" />
-                            </button>
                         </div>
 
-                    </div>
-
-                    <!-- Queue footer summary -->
-                    <div v-if="queue.length > 0"
-                        class="px-4 py-2.5 border-t border-base-300 flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-1.5 flex-wrap">
-                            <span v-if="pendingItems.length > 0" class="badge badge-sm badge-warning gap-1">
-                                {{ pendingItems.length }} Pending
-                            </span>
-                            <span v-if="queue.filter(i => i.state === 'error').length > 0"
-                                class="badge badge-sm badge-error gap-1">
-                                {{queue.filter(i => i.state === 'error').length}} Failed
-                            </span>
-                            <span v-if="queue.filter(i => i.state === 'success').length > 0"
-                                class="badge badge-sm badge-success gap-1">
-                                {{queue.filter(i => i.state === 'success').length}} Done
-                            </span>
-                        </div>
-                        <span class="text-xs text-base-content/30 flex-shrink-0">Click an item to edit</span>
                     </div>
 
                 </div>
@@ -566,12 +583,8 @@ const submitBulk = async () => {
             }
         }
 
-        queue.value = queue.value.filter(i => i.state !== 'success')
-
-        if (successCount > 0 && queue.value.length === 0) {
+        if (successCount > 0) {
             toast(`${successCount} request${successCount > 1 ? 's' : ''} submitted successfully!`, 'success')
-        } else if (successCount > 0 && queue.value.length > 0) {
-            toast(`${successCount} submitted, ${queue.value.length} failed.`, 'warning')
         } else {
             toast('All requests failed. Please review the errors.', 'error')
         }
@@ -591,26 +604,6 @@ const confirmClearQueue = () => {
     clearQueue()
 }
 
-
-const getItemStateBadge = (state) => {
-    switch (state) {
-        case 'pending': return 'badge-warning'
-        case 'submitting': return 'badge-ghost border border-base-300'
-        case 'success': return 'badge-success'
-        case 'error': return 'badge-error'
-        default: return 'badge-ghost'
-    }
-}
-
-const getItemStateLabel = (state) => {
-    switch (state) {
-        case 'pending': return 'Pending'
-        case 'submitting': return 'Submitting'
-        case 'success': return 'Done'
-        case 'error': return 'Failed'
-        default: return ''
-    }
-}
 
 watch(selectedDate, async (newDate) => {
     if (isEditing.value) return
