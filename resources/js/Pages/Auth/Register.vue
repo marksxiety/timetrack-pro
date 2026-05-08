@@ -164,6 +164,7 @@
                 reserved.</p>
         </div>
     </main>
+    <FloatingThemeToggle />
 </template>
 
 <script setup>
@@ -173,6 +174,7 @@ import { Icon } from '@iconify/vue'
 import registerImage from '../../images/Coder.svg'
 import AuthBackground from '../../Components/AuthBackground.vue'
 import PasswordInput from '../Components/PasswordInput.vue'
+import FloatingThemeToggle from '../../Components/FloatingThemeToggle.vue'
 
 const props = defineProps({
     units: Array
