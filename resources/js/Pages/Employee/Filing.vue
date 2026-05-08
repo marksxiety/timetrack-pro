@@ -253,7 +253,6 @@
                                             {{ queue.length }}
                                         </span>
                                     </div>
-                                    <p class="text-[11px] text-base-content/40 mt-0.5">Items to submit</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5">
@@ -291,29 +290,15 @@
 
                         <!-- Queue items -->
                         <div v-for="(item, index) in queue" :key="item._uid"
-                            class="group relative flex items-stretch rounded-xl border overflow-hidden transition-all duration-200"
+                            class="group relative flex items-stretch rounded-xl border transition-all duration-200"
                             :class="[
-                                item.state === 'error'
-                                    ? 'bg-error/5 border-error/25'
-                                    : item.state === 'success'
-                                        ? 'bg-success/5 border-success/20'
-                                        : item.state === 'submitting'
-                                            ? 'bg-base-200/50 border-base-300'
-                                            : 'bg-base-100 border-base-200 hover:border-primary/25 hover:bg-primary/[0.03]',
+                                item.state === 'submitting' ? 'bg-base-200/50 border-base-300' : 'bg-base-100 border-base-200 hover:border-primary/25 hover:bg-primary/[0.03]',
                                 (item.state === 'pending' || item.state === 'error') ? 'cursor-pointer' : '',
                                 editingIndex === index ? 'ring-2 ring-primary/20 border-primary/40 bg-primary/[0.03]' : ''
                             ]" @click="(item.state === 'pending' || item.state === 'error') && editItem(index)">
 
-                            <!-- Status accent bar -->
-                            <div class="w-1 flex-shrink-0 transition-colors" :class="[
-                                item.state === 'pending' ? 'bg-warning' : '',
-                                item.state === 'submitting' ? 'bg-base-300' : '',
-                                item.state === 'success' ? 'bg-success' : '',
-                                item.state === 'error' ? 'bg-error' : ''
-                            ]"></div>
-
                             <!-- Content -->
-                            <div class="flex-1 min-w-0 px-3 py-2.5">
+                            <div class="flex-1 min-w-0 px-3 py-2.5 flex flex-col">
                                 <div class="flex items-center justify-between gap-2">
                                     <p class="text-sm font-medium text-base-content truncate">
                                         {{ item.displayDate }}
@@ -344,28 +329,24 @@
                                     </div>
                                 </div>
 
-                                <!-- Editing indicator -->
-                                <div v-if="(item.state === 'pending' || item.state === 'error') && editingIndex === index"
-                                    class="mt-2 inline-flex items-center gap-1 text-[11px] text-primary font-medium">
-                                    <Icon icon="material-symbols:edit-outline" width="11" height="11" />
-                                    Editing
-                                </div>
-
-                                <!-- Status indicator (non-pending) -->
-                                <div v-if="item.state === 'submitting'"
-                                    class="mt-1.5 inline-flex items-center gap-1 text-[11px] text-base-content/40">
-                                    <span class="loading loading-spinner" style="width:10px;height:10px"></span>
-                                    Submitting...
-                                </div>
-                                <div v-if="item.state === 'success'"
-                                    class="mt-1.5 inline-flex items-center gap-1 text-[11px] text-success/70 font-medium">
-                                    <Icon icon="material-symbols:check-circle-outline" width="12" height="12" />
-                                    Submitted
-                                </div>
-                                <div v-if="item.state === 'error' && editingIndex !== index"
-                                    class="mt-1.5 inline-flex items-center gap-1 text-[11px] text-error/60 font-medium">
-                                    <Icon icon="material-symbols:refresh" width="11" height="11" />
-                                    Click to retry
+                                <!-- Footer: editing indicator + status badge -->
+                                <div class="flex items-center justify-between mt-auto pt-2">
+                                    <div v-if="(item.state === 'pending' || item.state === 'error') && editingIndex === index"
+                                        class="inline-flex items-center gap-1 text-[11px] text-primary font-medium">
+                                        <Icon icon="material-symbols:edit-outline" width="11" height="11" />
+                                        Editing
+                                    </div>
+                                    <span v-else class="w-0"></span>
+                                    <span class="badge badge-xs font-medium gap-1" :class="[
+                                        item.state === 'pending' ? 'badge-warning' : '',
+                                        item.state === 'submitting' ? 'badge-ghost border border-base-300' : '',
+                                        item.state === 'success' ? 'badge-success' : '',
+                                        item.state === 'error' ? 'badge-error' : ''
+                                    ]">
+                                        <span v-if="item.state === 'submitting'" class="loading loading-spinner"
+                                            style="width:8px;height:8px"></span>
+                                        {{ getItemStateLabel(item.state) }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -381,7 +362,7 @@
 
 <script setup>
 import { Link, useForm } from '@inertiajs/vue3'
-import { onMounted, ref, inject, watch, computed } from 'vue'
+import { onMounted, ref, inject, watch, computed, nextTick } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import TextInput from '../Components/TextInput.vue'
 import TextArea from '../Components/TextArea.vue'
@@ -515,7 +496,7 @@ const editItem = (index) => {
         }
     }
     withSchedule.value = true
-    isEditing.value = false
+    nextTick(() => { isEditing.value = false })
 }
 
 const cancelEdit = () => {
@@ -604,6 +585,16 @@ const confirmClearQueue = () => {
     clearQueue()
 }
 
+
+const getItemStateLabel = (state) => {
+    switch (state) {
+        case 'pending': return 'Pending'
+        case 'submitting': return 'Submitting'
+        case 'success': return 'Submitted'
+        case 'error': return 'Failed'
+        default: return ''
+    }
+}
 
 watch(selectedDate, async (newDate) => {
     if (isEditing.value) return
