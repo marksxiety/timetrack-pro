@@ -103,6 +103,7 @@
                 reserved.</p>
         </div>
     </main>
+    <FloatingThemeToggle />
 </template>
 
 <script setup>
@@ -112,6 +113,7 @@ import { Icon } from '@iconify/vue'
 import loginImage from '../../images/Secure-login.svg'
 import AuthBackground from '../../Components/AuthBackground.vue'
 import PasswordInput from '../Components/PasswordInput.vue'
+import FloatingThemeToggle from '../../Components/FloatingThemeToggle.vue'
 
 const form = useForm({
     email: null,
