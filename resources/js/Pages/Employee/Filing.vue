@@ -22,11 +22,11 @@
                     Confirm Submission
                 </h3>
                 <p class="text-sm text-base-content/60 mb-4">
-                    You are about to submit {{ pendingItems.length }} overtime request{{ pendingItems.length > 1 ? 's' :
+                    You are about to submit {{ submittableItems.length }} overtime request{{ submittableItems.length > 1 ? 's' :
                         '' }}. Please review before proceeding.
                 </p>
                 <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    <div v-for="item in pendingItems" :key="item._uid"
+                    <div v-for="item in submittableItems" :key="item._uid"
                         class="flex items-center justify-between bg-base-200 rounded-lg px-3 py-2 gap-3">
                         <div class="min-w-0">
                             <p class="text-sm font-medium text-base-content truncate">{{ item.displayDate }}</p>
@@ -246,7 +246,7 @@
                             </span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button v-if="pendingItems.length > 0" type="button" class="btn btn-xs btn-primary gap-1"
+                            <button v-if="submittableItems.length > 0" type="button" class="btn btn-xs btn-primary gap-1"
                                 :disabled="isSubmitting"
                                 @click="modalSubmitConfirm.showModal()">
                                 <span v-if="isSubmitting" class="loading loading-spinner loading-xs"></span>
@@ -305,10 +305,10 @@
                                     </span>
                                 </div>
 
-                                <p v-if="item.state === 'error' && item.error"
-                                    class="text-xs text-error mt-1.5 leading-snug">
-                                    {{ item.error }}
-                                </p>
+                                <ul v-if="item.state === 'error' && item.errors"
+                                    class="text-xs text-error mt-1.5 leading-snug space-y-0.5 list-disc list-inside">
+                                    <li v-for="(msg, key) in item.errors" :key="key">{{ msg }}</li>
+                                </ul>
                                 <p v-if="(item.state === 'pending' || item.state === 'error') && editingIndex === index"
                                     class="text-xs text-primary mt-1 flex items-center gap-1">
                                     <Icon icon="material-symbols:edit-outline" width="12" height="12" />
@@ -392,7 +392,8 @@ const queue = ref([])
 
 const fieldsDisabled = computed(() => !withSchedule.value)
 
-const pendingItems = computed(() => queue.value.filter(i => i.state === 'pending' || i.state === 'error'))
+const pendingItems = computed(() => queue.value.filter(i => i.state === 'pending'))
+const submittableItems = computed(() => queue.value.filter(i => i.state === 'pending' || i.state === 'error'))
 
 const form = useForm({
     date: '',
@@ -452,7 +453,7 @@ const addToQueue = () => {
         toast('This date, start time, and end time already exists in the queue.', 'error')
         return
     }
-    queue.value.push({ _uid: ++uid, ...data, state: 'pending', error: null })
+    queue.value.push({ _uid: ++uid, ...data, state: 'pending', errors: null })
     toast('Request added to queue.', 'success')
     resetForm()
 }
@@ -466,7 +467,7 @@ const updateInQueue = () => {
         return
     }
     const item = queue.value[editingIndex.value]
-    queue.value[editingIndex.value] = { ...item, ...data, state: 'pending', error: null }
+    queue.value[editingIndex.value] = { ...item, ...data, state: 'pending', errors: null }
     toast('Request updated in queue.', 'success')
     editingIndex.value = null
     resetForm()
@@ -487,6 +488,13 @@ const editItem = (index) => {
     form.end_time = item.end_time
     form.reason = item.reason
     form.clearErrors()
+    if (item.state === 'error' && item.errors) {
+        for (const [field, msg] of Object.entries(item.errors)) {
+            if (field !== '_general') {
+                form.errors[field] = msg
+            }
+        }
+    }
     withSchedule.value = true
 }
 
@@ -531,7 +539,7 @@ const submitBulk = async () => {
     try {
         for (const item of items) {
             item.state = 'submitting'
-            item.error = null
+            item.errors = null
 
             try {
                 const result = await submitBulkOvertime({
@@ -547,11 +555,11 @@ const submitBulk = async () => {
                     successCount++
                 } else {
                     item.state = 'error'
-                    item.error = result.errors?.join(', ') || 'Submission failed.'
+                    item.errors = result.errors || { _general: 'Submission failed.' }
                 }
             } catch (e) {
                 item.state = 'error'
-                item.error = 'Submission failed.'
+                item.errors = { _general: 'Submission failed.' }
             }
         }
 
