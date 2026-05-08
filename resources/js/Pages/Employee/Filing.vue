@@ -384,6 +384,7 @@ const selectedDate = ref('')
 const minuteStep = ref(15)
 const isSubmitting = ref(false)
 const editingIndex = ref(null)
+const isEditing = ref(false)
 const modalSubmitConfirm = ref(null)
 const modalClearConfirm = ref(null)
 let uid = 0
@@ -475,6 +476,7 @@ const updateInQueue = () => {
 
 const editItem = (index) => {
     if (isSubmitting.value) return
+    isEditing.value = true
     const item = queue.value[index]
     editingIndex.value = index
     selectedDate.value = item.dateRaw || ''
@@ -496,6 +498,7 @@ const editItem = (index) => {
         }
     }
     withSchedule.value = true
+    isEditing.value = false
 }
 
 const cancelEdit = () => {
@@ -610,6 +613,7 @@ const getItemStateLabel = (state) => {
 }
 
 watch(selectedDate, async (newDate) => {
+    if (isEditing.value) return
     if (!newDate) {
         withSchedule.value = false
         form.reset()
