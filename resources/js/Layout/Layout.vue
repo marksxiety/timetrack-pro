@@ -62,22 +62,11 @@
                         </li>
                     </ul>
                 </div>
-                <div v-if="$page?.props?.auth.user?.role === 'admin'" class="dropdown dropdown-end">
-                    <div tabindex="0" role="button"
-                        class="flex gap-2 text-sm items-center hover:bg-base-300 py-2 px-4 rounded-3xl">
-                        <Icon icon="tabler:settings" width="24" height="24" />
-                        System
-                    </div>
-                    <ul tabindex="0"
-                        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 min-w-max p-2 shadow text-nowrap">
-                        <li>
-                            <Link :href="route('admin.settings')" class="justify-between">
-                                <Icon icon="tabler:settings" width="24" height="24" />
-                                Settings
-                            </Link>
-                        </li>
-                    </ul>
-                </div>
+                <Link v-if="$page?.props?.auth.user?.role === 'admin'" :href="route('admin.settings')"
+                    class="flex gap-2 text-sm items-center hover:bg-base-300 py-2 px-4 rounded-3xl">
+                    <Icon icon="tabler:settings" width="24" height="24" />
+                    Configuration
+                </Link>
                 <div v-if="$page?.props?.auth.user" class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="flex gap-2 text-sm items-center py-2 px-4 rounded-3xl">
                         <div class="avatar">
