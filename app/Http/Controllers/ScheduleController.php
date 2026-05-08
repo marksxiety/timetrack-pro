@@ -13,11 +13,13 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use App\Traits\HasScopedQueries;
 
 use function PHPUnit\Framework\isEmpty;
 
 class ScheduleController extends Controller
 {
+    use HasScopedQueries;
     public function schedulePage(Request $request)
     {
         return Inertia::render('Employee/Schedule', [
@@ -217,10 +219,14 @@ class ScheduleController extends Controller
                 ->addWeeks($week - 1);
 
             // Fetch all registered employees (base dataset for generating schedules)
-            $employees = User::where([
-                ['role', 'employee'],
-                ['organization_unit_id', Auth::user()->organization_unit_id],
-            ])->get();
+            $employeesQuery = User::where('role', 'employee');
+
+            $orgUnitId = $this->getOrgUnitId();
+            if ($orgUnitId !== null) {
+                $employeesQuery->where('organization_unit_id', $orgUnitId);
+            }
+
+            $employees = $employeesQuery->get();
 
             // Prepare an array for all 7 days of the selected week
             for ($i = 0; $i < 7; $i++) {
