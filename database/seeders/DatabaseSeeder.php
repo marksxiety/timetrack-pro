@@ -39,7 +39,7 @@ class DatabaseSeeder extends Seeder
                 'name' => env('ADMIN_NAME', 'Admin'),
                 'employeeid' => env('ADMIN_EMPLOYEEID', 'ADMIN001'),
                 'role' => 'admin',
-                'organization_unit_id' => OrganizationUnit::first()?->id,
+                'organization_unit_id' => null,
                 'password' => Hash::make(env('ADMIN_PASSWORD', 'changeme')),
                 'active' => true,
             ],
