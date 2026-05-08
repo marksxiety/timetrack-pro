@@ -18,9 +18,12 @@ use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Traits\HasScopedQueries;
 
 class OvertimeRequestController extends Controller
 {
+    use HasScopedQueries;
+
     private OvertimeCalculator $calculator;
     private OvertimeOverlapValidator $overlapValidator;
 
@@ -432,14 +435,19 @@ class OvertimeRequestController extends Controller
         $message = '';
         try {
             $required_registered_hours = DB::table('required_hours')->where('year', $year)->where('week', $week)->orderBy('updated_at', 'desc')->select('required_hours.required_hours as hours')->first();
-            $requests = DB::table('overtime_requests')
+            $requestsQuery = DB::table('overtime_requests')
                 ->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')
                 ->join('users', 'users.id', '=', 'schedules.user_id')
                 ->select('schedules.date', 'schedules.week', 'overtime_requests.status', 'overtime_requests.remarks', 'overtime_requests.reason', 'users.name', 'overtime_requests.hours')
                 ->whereYear('schedules.date', $year)
-                ->where('schedules.week', $week)
-                ->where('users.organization_unit_id', Auth::user()->organization_unit_id)
-                ->get();
+                ->where('schedules.week', $week);
+
+            $orgUnitId = $this->getOrgUnitId();
+            if ($orgUnitId !== null) {
+                $requestsQuery->where('users.organization_unit_id', $orgUnitId);
+            }
+
+            $requests = $requestsQuery->get();
 
             $total_filed = 0;
             $total_approved = 0;
@@ -617,7 +625,10 @@ class OvertimeRequestController extends Controller
         }])
             ->whereHas('schedule', function ($query) {
                 $query->whereHas('user', function ($userQuery) {
-                    $userQuery->where('organization_unit_id', Auth::user()->organization_unit_id);
+                    $orgUnitId = $this->getOrgUnitId();
+                    if ($orgUnitId !== null) {
+                        $userQuery->where('organization_unit_id', $orgUnitId);
+                    }
                 });
             })
             ->select('id', 'employee_schedule_id', 'start_time', 'end_time', 'hours', 'reason', 'remarks', 'status', 'created_at')
@@ -706,10 +717,22 @@ class OvertimeRequestController extends Controller
                     'overtime_requests.reason',
                     'overtime_requests.remarks',
                     'overtime_requests.created_at'
-                )->where('status', $status)->whereYear('schedules.date', $year)->where('schedules.week', $week)->where('users.organization_unit_id', Auth::user()->organization_unit_id)->orderBy('users.employeeid')->orderBy('overtime_requests.created_at')->get();
+                )->where('status', $status)->whereYear('schedules.date', $year)->where('schedules.week', $week);
 
-            // fetch the registered hours limit on the specific year and week
-            $required_registered_hours = DB::table('required_hours')->where('year', $year)->where('week', $week)->where('organization_unit_id', Auth::user()->organization_unit_id)->orderBy('updated_at', 'desc')->select('required_hours.required_hours as hours')->first();
+            $orgUnitId = $this->getOrgUnitId();
+            if ($orgUnitId !== null) {
+                $overtime_requests->where('users.organization_unit_id', $orgUnitId);
+            }
+
+            $overtime_requests = $overtime_requests->orderBy('users.employeeid')->orderBy('overtime_requests.created_at')->get();
+
+            $requiredHoursQuery = DB::table('required_hours')->where('year', $year)->where('week', $week);
+
+            if ($orgUnitId !== null) {
+                $requiredHoursQuery->where('organization_unit_id', $orgUnitId);
+            }
+
+            $required_registered_hours = $requiredHoursQuery->orderBy('updated_at', 'desc')->select('required_hours.required_hours as hours')->first();
             $remaining_hours = $this->computeRemainingHours($year, $week, $required_registered_hours->hours ?? 0);
 
             foreach ($overtime_requests as $overtime) {
@@ -775,12 +798,16 @@ class OvertimeRequestController extends Controller
 
     public function computeRemainingHours($year, $week, $required_hours)
     {
+        $orgUnitId = $this->getOrgUnitId();
+
         $total_hours = OvertimeRequest::where('status', 'APPROVED')
-            ->whereHas('schedule', function ($scheduleQuery) use ($year, $week) {
+            ->whereHas('schedule', function ($scheduleQuery) use ($year, $week, $orgUnitId) {
                 $scheduleQuery->whereYear('date', $year)
                     ->where('week', $week)
-                    ->whereHas('user', function ($userQuery) {
-                        $userQuery->where('organization_unit_id', Auth::user()->organization_unit_id);
+                    ->whereHas('user', function ($userQuery) use ($orgUnitId) {
+                        if ($orgUnitId !== null) {
+                            $userQuery->where('organization_unit_id', $orgUnitId);
+                        }
                     });
             })
             ->sum('hours');
@@ -816,12 +843,17 @@ class OvertimeRequestController extends Controller
         // Extract week numbers for the query
         $weekNumbers = collect($weeks)->pluck('week');
 
-        $registered_limit_hours = RequiredHours::select('week', 'required_hours')
-            ->whereIn('week', $weekNumbers)
-            ->where('organization_unit_id', Auth::user()->organization_unit_id)
-            ->get()
+        $orgUnitId = $this->getOrgUnitId();
+
+        $requiredHoursQuery = RequiredHours::select('week', 'required_hours')
+            ->whereIn('week', $weekNumbers);
+
+        if ($orgUnitId !== null) {
+            $requiredHoursQuery->where('organization_unit_id', $orgUnitId);
+        }
+
+        $registered_limit_hours = $requiredHoursQuery->get()
             ->map(function ($item) use ($weeks) {
-                // Match week with date
                 $date = collect($weeks)->firstWhere('week', $item->week)['date'] ?? null;
                 return [
                     'week' => $item->week,
@@ -832,9 +864,14 @@ class OvertimeRequestController extends Controller
 
 
         $requests = OvertimeRequest::with(['schedule.user'])
-            ->whereHas('schedule', function ($query) use ($request) {
+            ->whereHas('schedule', function ($query) use ($request, $orgUnitId) {
                 $query->whereBetween('date', [$request->start_date, $request->end_date])
-                    ->whereHas('user', fn($q) => $q->where('role', 'employee')->where('organization_unit_id', $request->unit));
+                    ->whereHas('user', function ($q) use ($orgUnitId) {
+                        $q->where('role', 'employee');
+                        if ($orgUnitId !== null) {
+                            $q->where('organization_unit_id', $orgUnitId);
+                        }
+                    });
             })
             ->get()
             ->map(function ($req) {
