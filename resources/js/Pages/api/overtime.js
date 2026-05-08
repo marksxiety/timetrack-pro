@@ -16,7 +16,7 @@ export async function submitBulkOvertime(data) {
         headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': getCsrfToken(),
+            'X-XSRF-TOKEN': getCsrfToken(),
         },
         body: JSON.stringify({
             employee_schedule_id: data.employee_schedule_id,
@@ -34,6 +34,6 @@ export async function submitBulkOvertime(data) {
     const body = await res.json().catch(() => ({}));
     return {
         success: false,
-        errors: body.errors || ['An unexpected error occurred.'],
+        errors: body.errors || { _general: 'An unexpected error occurred.' },
     };
 }
