@@ -7,9 +7,12 @@ use App\Models\RequiredHours;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\HasScopedQueries;
 
 class RequiredHoursController extends Controller
 {
+    use HasScopedQueries;
+
     public function registerRequiredHours(Request $request)
     {
 
@@ -19,7 +22,15 @@ class RequiredHoursController extends Controller
             'required_hours' =>  'required|integer|max_digits:4'
         ]);
 
-        $isRegistered = RequiredHours::where('year', $request->year)->where('week', $request->week)->where('organization_unit_id', Auth::user()->organization_unit_id)->exists();
+        $orgUnitId = $this->getOrgUnitId();
+
+        $isRegisteredQuery = RequiredHours::where('year', $request->year)->where('week', $request->week);
+
+        if ($orgUnitId !== null) {
+            $isRegisteredQuery->where('organization_unit_id', $orgUnitId);
+        }
+
+        $isRegistered = $isRegisteredQuery->exists();
 
         if ($isRegistered) {
             return redirect()->back()->withErrors([
@@ -32,7 +43,7 @@ class RequiredHoursController extends Controller
             'year' => $request->year,
             'week' => $request->week,
             'required_hours' => $request->required_hours,
-            'organization_unit_id' =>  Auth::user()->organization_unit_id
+            'organization_unit_id' =>  $orgUnitId
         ];
 
         RequiredHours::create($limit);
@@ -43,7 +54,14 @@ class RequiredHoursController extends Controller
     {
 
         try {
-            $requiredhours = RequiredHours::query()->where('organization_unit_id', Auth::user()->organization_unit_id)->orderBy('year', 'desc')->orderBy('week', 'desc')->get();
+            $orgUnitId = $this->getOrgUnitId();
+            $query = RequiredHours::query()->orderBy('year', 'desc')->orderBy('week', 'desc');
+
+            if ($orgUnitId !== null) {
+                $query->where('organization_unit_id', $orgUnitId);
+            }
+
+            $requiredhours = $query->get();
 
             return inertia('Maintenance/RequiredHours', [
                 'requiredhours' => $requiredhours

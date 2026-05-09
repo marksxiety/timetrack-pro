@@ -22,6 +22,10 @@ Open `.env` and update these required values:
 | `DB_DATABASE` | MySQL database name | `timetrack-pro` |
 | `DB_USERNAME` | MySQL username | `root` |
 | `DB_PASSWORD` | MySQL password | `your_password` |
+| `ADMIN_NAME` | Admin user's name | `Admin` |
+| `ADMIN_EMAIL` | Admin user's email | `admin@example.com` |
+| `ADMIN_EMPLOYEEID` | Admin employee ID | `ADMIN001` |
+| `ADMIN_PASSWORD` | Admin password | `changeme` |
 
 > Make sure the database exists in MySQL before proceeding. Create it with: `CREATE DATABASE timetrack_pro;`
 
@@ -65,30 +69,12 @@ This creates:
 
 - **Default** organization unit
 - Shift codes **AA–GG** (Saturday/Sunday: no time window, Monday–Friday: 08:00–17:00)
+- **Default settings** (minimum overtime hours, overtime minute step, default shift codes)
+- **Admin user** from `.env` variables (`ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_EMPLOYEEID`, `ADMIN_PASSWORD`)
 
 ---
 
-## Step 6 — Generate Setup Config
-
-```bash
-php artisan make:config
-```
-
-This creates `setup/config.json`. Open it and update with your organization's shift codes:
-
-```json
-{
-    "default_shift_codes": [],
-    "minimum_overtime_hours": 1
-}
-```
-
-- `default_shift_codes` — Array of shift codes assigned to new users by default
-- `minimum_overtime_hours` — Minimum hours required for an overtime request
-
----
-
-## Step 7 — AI Configuration
+## Step 6 — AI Configuration
 
 The application uses AI for reason enhancement and report analysis. Supports any OpenAI-compatible provider.
 
@@ -115,7 +101,7 @@ AI_BASE_URL=https://your-provider-endpoint/v1
 
 ---
 
-## Step 8 — Mail Configuration
+## Step 7 — Mail Configuration
 
 The application sends password reset emails. By default, `MAIL_MAILER=log` writes emails to `storage/logs/laravel.log` — no setup needed for local development.
 
@@ -134,7 +120,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 
 ---
 
-## Step 9 — Clear Cache
+## Step 8 — Clear Cache
 
 Remove the Vite hot file (if it exists) and clear all Laravel caches:
 
@@ -147,7 +133,7 @@ The `public/hot` file is created by `npm run dev` and causes `@vite` to look for
 
 ---
 
-## Step 10 — Build the front-end
+## Step 9 — Build the front-end
 
 ```bash
 npm run build
@@ -155,7 +141,7 @@ npm run build
 
 ---
 
-## Step 11 — Run the Application
+## Step 10 — Run the Application
 
 ```bash
 php artisan serve
@@ -167,14 +153,12 @@ Visit **http://127.0.0.1:8000** to access the application.
 
 ## Summary Checklist
 
-- [ ] `.env` copied and configured (database credentials)
+- [ ] `.env` copied and configured (database credentials, admin credentials)
 - [ ] Application key generated (`php artisan key:generate`)
 - [ ] Frontend dependencies installed (`npm install`)
 - [ ] Database migrated (`php artisan migrate`)
 - [ ] Storage link created (`php artisan storage:link`)
-- [ ] Database seeded (`php artisan db:seed`)
-- [ ] Setup config generated (`php artisan make:config`)
-- [ ] Setup config updated (`setup/config.json`)
+- [ ] Database seeded (`php artisan db:seed` — creates org unit, settings, admin user)
 - [ ] AI configured (`AI_API_KEY`, `AI_MODEL`)
 - [ ] Mail configured
 - [ ] Front-end built (`npm run build`)

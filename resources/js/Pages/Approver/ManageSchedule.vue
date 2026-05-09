@@ -74,16 +74,9 @@
 
                         <template v-else>
                             <div v-for="(sched, index) in employeeSchedules" :key="index" class="mb-6 last:mb-0">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-semibold text-sm">W{{ sched.week }} — {{ sched.year }}</span>
-                                        <span class="text-xs text-base-content/50">{{ sched.week_start }} — {{
-                                            sched.week_end }}</span>
-                                    </div>
-                                    <div class="tooltip tooltip-left tooltip-error" data-tip="Remove Week">
-                                        <Icon icon="gg:remove" width="18" height="18" @click="removeSchedule(index)"
-                                            class="hover:bg-error hover:cursor-pointer rounded-full" />
-                                    </div>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="font-semibold text-sm">W{{ sched.week }} — {{ sched.year }}</span>
+                                    <span class="text-xs text-base-content/50">{{ sched.week_start }} — {{ sched.week_end }}</span>
                                 </div>
                                 <table class="table w-full text-sm">
                                     <thead class="bg-base-200 rounded">
@@ -194,7 +187,7 @@
     </div>
 </template>
 <script setup>
-import { onMounted, ref, inject } from 'vue'
+import { onMounted, ref, inject, computed } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { Link } from '@inertiajs/vue3'
 import { Icon } from "@iconify/vue"
@@ -231,7 +224,11 @@ const selectedWeek = ref(currentWeek())
 const employeeSchedules = ref([])
 const shifts = ref([])
 const shiftData = ref([])
-const defaultShiftCodes = ref([])
+const defaultShiftCodes = computed(() => {
+    return Array.isArray(appConfig.value?.default_shift_codes)
+        ? appConfig.value.default_shift_codes.map(entry => entry.code.trim()).filter(code => code !== '')
+        : []
+})
 
 const shiftReference = buildShiftReference(shiftData)
 
@@ -267,10 +264,6 @@ onMounted(async () => {
     } else {
         toast("Loading Employee(s) schedule failed. Please try again", 'error')
     }
-
-    defaultShiftCodes.value = Array.isArray(appConfig.value?.default_shift_codes)
-        ? appConfig.value.default_shift_codes.map(entry => entry.code.trim()).filter(code => code !== '')
-        : []
 
     isLoading.value = false
 })

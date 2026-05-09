@@ -8,6 +8,7 @@ use App\Models\Schedule;
 use App\Models\Shift;
 use App\Models\OvertimeRequest;
 use App\Models\OrganizationUnit;
+use App\Models\Setting;
 
 class OvertimeRequestValidationTest extends TestCase
 {
@@ -648,7 +649,7 @@ class OvertimeRequestValidationTest extends TestCase
         $calculator = new \App\Services\OvertimeCalculator();
 
         foreach ([0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00, 3.00] as $value) {
-            $this->writeTestConfig($value);
+            Setting::set('minimum_overtime_hours', $value);
             $this->assertEquals($value, $calculator->getMinimumOvertimeHours(), "Config value {$value} should be accepted.");
         }
     }
@@ -658,7 +659,7 @@ class OvertimeRequestValidationTest extends TestCase
         $calculator = new \App\Services\OvertimeCalculator();
 
         foreach ([0.20, 0.33, 0.40, 0.10, 0.99, 1.13] as $value) {
-            $this->writeTestConfig($value);
+            Setting::set('minimum_overtime_hours', $value);
             $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours(), "Config value {$value} should fall back to 1.0.");
         }
     }
@@ -667,35 +668,17 @@ class OvertimeRequestValidationTest extends TestCase
     {
         $calculator = new \App\Services\OvertimeCalculator();
 
-        $this->writeTestConfig(0);
+        Setting::set('minimum_overtime_hours', 0);
         $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
 
-        $this->writeTestConfig(-1.0);
-        $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
-    }
-
-    public function test_config_missing_file_returns_default(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator('/nonexistent/path/config.json');
-
+        Setting::set('minimum_overtime_hours', -1.0);
         $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
     }
 
-    private function writeTestConfig(float $value): void
+    public function test_config_missing_setting_returns_default(): void
     {
-        $configPath = base_path('setup/config.json');
-        $configDir = dirname($configPath);
+        $calculator = new \App\Services\OvertimeCalculator();
 
-        if (!is_dir($configDir)) {
-            mkdir($configDir, 0755, true);
-        }
-
-        file_put_contents($configPath, json_encode(['minimum_overtime_hours' => $value], JSON_PRETTY_PRINT));
-    }
-
-    protected function tearDown(): void
-    {
-        $this->writeTestConfig(1);
-        parent::tearDown();
+        $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
     }
 }

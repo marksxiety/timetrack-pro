@@ -105,6 +105,7 @@
                 reserved.</p>
         </div>
     </main>
+    <FloatingThemeToggle />
 </template>
 
 <script setup>
@@ -113,6 +114,7 @@ import { useForm, Link } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 import AuthBackground from '../../Components/AuthBackground.vue'
 import PasswordInput from '../Components/PasswordInput.vue'
+import FloatingThemeToggle from '../../Components/FloatingThemeToggle.vue'
 
 const props = defineProps({
     token: String,

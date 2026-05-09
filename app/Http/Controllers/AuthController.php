@@ -12,9 +12,11 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password as PasswordRule;
+use App\Traits\HasScopedQueries;
 
 class AuthController extends Controller
 {
+    use HasScopedQueries;
     public function register(Request $request)
     {
 
@@ -22,7 +24,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'employeeid' => 'required|unique:users|string|max:255',
             'organization_unit_id' => 'required|exists:organization_units,id',
-            'role' => ['required', Rule::in(['employee', 'approver', 'admin'])],
+            'role' => ['required', Rule::in(['employee', 'approver'])],
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ], [
@@ -147,9 +149,14 @@ class AuthController extends Controller
     public function RegisteredUsers()
     {
         try {
-            $currentOrgUnitId = Auth::user()->organization_unit_id;
+            $orgUnitId = $this->getOrgUnitId();
+            $usersQuery = User::query()->orderBy('id', 'asc');
 
-            $users = User::query()->where('organization_unit_id', $currentOrgUnitId)->orderBy('id', 'asc')->get()
+            if ($orgUnitId !== null) {
+                $usersQuery->where('organization_unit_id', $orgUnitId);
+            }
+
+            $users = $usersQuery->get()
                 ->map(function ($user) {
                     $user->avatar_url = $user->avatar
                         ? Storage::url($user->avatar)

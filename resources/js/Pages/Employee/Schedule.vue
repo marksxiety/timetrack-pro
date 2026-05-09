@@ -1,4 +1,5 @@
 <template>
+
     <Head title="Manage Schedule" />
     <div class="flex flex-col gap-6">
         <Breadcrumbs :items="[
@@ -32,16 +33,34 @@
                         <table class="table min-h-96 w-full text-lg">
                             <thead class="bg-base-200 rounded">
                                 <tr>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Week</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider whitespace-nowrap">Date Range</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Sun</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Mon</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Tue</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Wed</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Thu</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Fri</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Sat</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Actions</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Week
+                                    </th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider whitespace-nowrap">
+                                        Date Range</th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                        Sun</th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                        Mon</th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                        Tue</th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                        Wed</th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                        Thu</th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                        Fri</th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                        Sat</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">
+                                        Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -52,11 +71,24 @@
                                 </tr>
 
                                 <template v-else-if="weeklySchedules.length > 0">
-                                    <tr v-for="(week, weekIndex) in weeklySchedules" :key="week.weekNumber" class="text-sm">
-                                        <td class="font-semibold text-center whitespace-nowrap">W{{ week.weekNumber }}</td>
-                                        <td class="whitespace-nowrap text-xs text-base-content/60">{{ week.startDate }} — {{ week.endDate }}</td>
+                                    <tr v-for="(week, weekIndex) in weeklySchedules" :key="week.weekNumber"
+                                        class="text-sm">
+                                        <td class="font-semibold text-center whitespace-nowrap">W{{ week.weekNumber }}
+                                        </td>
+                                        <td class="whitespace-nowrap text-xs text-base-content/60">{{ week.startDate }}
+                                            — {{ week.endDate }}</td>
                                         <td v-for="day in week.schedules" :key="day.date">
-                                            <SelectOption :options="shifts" v-model="day.shift_code" margin="" size="select-xs" :warning="skippedIds.includes(day.id)" />
+                                            <div class="flex flex-col gap-1">
+                                                <div class="flex justify-end">
+                                                    <span class="text-[10px] font-semibold bg-base-200 text-base-content/50 rounded-full px-1.5 py-0.5 leading-tight">
+                                                        {{ new Date(day.date).getDate() }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex justify-center">
+                                                    <SelectOption :options="shifts" v-model="day.shift_code" margin=""
+                                                        size="select-xs" :warning="skippedIds.includes(day.id)" />
+                                                </div>
+                                            </div>
                                         </td>
                                         <td>
                                             <div class="flex flex-col items-center gap-2">
@@ -110,8 +142,12 @@
                         <table v-if="shiftReference.length > 0" class="table text-sm">
                             <thead class="sticky top-0 bg-base-200 rounded z-10">
                                 <tr>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Code</th>
-                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">Time Range</th>
+                                    <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">Code
+                                    </th>
+                                    <th
+                                        class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
+                                        Time
+                                        Range</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -151,11 +187,15 @@ const props = defineProps({
     shifts: {
         type: Array,
         default: () => []
+    },
+    payload: {
+        type: Object,
+        default: () => ({})
     }
 })
 
-const selectedYear = ref(new Date().getFullYear())
-const selectedMonth = ref(new Date().getMonth() + 1)
+const selectedYear = ref(parseInt(props.payload?.year) || new Date().getFullYear())
+const selectedMonth = ref(parseInt(props.payload?.month) || new Date().getMonth() + 1)
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)

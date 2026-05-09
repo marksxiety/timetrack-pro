@@ -429,7 +429,6 @@ const props = defineProps({
 const selectedDateRange = useForm({
     start_date: null,
     end_date: null,
-    unit: props.auth?.user?.organization_unit_id ?? 0
 })
 
 const handleClearState = () => {

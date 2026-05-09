@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\OpenAIController;
+use App\Http\Controllers\OrganizationUnitController;
+use App\Http\Controllers\SettingsController;
+use App\Models\Setting;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/register', [AuthController::class, 'directRegisterForm'])->name('register');
@@ -26,8 +29,7 @@ Route::middleware(['guest'])->group(function () {
 Route::get('/', function (Request $request) {
     $role = Auth::user()->role;
     return match ($role) {
-        'admin' => Inertia::render('Admin/Index'),
-        'approver' => app(OvertimeRequestController::class)->fetchTotalOvertimeRequests($request),
+        'admin', 'approver' => app(OvertimeRequestController::class)->fetchTotalOvertimeRequests($request),
         'employee' => app(OvertimeRequestController::class)->fetchOvertimeRequestsBySession($request),
         default => redirect()->route('unauthorized'),
     };
@@ -44,7 +46,9 @@ Route::middleware('employee')->group(function () {
     Route::post('/schedule/submit', [ScheduleController::class, 'submitSchedule'])->name('schedule.submit');
 
     // overtime request routes
+    Route::get('/overtime/file', [OvertimeRequestController::class, 'overtimeFilingPage'])->name('overtime.file');
     Route::post('/overtime/request', [OvertimeRequestController::class, 'insertOvertimeRequest'])->name('overtime.request');
+    Route::post('/overtime/request/bulk', [OvertimeRequestController::class, 'insertBulkOvertimeRequest'])->name('overtime.request.bulk');
     Route::post('/overtime/update/employee', [OvertimeRequestController::class, 'updateOvertimeRequestStatus'])->name('overtime.update.employee');
 
     Route::get('/employee/profile', [AuthController::class, 'loadUserProfile'])->name('profile.employee');
@@ -55,7 +59,7 @@ Route::middleware('employee')->group(function () {
     Route::get('/overtime/heatmap', [OvertimeRequestController::class, 'fetchOvertimeHeatmap']);
 });
 
-Route::middleware('approver')->group(function () {
+Route::middleware('admin-approver')->group(function () {
 
     Route::get('/shift', [ShiftContoller::class, 'registeredShiftCodes'])->name('shifts');
     Route::post('/shift/register', [ShiftContoller::class, 'insertShiftCode'])->name('shift.register'); // insertion route
@@ -95,12 +99,20 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+Route::middleware('admin')->group(function () {
+    Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
+    Route::put('/admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+    Route::post('/admin/organization-units', [OrganizationUnitController::class, 'store'])->name('admin.organization-units.store');
+    Route::put('/admin/organization-units/{organization_unit}', [OrganizationUnitController::class, 'update'])->name('admin.organization-units.update');
+    Route::delete('/admin/organization-units/{organization_unit}', [OrganizationUnitController::class, 'destroy'])->name('admin.organization-units.destroy');
+});
+
 Route::get('/setup/config', function () {
-    $path = base_path('setup/config.json');
-    $config = [];
-    if (file_exists($path)) {
-        $config = json_decode(file_get_contents($path), true) ?? [];
-    }
-    $config['ai_model'] = env('AI_MODEL', 'gpt-4o-mini');
-    return response()->json($config);
+    $settings = Setting::all()->pluck('value', 'key')->map(function ($value) {
+        $decoded = json_decode($value, true);
+        return $decoded !== null ? $decoded : $value;
+    })->toArray();
+
+    $settings['ai_model'] = env('AI_MODEL', 'gpt-4o-mini');
+    return response()->json($settings);
 });

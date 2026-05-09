@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.6.0] - 2026-05-09
+
+### Added
+
+- `OrganizationUnitController` with store, update, and destroy endpoints
+- Admin CRUD routes for organization units behind `admin` middleware
+- Organization unit management section in admin settings page with add, edit, and delete
+- `HasScopedQueries` trait to scope queries by organization unit (returns `null` for admin)
+- User reassignment flow when deleting an organization unit
+- `calcHours` helper with per-item and total queue hours display
+- Scrollable form and queue panels with fixed height
+- `FloatingThemeToggle` component on login, register, forgot password, and reset password pages
+
+### Changed
+
+- Scoped user listing, overtime, dashboard, required hours, and schedule queries by org unit via `HasScopedQueries`
+- Admin users no longer scoped to an org unit (`organization_unit_id` set to `null`)
+- Removed hardcoded org unit from report date range form
+- Redesigned overtime queue cards with simplified styling and status badges
+- Converted `defaultShiftCodes` to computed, removed week remove button
+- Flattened admin System dropdown into direct Configuration link
+
+## [v1.5.0] - 2026-05-05
+
+### Added
+
+- `settings` database table and `Setting` model for system configuration
+- `SettingsController` with index and update endpoints
+- Admin settings page (`Admin/Settings.vue`) for managing shift codes, overtime rules, and system preferences
+- Admin dashboard (`Admin/Index.vue`) with the same overtime dashboard as approver
+- `admin-approver` middleware group allowing admin to access all approver routes
+- "System" dropdown in navigation visible only to admin users
+- Admin user seeder reading credentials from `ADMIN_*` environment variables
+- Default settings seeder (shift codes, minimum overtime hours, overtime minute step)
+
+### Changed
+
+- Migrated all configuration from `setup/config.json` to `settings` database table
+- `OvertimeCalculator` now reads `minimum_overtime_hours` from database instead of filesystem
+- Admin role is a superset of approver with additional system settings access
+- `/setup/config` endpoint now reads from `settings` table instead of JSON file
+- Restricted public registration to `employee` and `approver` roles only (admin created via seeder)
+- Rewrote `OvertimeCalculatorTest` and `OvertimeRequestValidationTest` to use database-backed settings
+
+### Removed
+
+- `make:config` artisan command (replaced by admin settings UI)
+- `setup/config.json` file dependency (replaced by database)
+
 ## [v1.4.1] - 2026-04-26
 
 ### Added

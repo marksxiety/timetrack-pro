@@ -95,6 +95,7 @@
                 reserved.</p>
         </div>
     </main>
+    <FloatingThemeToggle />
 </template>
 
 <script setup>
@@ -102,6 +103,7 @@ import { ref } from 'vue'
 import { useForm, Link } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 import AuthBackground from '../../Components/AuthBackground.vue'
+import FloatingThemeToggle from '../../Components/FloatingThemeToggle.vue'
 
 const successMessage = ref('')
 

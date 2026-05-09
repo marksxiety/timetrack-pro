@@ -41,7 +41,6 @@ export default async function fetchUpcomingHolidays() {
 
         if (Array.isArray(response) && response.length > 0) {
             upcoming_holidays = response
-                .filter((holiday) => new Date(holiday.date) >= new Date(currentDate))
                 .map((holiday) => ({
                     date: formatHolidayDate(holiday.date),
                     rawDate: holiday.date,

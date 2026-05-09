@@ -4,10 +4,10 @@
  * @param {number} [maxLength=80]
  * @returns {string}
  */
-export function truncateText(text, maxLength = 80) {
-    if (!text) return '';
+export function truncateText(text, maxLength = 40) {
+    if (!text) return "";
     if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + '...';
+    return text.slice(0, maxLength) + "...";
 }
 
 /**
@@ -16,7 +16,7 @@ export function truncateText(text, maxLength = 80) {
  * @returns {string}
  */
 export function getInitials(name) {
-    if (!name) return '?';
+    if (!name) return "?";
     const parts = name.trim().split(/\s+/);
     if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();

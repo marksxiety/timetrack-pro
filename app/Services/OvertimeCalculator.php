@@ -2,17 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Setting;
 use Carbon\Carbon;
 
 class OvertimeCalculator
 {
-    private ?string $configPath;
-
-    public function __construct(?string $configPath = null)
-    {
-        $this->configPath = $configPath ?? base_path('setup/config.json');
-    }
-
     public function calculateOvertimeHours(Carbon $start, Carbon $end): string
     {
         $adjustedEnd = $end->copy();
@@ -41,19 +35,12 @@ class OvertimeCalculator
 
     public function getMinimumOvertimeHours(): float
     {
-        $path = $this->configPath;
+        $value = (float) (Setting::get('minimum_overtime_hours', 1));
 
-        if (file_exists($path)) {
-            $config = json_decode(file_get_contents($path), true);
-            $value = (float) ($config['minimum_overtime_hours'] ?? 1);
-
-            if ($value <= 0 || abs(fmod($value, 0.25)) > 0.001) {
-                return 1.0;
-            }
-
-            return $value;
+        if ($value <= 0 || abs(fmod($value, 0.25)) > 0.001) {
+            return 1.0;
         }
 
-        return 1.0;
+        return $value;
     }
 }
