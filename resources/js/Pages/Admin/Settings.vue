@@ -14,7 +14,7 @@
         <form @submit.prevent="submitForm">
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 w-full max-w-7xl">
 
-                <div class="col-span-2">
+                <div class="col-span-2 flex flex-col gap-8">
                     <div class="bg-base-100 p-8 rounded-md shadow-xs border border-base-200 flex flex-col gap-6">
                         <h2 class="text-xl font-bold text-center text-primary uppercase tracking-wide">
                             Overtime Configuration
@@ -49,10 +49,58 @@
                             <p class="text-xs text-base-content/40 mt-1">Minute interval for overtime time pickers</p>
                         </div>
                     </div>
+
+                    <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col">
+                        <h2 class="text-lg font-semibold mb-1 text-base-content">Organization Units</h2>
+                        <p class="text-xs text-base-content/40 mb-4">Manage the organization units used for scoping employees, approvers, required hours, and reports.</p>
+
+                        <div class="overflow-auto flex-1">
+                            <table class="table w-full text-sm">
+                                <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
+                                    <tr class="text-center">
+                                        <th class="py-3">Unit Name</th>
+                                        <th class="w-32">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="unit in orgUnits" :key="unit.id"
+                                        class="text-center hover:bg-base-300/30 transition-colors">
+                                        <td class="py-2 font-semibold">{{ unit.unit_path }}</td>
+                                        <td>
+                                            <div class="flex items-center justify-center gap-1">
+                                                <button type="button" @click="startEdit(unit)" class="btn btn-ghost btn-xs">Edit</button>
+                                                <button type="button" @click="confirmDelete(unit)" class="btn btn-ghost btn-xs text-error">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="orgUnits.length === 0">
+                                        <td colspan="2" class="text-center py-4 text-base-content/50 text-xs">No organization units found. Add one below.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <form @submit.prevent="addUnit" class="flex items-end gap-3 mt-4">
+                            <div class="form-control flex-1">
+                                <label class="label pb-0">
+                                    <span class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">New Unit Name</span>
+                                </label>
+                                <input type="text" v-model="addForm.unit_path" placeholder="e.g. Engineering Department"
+                                    class="input input-bordered input-sm focus:input-primary text-sm transition-all w-full" />
+                                <span v-if="addForm.errors.unit_path" class="text-error text-xs mt-0.5">
+                                    {{ addForm.errors.unit_path }}
+                                </span>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm" :disabled="addForm.processing">
+                                <span v-if="addForm.processing" class="loading loading-spinner loading-xs"></span>
+                                Add Unit
+                            </button>
+                        </form>
+                    </div>
                 </div>
 
-                <div class="col-span-3">
-                    <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col">
+                <div class="col-span-3 flex">
+                    <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col flex-1">
                         <h2 class="text-lg font-semibold mb-4 text-base-content">Default Shift Codes</h2>
                         <p class="text-xs text-base-content/40 mb-4">Assign a default shift code for each day of the week. Leave blank for no default.</p>
                         <div class="overflow-auto flex-1">
@@ -88,18 +136,56 @@
 
             </div>
         </form>
+
+        <Modal ref="editModal" title="Edit Organization Unit">
+            <form @submit.prevent="saveEdit" class="flex flex-col gap-4">
+                <div class="form-control gap-1">
+                    <label class="label pb-0">
+                        <span class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Unit Name</span>
+                    </label>
+                    <input type="text" v-model="editForm.unit_path" ref="editInput"
+                        class="input input-bordered focus:input-primary text-sm transition-all w-full" />
+                    <span v-if="editForm.errors.unit_path" class="text-error text-xs mt-0.5">
+                        {{ editForm.errors.unit_path }}
+                    </span>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" @click="cancelEdit" class="btn btn-ghost btn-sm">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm" :disabled="editForm.processing">
+                        <span v-if="editForm.processing" class="loading loading-spinner loading-xs"></span>
+                        Save
+                    </button>
+                </div>
+            </form>
+        </Modal>
+
+        <Modal ref="deleteModal" title="Delete Organization Unit">
+            <div class="flex flex-col gap-4">
+                <p class="text-sm">Are you sure you want to delete <strong>{{ deleteTarget?.unit_path }}</strong>?</p>
+                <p class="text-xs text-base-content/50">Users assigned to this unit will be unassigned. Required hours will be removed.</p>
+                <div class="flex justify-end gap-2">
+                    <button type="button" @click="cancelDelete" class="btn btn-ghost btn-sm">Cancel</button>
+                    <button type="button" @click="deleteUnit" class="btn btn-error btn-sm" :disabled="deleteForm.processing">
+                        <span v-if="deleteForm.processing" class="loading loading-spinner loading-xs"></span>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </Modal>
     </div>
 </template>
 
 <script setup>
 import { useForm } from '@inertiajs/vue3'
-import { inject } from 'vue'
+import { inject, ref, nextTick } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
+import Modal from '../Components/Modal.vue'
 
 const toast = inject('toast')
 
 const props = defineProps({
     settings: Object,
+    organization_units: Array,
 })
 
 const minuteStepOptions = [
@@ -109,6 +195,8 @@ const minuteStepOptions = [
     { label: '15 minutes', value: 15 },
     { label: '30 minutes', value: 30 },
 ]
+
+const orgUnits = ref([...(props.organization_units ?? [])])
 
 const form = useForm({
     default_shift_codes: props.settings?.default_shift_codes ?? [
@@ -134,6 +222,88 @@ const submitForm = () => {
             if (firstError) {
                 toast(firstError, 'error')
             }
+        },
+    })
+}
+
+const addForm = useForm({ unit_path: '' })
+
+const addUnit = () => {
+    addForm.post(route('admin.organization-units.store'), {
+        onSuccess: () => {
+            toast('Organization unit created.', 'success')
+            addForm.reset()
+        },
+        onError: (errors) => {
+            const firstError = Object.values(errors)[0]
+            if (firstError) toast(firstError, 'error')
+        },
+    })
+}
+
+const editModal = ref(null)
+const editInput = ref(null)
+const editForm = useForm({ unit_path: '' })
+const editingId = ref(null)
+
+const startEdit = (unit) => {
+    editingId.value = unit.id
+    editForm.unit_path = unit.unit_path
+    editForm.clearErrors()
+    editModal.value?.open()
+    nextTick(() => {
+        editInput.value?.focus()
+    })
+}
+
+const cancelEdit = () => {
+    editModal.value?.close()
+    editingId.value = null
+    editForm.reset()
+}
+
+const saveEdit = () => {
+    editForm.put(route('admin.organization-units.update', editingId.value), {
+        onSuccess: () => {
+            const idx = orgUnits.value.findIndex(u => u.id === editingId.value)
+            if (idx !== -1) orgUnits.value[idx].unit_path = editForm.unit_path
+            editModal.value?.close()
+            editingId.value = null
+            editForm.reset()
+            toast('Organization unit updated.', 'success')
+        },
+        onError: (errors) => {
+            const firstError = Object.values(errors)[0]
+            if (firstError) toast(firstError, 'error')
+        },
+    })
+}
+
+const deleteModal = ref(null)
+const deleteTarget = ref(null)
+const deleteForm = useForm({})
+
+const confirmDelete = (unit) => {
+    deleteTarget.value = unit
+    deleteModal.value?.open()
+}
+
+const cancelDelete = () => {
+    deleteModal.value?.close()
+    deleteTarget.value = null
+}
+
+const deleteUnit = () => {
+    deleteForm.delete(route('admin.organization-units.destroy', deleteTarget.value.id), {
+        onSuccess: () => {
+            orgUnits.value = orgUnits.value.filter(u => u.id !== deleteTarget.value.id)
+            deleteModal.value?.close()
+            deleteTarget.value = null
+            toast('Organization unit deleted.', 'success')
+        },
+        onError: (errors) => {
+            const firstError = Object.values(errors)[0]
+            if (firstError) toast(firstError, 'error')
         },
     })
 }
