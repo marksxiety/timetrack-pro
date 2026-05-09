@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\OpenAIController;
+use App\Http\Controllers\OrganizationUnitController;
 use App\Http\Controllers\SettingsController;
 use App\Models\Setting;
 
@@ -101,6 +102,9 @@ Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->n
 Route::middleware('admin')->group(function () {
     Route::get('/admin/settings', [SettingsController::class, 'index'])->name('admin.settings');
     Route::put('/admin/settings', [SettingsController::class, 'update'])->name('admin.settings.update');
+    Route::post('/admin/organization-units', [OrganizationUnitController::class, 'store'])->name('admin.organization-units.store');
+    Route::put('/admin/organization-units/{organization_unit}', [OrganizationUnitController::class, 'update'])->name('admin.organization-units.update');
+    Route::delete('/admin/organization-units/{organization_unit}', [OrganizationUnitController::class, 'destroy'])->name('admin.organization-units.destroy');
 });
 
 Route::get('/setup/config', function () {
