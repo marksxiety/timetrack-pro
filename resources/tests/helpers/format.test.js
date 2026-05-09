@@ -26,13 +26,13 @@ describe('truncateText', () => {
         expect(truncateText('hello world', 5)).toBe('hello...');
     });
 
-    it('uses default maxLength of 80', () => {
-        const text = 'a'.repeat(81);
-        expect(truncateText(text)).toBe('a'.repeat(80) + '...');
+    it('uses default maxLength of 40', () => {
+        const text = 'a'.repeat(41);
+        expect(truncateText(text)).toBe('a'.repeat(40) + '...');
     });
 
     it('does not truncate text at maxLength boundary', () => {
-        const text = 'a'.repeat(80);
+        const text = 'a'.repeat(40);
         expect(truncateText(text)).toBe(text);
     });
 
