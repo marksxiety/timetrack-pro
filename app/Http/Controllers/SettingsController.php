@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OrganizationUnit;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,6 +18,7 @@ class SettingsController extends Controller
 
         return Inertia::render('Admin/Settings', [
             'settings' => $settings,
+            'organization_units' => OrganizationUnit::orderBy('unit_path')->get(),
         ]);
     }
 
