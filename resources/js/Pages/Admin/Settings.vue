@@ -1,4 +1,5 @@
 <template>
+
     <Head title="System Settings" />
     <div class="flex flex-col gap-6">
         <Breadcrumbs :items="[
@@ -8,7 +9,8 @@
 
         <div>
             <h1 class="text-lg font-bold">System Settings</h1>
-            <p class="text-xs opacity-50 mt-0.5">Configure default shift codes, overtime rules, and system preferences.</p>
+            <p class="text-xs opacity-50 mt-0.5">Configure default shift codes, overtime rules, and system preferences.
+            </p>
         </div>
 
         <form @submit.prevent="submitForm">
@@ -22,7 +24,9 @@
 
                         <div class="form-control gap-1">
                             <label class="label pb-0">
-                                <span class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Minimum Overtime Hours</span>
+                                <span
+                                    class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Minimum
+                                    Overtime Hours</span>
                             </label>
                             <input type="number" step="0.25" min="0.25"
                                 class="input input-bordered focus:input-primary text-sm transition-all w-full"
@@ -30,12 +34,15 @@
                             <span v-if="form.errors.minimum_overtime_hours" class="text-error text-xs mt-0.5">
                                 {{ form.errors.minimum_overtime_hours }}
                             </span>
-                            <p class="text-xs text-base-content/40 mt-1">Must be in 0.25 increments (e.g., 0.25, 0.50, 1.00)</p>
+                            <p class="text-xs text-base-content/40 mt-1">Must be in 0.25 increments (e.g., 0.25, 0.50,
+                                1.00)</p>
                         </div>
 
                         <div class="form-control gap-1">
                             <label class="label pb-0">
-                                <span class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Overtime Minute Step</span>
+                                <span
+                                    class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Overtime
+                                    Minute Step</span>
                             </label>
                             <select class="select select-bordered focus:select-primary text-sm transition-all w-full"
                                 v-model="form.overtime_minute_step">
@@ -52,7 +59,8 @@
 
                     <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col">
                         <h2 class="text-lg font-semibold mb-1 text-base-content">Organization Units</h2>
-                        <p class="text-xs text-base-content/40 mb-4">Manage the organization units used for scoping employees, approvers, required hours, and reports.</p>
+                        <p class="text-xs text-base-content/40 mb-4">Manage the organization units used for scoping
+                            employees, approvers, required hours, and reports.</p>
 
                         <div class="overflow-auto flex-1">
                             <table class="table w-full text-sm">
@@ -68,13 +76,16 @@
                                         <td class="py-2 font-semibold">{{ unit.unit_path }}</td>
                                         <td>
                                             <div class="flex items-center justify-center gap-1">
-                                                <button type="button" @click="startEdit(unit)" class="btn btn-ghost btn-xs">Edit</button>
-                                                <button type="button" @click="confirmDelete(unit)" class="btn btn-ghost btn-xs text-error">Delete</button>
+                                                <button type="button" @click="startEdit(unit)"
+                                                    class="btn btn-success btn-xs">Edit</button>
+                                                <button type="button" @click="confirmDelete(unit)"
+                                                    class="btn btn-error btn-xs">Delete</button>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr v-if="orgUnits.length === 0">
-                                        <td colspan="2" class="text-center py-4 text-base-content/50 text-xs">No organization units found. Add one below.</td>
+                                        <td colspan="2" class="text-center py-4 text-base-content/50 text-xs">No
+                                            organization units found. Add one below.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -83,7 +94,9 @@
                         <form @submit.prevent="addUnit" class="flex items-end gap-3 mt-4">
                             <div class="form-control flex-1">
                                 <label class="label pb-0">
-                                    <span class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">New Unit Name</span>
+                                    <span
+                                        class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">New
+                                        Unit Name</span>
                                 </label>
                                 <input type="text" v-model="addForm.unit_path" placeholder="e.g. Engineering Department"
                                     class="input input-bordered input-sm focus:input-primary text-sm transition-all w-full" />
@@ -102,7 +115,8 @@
                 <div class="col-span-3 flex">
                     <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col flex-1">
                         <h2 class="text-lg font-semibold mb-4 text-base-content">Default Shift Codes</h2>
-                        <p class="text-xs text-base-content/40 mb-4">Assign a default shift code for each day of the week. Leave blank for no default.</p>
+                        <p class="text-xs text-base-content/40 mb-4">Assign a default shift code for each day of the
+                            week. Leave blank for no default.</p>
                         <div class="overflow-auto flex-1">
                             <table class="table w-full text-sm">
                                 <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
@@ -141,7 +155,9 @@
             <form @submit.prevent="saveEdit" class="flex flex-col gap-4">
                 <div class="form-control gap-1">
                     <label class="label pb-0">
-                        <span class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Unit Name</span>
+                        <span
+                            class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Unit
+                            Name</span>
                     </label>
                     <input type="text" v-model="editForm.unit_path" ref="editInput"
                         class="input input-bordered focus:input-primary text-sm transition-all w-full" />
@@ -162,10 +178,27 @@
         <Modal ref="deleteModal" title="Delete Organization Unit">
             <div class="flex flex-col gap-4">
                 <p class="text-sm">Are you sure you want to delete <strong>{{ deleteTarget?.unit_path }}</strong>?</p>
-                <p class="text-xs text-base-content/50">Users assigned to this unit will be unassigned. Required hours will be removed.</p>
+                <div class="form-control gap-1">
+                    <label class="label pb-0">
+                        <span
+                            class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">Reassign
+                            users to</span>
+                    </label>
+                    <select v-model="reassignTo"
+                        class="select select-bordered select-sm focus:select-primary text-sm w-full">
+                        <option v-for="unit in reassignOptions" :key="unit.id" :value="unit.id">{{ unit.unit_path }}
+                        </option>
+                    </select>
+                    <span v-if="deleteForm.errors.reassign_to" class="text-error text-xs mt-0.5">
+                        {{ deleteForm.errors.reassign_to }}
+                    </span>
+                </div>
+                <p class="text-xs text-base-content/50">Users assigned to this unit will be moved to the selected unit.
+                    Required hours for this unit will be removed.</p>
                 <div class="flex justify-end gap-2">
                     <button type="button" @click="cancelDelete" class="btn btn-ghost btn-sm">Cancel</button>
-                    <button type="button" @click="deleteUnit" class="btn btn-error btn-sm" :disabled="deleteForm.processing">
+                    <button type="button" @click="deleteUnit" class="btn btn-error btn-sm"
+                        :disabled="deleteForm.processing">
                         <span v-if="deleteForm.processing" class="loading loading-spinner loading-xs"></span>
                         Delete
                     </button>
@@ -177,7 +210,7 @@
 
 <script setup>
 import { useForm } from '@inertiajs/vue3'
-import { inject, ref, nextTick } from 'vue'
+import { inject, ref, computed, nextTick } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import Modal from '../Components/Modal.vue'
 
@@ -281,24 +314,36 @@ const saveEdit = () => {
 
 const deleteModal = ref(null)
 const deleteTarget = ref(null)
-const deleteForm = useForm({})
+const reassignTo = ref(null)
+const deleteForm = useForm({ reassign_to: null })
+
+const reassignOptions = computed(() => {
+    if (!deleteTarget.value) return []
+    return orgUnits.value.filter(u => u.id !== deleteTarget.value.id)
+})
 
 const confirmDelete = (unit) => {
     deleteTarget.value = unit
+    const options = orgUnits.value.filter(u => u.id !== unit.id)
+    reassignTo.value = options.length > 0 ? options[0].id : null
+    deleteForm.clearErrors()
     deleteModal.value?.open()
 }
 
 const cancelDelete = () => {
     deleteModal.value?.close()
     deleteTarget.value = null
+    reassignTo.value = null
 }
 
 const deleteUnit = () => {
+    deleteForm.reassign_to = reassignTo.value
     deleteForm.delete(route('admin.organization-units.destroy', deleteTarget.value.id), {
         onSuccess: () => {
             orgUnits.value = orgUnits.value.filter(u => u.id !== deleteTarget.value.id)
             deleteModal.value?.close()
             deleteTarget.value = null
+            reassignTo.value = null
             toast('Organization unit deleted.', 'success')
         },
         onError: (errors) => {
