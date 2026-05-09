@@ -51,6 +51,12 @@ jobs:
                   DB_CONNECTION: sqlite
                   DB_DATABASE: ":memory:"
 
+            - name: Seed default data
+              run: php artisan db:seed --force
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"
+
             - name: Run PHPUnit tests
               run: php artisan test
               env:
