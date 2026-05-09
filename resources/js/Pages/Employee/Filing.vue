@@ -76,144 +76,151 @@
             <form method="dialog" class="modal-backdrop"><button>close</button></form>
         </dialog>
 
-        <div class="gap-6 grid grid-cols-12 max-w-7xl mx-auto w-full">
+        <div class="gap-6 grid grid-cols-12 max-w-7xl mx-auto w-full h-[71vh]">
 
             <!-- ── LEFT: Form ── -->
-            <div class="col-span-7">
-                <form @submit.prevent="editingIndex === null ? addToQueue() : updateInQueue()">
-                    <div class="card bg-base-100 border border-base-300 shadow-sm">
-                        <div class="card-body p-0 gap-0">
+            <div class="col-span-7 min-h-0 h-full">
+                <form @submit.prevent="editingIndex === null ? addToQueue() : updateInQueue()" class="h-full">
+                    <div class="card bg-base-100 border border-base-300 shadow-sm h-full min-h-0">
+                        <div class="card-body p-0 gap-0 flex flex-col h-full min-h-0">
 
-                            <!-- Section 1: Date -->
-                            <div class="px-6 pt-6 pb-5">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="bg-base-200 rounded-lg p-1.5">
-                                        <Icon icon="material-symbols:calendar-month-outline" width="16" height="16" />
+                            <div class="overflow-y-auto flex-1 min-h-0">
+
+                                <!-- Section 1: Date -->
+                                <div class="px-6 pt-6 pb-5">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="bg-base-200 rounded-lg p-1.5">
+                                            <Icon icon="material-symbols:calendar-month-outline" width="16"
+                                                height="16" />
+                                        </div>
+                                        <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
+                                            Overtime Date
+                                        </h3>
                                     </div>
-                                    <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
-                                        Overtime Date
-                                    </h3>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <TextInput name="Date:" type="date" v-model="selectedDate" />
-                                    </div>
-                                    <div>
-                                        <TextInput name="Week:" type="text" v-model="form.week" :readonly="true"
-                                            :placeholder="selectedDate ? '' : 'Select a date first'" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="divider mx-6 my-0"></div>
-
-                            <!-- Section 2: Shift -->
-                            <div class="px-6 py-5">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <div class="bg-base-200 rounded-lg p-1.5">
-                                        <Icon icon="material-symbols:work-outline" width="16" height="16" />
-                                    </div>
-                                    <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
-                                        Scheduled Shift
-                                    </h3>
-                                </div>
-
-                                <!-- Loading -->
-                                <div v-if="selectedDate && fetchingSchedule"
-                                    class="flex items-center gap-3 py-5 px-4 rounded-xl bg-base-200/60">
-                                    <span class="loading loading-spinner loading-sm text-primary"></span>
-                                    <span class="text-sm text-base-content/60">Fetching your schedule...</span>
-                                </div>
-
-                                <!-- No schedule -->
-                                <template v-else-if="selectedDate && !withSchedule">
-                                    <div class="alert alert-warning rounded-xl">
-                                        <Icon icon="material-symbols:warning-outline" width="20" height="20" />
+                                    <div class="grid grid-cols-2 gap-3">
                                         <div>
-                                            <h3 class="font-semibold text-sm">No Schedule Found</h3>
-                                            <div class="text-xs opacity-70 mt-0.5">
-                                                You need a registered schedule before filing an overtime request.
+                                            <TextInput name="Date:" type="date" v-model="selectedDate" />
+                                        </div>
+                                        <div>
+                                            <TextInput name="Week:" type="text" v-model="form.week" :readonly="true"
+                                                :placeholder="selectedDate ? '' : 'Select a date first'" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="divider mx-6 my-0"></div>
+
+                                <!-- Section 2: Shift -->
+                                <div class="px-6 py-5">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="bg-base-200 rounded-lg p-1.5">
+                                            <Icon icon="material-symbols:work-outline" width="16" height="16" />
+                                        </div>
+                                        <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
+                                            Scheduled Shift
+                                        </h3>
+                                    </div>
+
+                                    <!-- Loading -->
+                                    <div v-if="selectedDate && fetchingSchedule"
+                                        class="flex items-center gap-3 py-5 px-4 rounded-xl bg-base-200/60">
+                                        <span class="loading loading-spinner loading-sm text-primary"></span>
+                                        <span class="text-sm text-base-content/60">Fetching your schedule...</span>
+                                    </div>
+
+                                    <!-- No schedule -->
+                                    <template v-else-if="selectedDate && !withSchedule">
+                                        <div class="alert alert-warning rounded-xl">
+                                            <Icon icon="material-symbols:warning-outline" width="20" height="20" />
+                                            <div>
+                                                <h3 class="font-semibold text-sm">No Schedule Found</h3>
+                                                <div class="text-xs opacity-70 mt-0.5">
+                                                    You need a registered schedule before filing an overtime request.
+                                                </div>
+                                            </div>
+                                            <Link :href="route('schedule')" class="btn btn-sm btn-ghost">
+                                                Add Schedule
+                                            </Link>
+                                        </div>
+                                    </template>
+
+                                    <!-- Shift details -->
+                                    <template v-else>
+                                        <div class="grid grid-cols-3 gap-3"
+                                            :class="{ 'opacity-40 pointer-events-none': !withSchedule }">
+                                            <TextInput name="Shift Code:" type="text" v-model="form.shift_code"
+                                                :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
+                                            <TextInput name="Start:" type="text" v-model="form.shift_start_time"
+                                                :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
+                                            <TextInput name="End:" type="text" v-model="form.shift_end_time"
+                                                :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <div class="divider mx-6 my-0"></div>
+
+                                <!-- Section 3: Duration & Reason -->
+                                <div class="px-6 py-5" :class="{ 'opacity-40 pointer-events-none': fieldsDisabled }">
+                                    <div class="flex items-center gap-2 mb-4">
+                                        <div class="bg-base-200 rounded-lg p-1.5">
+                                            <Icon icon="material-symbols:timer-outline" width="16" height="16" />
+                                        </div>
+                                        <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
+                                            Duration &amp; Reason
+                                        </h3>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3 mb-2">
+                                        <TimePickerInput name="Start Time:" :message="form.errors?.start_time"
+                                            :minuteStep="minuteStep" :disabled="fieldsDisabled"
+                                            v-model="form.start_time" />
+                                        <TimePickerInput name="End Time:" :message="form.errors?.end_time"
+                                            :minuteStep="minuteStep" :disabled="fieldsDisabled"
+                                            v-model="form.end_time" />
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <label
+                                                class="text-sm font-medium flex items-center gap-1.5 text-base-content/80">
+                                                <Icon icon="material-symbols:edit-note-outline" width="16"
+                                                    height="16" />
+                                                Reason
+                                            </label>
+                                            <div v-if="withSchedule" class="tooltip tooltip-left tooltip-break"
+                                                data-tip="The better you describe, the better AI can enhance it!">
+                                                <span tabindex="0" class="inline-block">
+                                                    <button type="button" class="btn btn-sm btn-primary gap-1.5"
+                                                        @click="handleEnhance(form)" :disabled="isEnhancing">
+                                                        <span v-if="isEnhancing"
+                                                            class="loading loading-spinner loading-xs"></span>
+                                                        <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="16"
+                                                            height="16" />
+                                                        {{ isEnhancing ? 'Enhancing...' : 'Enhance with AI' }}
+                                                    </button>
+                                                </span>
                                             </div>
                                         </div>
-                                        <Link :href="route('schedule')" class="btn btn-sm btn-ghost">
-                                            Add Schedule
-                                        </Link>
-                                    </div>
-                                </template>
 
-                                <!-- Shift details -->
-                                <template v-else>
-                                    <div class="grid grid-cols-3 gap-3"
-                                        :class="{ 'opacity-40 pointer-events-none': !withSchedule }">
-                                        <TextInput name="Shift Code:" type="text" v-model="form.shift_code"
-                                            :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
-                                        <TextInput name="Start:" type="text" v-model="form.shift_start_time"
-                                            :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
-                                        <TextInput name="End:" type="text" v-model="form.shift_end_time"
-                                            :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
+                                        <TextArea type="text" v-model="form.reason" :message="form.errors?.reason"
+                                            :disabled="fieldsDisabled" />
+
+                                        <p v-if="form.errors?.reason && typeof form.errors?.reason === 'object'"
+                                            class="text-xs text-warning flex items-center gap-1.5">
+                                            <Icon icon="material-symbols:warning-outline" width="14" height="14" />
+                                            {{ form.errors?.reason.message }}
+                                        </p>
+
+                                        <p v-if="isEnhancing" class="text-xs text-primary flex items-center gap-1.5">
+                                            <Icon icon="hugeicons:chat-gpt" width="14" height="14" />
+                                            Enhancing your reason — longer text takes more time.
+                                        </p>
                                     </div>
-                                </template>
+                                </div>
+
                             </div>
 
-                            <div class="divider mx-6 my-0"></div>
-
-                            <!-- Section 3: Duration & Reason -->
-                            <div class="px-6 py-5" :class="{ 'opacity-40 pointer-events-none': fieldsDisabled }">
-                                <div class="flex items-center gap-2 mb-4">
-                                    <div class="bg-base-200 rounded-lg p-1.5">
-                                        <Icon icon="material-symbols:timer-outline" width="16" height="16" />
-                                    </div>
-                                    <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
-                                        Duration &amp; Reason
-                                    </h3>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-3 mb-2">
-                                    <TimePickerInput name="Start Time:" :message="form.errors?.start_time"
-                                        :minuteStep="minuteStep" :disabled="fieldsDisabled" v-model="form.start_time" />
-                                    <TimePickerInput name="End Time:" :message="form.errors?.end_time"
-                                        :minuteStep="minuteStep" :disabled="fieldsDisabled" v-model="form.end_time" />
-                                </div>
-
-                                <div class="space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <label
-                                            class="text-sm font-medium flex items-center gap-1.5 text-base-content/80">
-                                            <Icon icon="material-symbols:edit-note-outline" width="16" height="16" />
-                                            Reason
-                                        </label>
-                                        <div v-if="withSchedule" class="tooltip tooltip-left tooltip-break"
-                                            data-tip="The better you describe, the better AI can enhance it!">
-                                            <span tabindex="0" class="inline-block">
-                                                <button type="button" class="btn btn-sm btn-primary gap-1.5"
-                                                    @click="handleEnhance(form)" :disabled="isEnhancing">
-                                                    <span v-if="isEnhancing"
-                                                        class="loading loading-spinner loading-xs"></span>
-                                                    <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="16"
-                                                        height="16" />
-                                                    {{ isEnhancing ? 'Enhancing...' : 'Enhance with AI' }}
-                                                </button>
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <TextArea type="text" v-model="form.reason" :message="form.errors?.reason"
-                                        :disabled="fieldsDisabled" />
-
-                                    <p v-if="form.errors?.reason && typeof form.errors?.reason === 'object'"
-                                        class="text-xs text-warning flex items-center gap-1.5">
-                                        <Icon icon="material-symbols:warning-outline" width="14" height="14" />
-                                        {{ form.errors?.reason.message }}
-                                    </p>
-
-                                    <p v-if="isEnhancing" class="text-xs text-primary flex items-center gap-1.5">
-                                        <Icon icon="hugeicons:chat-gpt" width="14" height="14" />
-                                        Enhancing your reason — longer text takes more time.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Footer actions -->
                             <div class="px-6 pb-4 flex justify-end gap-2">
                                 <button v-if="editingIndex !== null" type="button" class="btn btn-ghost btn-sm gap-1.5"
                                     @click="cancelEdit()">
@@ -235,8 +242,8 @@
             </div>
 
             <!-- ── RIGHT: Queue ── -->
-            <div class="col-span-5">
-                <div class="card bg-base-100 border border-base-300 shadow-sm flex flex-col h-full max-h-[85vh]">
+            <div class="col-span-5 min-h-0 h-full">
+                <div class="card bg-base-100 border border-base-300 shadow-sm flex flex-col h-full min-h-0">
 
                     <!-- Queue header -->
                     <div class="px-5 py-4 border-b border-base-300">
@@ -253,6 +260,9 @@
                                             {{ queue.length }}
                                         </span>
                                     </div>
+                                    <p v-if="queue.length > 0" class="text-[11px] text-base-content/40 mt-0.5">
+                                        {{ totalHours }} hr(s) total
+                                    </p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5">
@@ -273,7 +283,7 @@
                     </div>
 
                     <!-- Queue body -->
-                    <div class="flex-1 overflow-y-auto p-3 space-y-2">
+                    <div class="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
 
                         <!-- Empty state -->
                         <div v-if="queue.length === 0"
@@ -316,6 +326,8 @@
                                             item.shift_code }}</span>
                                     <span class="text-xs text-base-content/45">
                                         {{ to12hr(item.start_time) }} &rarr; {{ to12hr(item.end_time) }}
+                                        <span class="text-base-content/30">&middot;</span>
+                                        {{ calcHours(item.start_time, item.end_time) }} hr(s)
                                     </span>
                                 </div>
 
@@ -394,6 +406,14 @@ const fieldsDisabled = computed(() => !withSchedule.value)
 const pendingItems = computed(() => queue.value.filter(i => i.state === 'pending'))
 const submittableItems = computed(() => queue.value.filter(i => i.state === 'pending' || i.state === 'error'))
 
+const totalHours = computed(() => {
+    let total = 0
+    for (const item of queue.value) {
+        total += Number(calcHours(item.start_time, item.end_time))
+    }
+    return total % 1 === 0 ? total : total.toFixed(1)
+})
+
 const form = useForm({
     date: '',
     week: '',
@@ -443,6 +463,16 @@ const validateBeforeAdd = () => {
         return false
     }
     return true
+}
+
+const calcHours = (start, end) => {
+    if (!start || !end) return 0
+    const [sh, sm] = start.split(':').map(Number)
+    const [eh, em] = end.split(':').map(Number)
+    let diff = (eh * 60 + em) - (sh * 60 + sm)
+    if (diff < 0) diff += 1440
+    const hours = Math.floor(diff / 60 * 100) / 100
+    return hours % 1 === 0 ? hours : hours.toFixed(1)
 }
 
 const addToQueue = () => {
