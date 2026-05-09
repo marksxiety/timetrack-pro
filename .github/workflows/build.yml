@@ -29,6 +29,27 @@ jobs:
             - name: Install Composer dependencies
               run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
+            - name: Copy .env
+              run: cp .env.example .env
+
+            - name: Generate application key
+              run: php artisan key:generate --force
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"
+
+            - name: Run database migrations
+              run: php artisan migrate --force
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"
+
+            - name: Seed default data
+              run: php artisan db:seed --force
+              env:
+                  DB_CONNECTION: sqlite
+                  DB_DATABASE: ":memory:"
+
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
