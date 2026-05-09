@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.6.0] - 2026-05-09
+
+### Added
+
+- `OrganizationUnitController` with store, update, and destroy endpoints
+- Admin CRUD routes for organization units behind `admin` middleware
+- Organization unit management section in admin settings page with add, edit, and delete
+- `HasScopedQueries` trait to scope queries by organization unit (returns `null` for admin)
+- User reassignment flow when deleting an organization unit
+- `calcHours` helper with per-item and total queue hours display
+- Scrollable form and queue panels with fixed height
+- `FloatingThemeToggle` component on login, register, forgot password, and reset password pages
+
+### Changed
+
+- Scoped user listing, overtime, dashboard, required hours, and schedule queries by org unit via `HasScopedQueries`
+- Admin users no longer scoped to an org unit (`organization_unit_id` set to `null`)
+- Removed hardcoded org unit from report date range form
+- Redesigned overtime queue cards with simplified styling and status badges
+- Converted `defaultShiftCodes` to computed, removed week remove button
+- Flattened admin System dropdown into direct Configuration link
+
 ## [v1.5.0] - 2026-05-05
 
 ### Added
