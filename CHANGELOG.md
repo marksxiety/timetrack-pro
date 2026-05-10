@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.6.1] - 2026-05-10
+
+### Added
+
+- `OvertimeTimeValidationService` to centralize overtime validation, overlap check, and hour calculation
+- `OrganizationUnitControllerTest` covering store, update, destroy, reassign, and authorization
+- `SettingsControllerTest` covering index, update, validation, and authorization
+
+### Changed
+
+- Extract duplicated validation logic into `OvertimeTimeValidationService` across insert, bulk, and update endpoints
+- Improve error handling and variable naming in `OvertimeRequestController`
+- Remove calculator and config tests from validation test (now covered by dedicated unit tests)
+
+### Fixed
+
+- Reorder nullable and constrained calls for SQLite compatibility in required hours migration
+- Drop only `active` column in down migration instead of both `avatar` and `active`
+
+### Removed
+
+- `setup/config.json` file (already replaced by database settings in v1.5.0)
+
+### Style
+
+- Remove redundant doc comments from status migration
+
+### Chore
+
+- Restore Unit testsuite in phpunit configuration
+- Add seed step before test run in server-test workflow
+- Add env setup, migration, and seed steps to build workflow
+
 ## [v1.6.0] - 2026-05-09
 
 ### Added
