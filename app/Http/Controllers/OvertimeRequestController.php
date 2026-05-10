@@ -5,10 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\OvertimeRequest;
-use App\Models\Schedule;
 use App\Models\RequiredHours;
 use App\Services\OvertimeCalculator;
-use App\Services\OvertimeOverlapValidator;
+use App\Services\OvertimeTimeValidationService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
@@ -25,12 +24,12 @@ class OvertimeRequestController extends Controller
     use HasScopedQueries;
 
     private OvertimeCalculator $calculator;
-    private OvertimeOverlapValidator $overlapValidator;
+    private OvertimeTimeValidationService $timeValidationService;
 
-    public function __construct(OvertimeCalculator $calculator, OvertimeOverlapValidator $overlapValidator)
+    public function __construct(OvertimeCalculator $calculator, OvertimeTimeValidationService $timeValidationService)
     {
         $this->calculator = $calculator;
-        $this->overlapValidator = $overlapValidator;
+        $this->timeValidationService = $timeValidationService;
     }
 
     public function overtimeFilingPage(Request $request)
@@ -40,60 +39,17 @@ class OvertimeRequestController extends Controller
 
     public function insertOvertimeRequest(Request $request)
     {
-        $rules = [
-            'employee_schedule_id' => 'exists:schedules,id|required',
-            'date' => 'required|date_format:Y-m-d',
-            'reason' => 'required|string|min:1',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i',
-        ];
+        $result = $this->timeValidationService->validate($request->all());
 
-        $validator = Validator::make($request->all(), $rules);
-        $errors = $validator->errors();
-
-        if ($errors->any()) {
-            return redirect()->back()->withErrors($errors)->withInput();
-        }
-
-        // Parse submitted overtime start/end into Carbon instances
-        $submittedStart = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->start_time));
-        $submittedEnd   = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->end_time));
-
-        // Load the schedule and its shift from the database (not from the request)
-        $schedule = Schedule::with('shift')->findOrFail($request->employee_schedule_id);
-        $shift = $schedule->shift;
-
-        $validation = $this->overlapValidator->validate(
-            $submittedStart,
-            $submittedEnd,
-            $shift?->start_time,
-            $shift?->end_time,
-            $request->date
-        );
-
-        if (!$validation['valid']) {
-            return redirect()->back()->withErrors($validation['errors'])->withInput();
-        }
-
-        $submittedStart = $validation['start'];
-        $submittedEnd = $validation['end'];
-
-        // Calculate overtime duration in decimal hours
-        $hours = $this->calculator->calculateOvertimeHours($submittedStart, $submittedEnd);
-
-        // Enforce the minimum overtime hours from config
-        $minimumHours = $this->calculator->getMinimumOvertimeHours();
-        if ((float) $hours < $minimumHours) {
-            $errors->add('start_time', "Overtime request must be at least {$minimumHours} hour(s).");
-            $errors->add('end_time', "Overtime request must be at least {$minimumHours} hour(s).");
-            return redirect()->back()->withErrors($errors)->withInput();
+        if (!$result['valid']) {
+            return redirect()->back()->withErrors($result['errors'])->withInput();
         }
 
         OvertimeRequest::create([
             'employee_schedule_id' => $request->employee_schedule_id,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
-            'hours' => $hours,
+            'hours' => $result['hours'],
             'reason' => $request->reason,
         ]);
 
@@ -102,69 +58,21 @@ class OvertimeRequestController extends Controller
 
     public function insertBulkOvertimeRequest(Request $request)
     {
-        $rules = [
-            'employee_schedule_id' => 'exists:schedules,id|required',
-            'date' => 'required|date_format:Y-m-d',
-            'reason' => 'required|string|min:1',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i',
-        ];
+        $result = $this->timeValidationService->validate($request->all());
 
-        $validator = Validator::make($request->all(), $rules);
-
-        if ($validator->fails()) {
+        if (!$result['valid']) {
             $fieldErrors = [];
-            foreach ($validator->errors()->messages() as $field => $msgs) {
-                $fieldErrors[$field] = $msgs[0];
+            foreach ($result['errors'] as $field => $msgs) {
+                $fieldErrors[$field] = is_array($msgs) ? $msgs[0] : $msgs;
             }
             return response()->json(['success' => false, 'errors' => $fieldErrors], 422);
-        }
-
-        try {
-            $submittedStart = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->start_time));
-            $submittedEnd   = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->end_time));
-        } catch (\Throwable $th) {
-            return response()->json(['success' => false, 'errors' => ['_general' => 'Invalid date or time format.']], 422);
-        }
-
-        try {
-            $schedule = Schedule::with('shift')->findOrFail($request->employee_schedule_id);
-        } catch (\Throwable $th) {
-            return response()->json(['success' => false, 'errors' => ['_general' => 'Schedule not found.']], 422);
-        }
-
-        $shift = $schedule->shift;
-
-        $validation = $this->overlapValidator->validate(
-            $submittedStart,
-            $submittedEnd,
-            $shift?->start_time,
-            $shift?->end_time,
-            $request->date
-        );
-
-        if (!$validation['valid']) {
-            return response()->json(['success' => false, 'errors' => $validation['errors']], 422);
-        }
-
-        $submittedStart = $validation['start'];
-        $submittedEnd = $validation['end'];
-
-        $hours = $this->calculator->calculateOvertimeHours($submittedStart, $submittedEnd);
-
-        $minimumHours = $this->calculator->getMinimumOvertimeHours();
-        if ((float) $hours < $minimumHours) {
-            return response()->json([
-                'success' => false,
-                'errors' => ['start_time' => "Overtime request must be at least {$minimumHours} hour(s)."]
-            ], 422);
         }
 
         OvertimeRequest::create([
             'employee_schedule_id' => $request->employee_schedule_id,
             'start_time' => $request->start_time,
             'end_time' => $request->end_time,
-            'hours' => $hours,
+            'hours' => $result['hours'],
             'reason' => $request->reason,
         ]);
 
@@ -206,59 +114,16 @@ class OvertimeRequestController extends Controller
             }
 
             if ($request->update_status === 'PENDING') {
-                $rules = [
-                    'employee_schedule_id' => 'exists:schedules,id|required',
-                    'date' => 'required|date_format:Y-m-d',
-                    'reason' => 'required|string|min:1',
-                    'start_time' => 'required|date_format:H:i',
-                    'end_time' => 'required|date_format:H:i',
-                ];
+                $result = $this->timeValidationService->validate($request->all());
 
-                $validator = Validator::make($request->all(), $rules);
-                $errors = $validator->errors();
-
-                if ($errors->any()) {
-                    return redirect()->back()->withErrors($errors)->withInput();
-                }
-
-                // Parse submitted overtime start/end into Carbon instances
-                $submittedStart = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->start_time));
-                $submittedEnd   = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . trim($request->end_time));
-
-                // Load the schedule and its shift from the database (not from the request)
-                $schedule = Schedule::with('shift')->findOrFail($request->employee_schedule_id);
-                $shift = $schedule->shift;
-
-                $validation = $this->overlapValidator->validate(
-                    $submittedStart,
-                    $submittedEnd,
-                    $shift?->start_time,
-                    $shift?->end_time,
-                    $request->date
-                );
-
-                if (!$validation['valid']) {
-                    return redirect()->back()->withErrors($validation['errors'])->withInput();
-                }
-
-                $submittedStart = $validation['start'];
-                $submittedEnd = $validation['end'];
-
-                // Calculate overtime duration in decimal hours
-                $hours = $this->calculator->calculateOvertimeHours($submittedStart, $submittedEnd);
-
-                // Enforce the minimum overtime hours from config
-                $minimumHours = $this->calculator->getMinimumOvertimeHours();
-                if ((float) $hours < $minimumHours) {
-                    $errors->add('start_time', "Overtime request must be at least {$minimumHours} hour(s).");
-                    $errors->add('end_time', "Overtime request must be at least {$minimumHours} hour(s).");
-                    return redirect()->back()->withErrors($errors)->withInput();
+                if (!$result['valid']) {
+                    return redirect()->back()->withErrors($result['errors'])->withInput();
                 }
 
                 $updateData['employee_schedule_id'] = $request->employee_schedule_id;
                 $updateData['start_time'] = $request->start_time;
                 $updateData['end_time'] = $request->end_time;
-                $updateData['hours'] = $hours;
+                $updateData['hours'] = $result['hours'];
                 $updateData['reason'] = $request->reason;
             }
 
