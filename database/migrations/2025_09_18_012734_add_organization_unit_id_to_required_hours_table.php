@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::table('required_hours', function (Blueprint $table) {
             $table->foreignId('organization_unit_id')
-                ->constrained()->nullable()->after('week')
+                ->nullable()->after('week')
+                ->constrained()
                 ->onDelete('cascade');
         });
     }

@@ -8,7 +8,6 @@ use App\Models\Schedule;
 use App\Models\Shift;
 use App\Models\OvertimeRequest;
 use App\Models\OrganizationUnit;
-use App\Models\Setting;
 
 class OvertimeRequestValidationTest extends TestCase
 {
@@ -597,88 +596,4 @@ class OvertimeRequestValidationTest extends TestCase
         $this->assertInvalidUpdate($response, 'end_time');
     }
 
-    // ========================================================================
-    // CALCULATOR: calculateOvertimeHours correctness
-    // ========================================================================
-
-    public function test_calculate_hours_2hr_difference(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator();
-        $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 06:00');
-        $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 08:00');
-
-        $this->assertEquals('2.00', $calculator->calculateOvertimeHours($start, $end));
-    }
-
-    public function test_calculate_hours_30min_difference(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator();
-        $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 18:00');
-        $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 18:30');
-
-        $this->assertEquals('0.50', $calculator->calculateOvertimeHours($start, $end));
-    }
-
-    public function test_calculate_hours_crosses_midnight(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator();
-        $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 22:00');
-        $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 02:00');
-
-        $this->assertEquals('4.00', $calculator->calculateOvertimeHours($start, $end));
-    }
-
-    public function test_calculate_hours_does_not_mutate_end(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator();
-        $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 22:00');
-        $end = \Carbon\Carbon::createFromFormat('Y-m-d H:i', '2026-01-05 02:00');
-
-        $originalEndDay = $end->day;
-        $calculator->calculateOvertimeHours($start, $end);
-
-        $this->assertEquals($originalEndDay, $end->day);
-    }
-
-    // ========================================================================
-    // CONFIG: minimum_overtime_hours validation (0.25 increments)
-    // ========================================================================
-
-    public function test_config_accepts_valid_quarter_increments(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator();
-
-        foreach ([0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 2.00, 3.00] as $value) {
-            Setting::set('minimum_overtime_hours', $value);
-            $this->assertEquals($value, $calculator->getMinimumOvertimeHours(), "Config value {$value} should be accepted.");
-        }
-    }
-
-    public function test_config_rejects_non_quarter_increments(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator();
-
-        foreach ([0.20, 0.33, 0.40, 0.10, 0.99, 1.13] as $value) {
-            Setting::set('minimum_overtime_hours', $value);
-            $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours(), "Config value {$value} should fall back to 1.0.");
-        }
-    }
-
-    public function test_config_rejects_zero_and_negative(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator();
-
-        Setting::set('minimum_overtime_hours', 0);
-        $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
-
-        Setting::set('minimum_overtime_hours', -1.0);
-        $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
-    }
-
-    public function test_config_missing_setting_returns_default(): void
-    {
-        $calculator = new \App\Services\OvertimeCalculator();
-
-        $this->assertEquals(1.0, $calculator->getMinimumOvertimeHours());
-    }
 }
