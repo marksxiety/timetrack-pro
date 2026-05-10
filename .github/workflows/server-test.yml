@@ -43,22 +43,22 @@ jobs:
               run: php artisan key:generate --force
               env:
                   DB_CONNECTION: sqlite
-                  DB_DATABASE: ":memory:"
+                  DB_DATABASE: database/database.sqlite
 
             - name: Run database migrations
               run: php artisan migrate --force
               env:
                   DB_CONNECTION: sqlite
-                  DB_DATABASE: ":memory:"
+                  DB_DATABASE: database/database.sqlite
 
             - name: Seed default data
               run: php artisan db:seed --force
               env:
                   DB_CONNECTION: sqlite
-                  DB_DATABASE: ":memory:"
+                  DB_DATABASE: database/database.sqlite
 
             - name: Run PHPUnit tests
               run: php artisan test
               env:
                   DB_CONNECTION: sqlite
-                  DB_DATABASE: ":memory:"
+                  DB_DATABASE: database/database.sqlite
