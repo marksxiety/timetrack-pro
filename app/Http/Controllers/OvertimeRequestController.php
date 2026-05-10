@@ -13,7 +13,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\CarbonImmutable;
-use Carbon\CarbonPeriod;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -138,7 +137,7 @@ class OvertimeRequestController extends Controller
             OvertimeRequest::where('id', $request->id)->update($updateData);
             return redirect()->back();
         } catch (\Throwable $th) {
-            return redirect()->back()->withErrors("Cancelation failed due to $th");
+            return redirect()->back()->withErrors(['error' => "Cancellation failed due to {$th->getMessage()}"]);
         }
     }
 
@@ -154,8 +153,9 @@ class OvertimeRequestController extends Controller
         $actualday = Carbon::now()->day;
 
         $overtimelist = [];
-        $overtime = null;
+        $recentRequestsList = [];
         $message = '';
+        $success = false;
         $stats = [
             'total_overtime_hours' => 0,
             'tentative_overtime_hours' => 0,
@@ -293,6 +293,19 @@ class OvertimeRequestController extends Controller
         $week = $request->input('week', $this->calculator->currentWeekSundayBased());
         $year = $request->input('year', Carbon::now()->year);
         $message = '';
+        $success = false;
+        $result = [];
+        $breakdown = [];
+        $dates = [];
+        $total_filed = 0;
+        $total_approved = 0;
+        $total_pending = 0;
+        $total_declined = 0;
+        $total_canceled = 0;
+        $total_disapproved = 0;
+        $total_requests = 0;
+        $total_hours = 0;
+        $required_hours = 0;
         try {
             $required_registered_hours = DB::table('required_hours')->where('year', $year)->where('week', $week)->orderBy('updated_at', 'desc')->select('required_hours.required_hours as hours')->first();
             $requestsQuery = DB::table('overtime_requests')
@@ -352,30 +365,28 @@ class OvertimeRequestController extends Controller
                 ],
             ];
 
-            foreach ($requests as $request) {
-                $status = strtoupper($request->status); // Normalize to uppercase
+            foreach ($requests as $req) {
+                $status = strtoupper($req->status);
 
-                // ====== build the data for pie graph ======
                 for ($index = 0; $index < count($result); $index++) {
-                    if ($request->status === $result[$index]['name']) {
+                    if ($status === $result[$index]['name']) {
                         $result[$index]['value']++;
 
-                        if ($request->remarks) {
-                            $result[$index]['remarks'][] = $request->remarks;
+                        if ($req->remarks) {
+                            $result[$index]['remarks'][] = $req->remarks;
                         }
                     }
                 }
 
-                // ====== consolidate all the countings for card dispaly ======
                 $total_requests++;
                 switch ($status) {
                     case 'FILED':
                         $total_filed++;
-                        $total_hours += (float)$request->hours ?? 0;
+                        $total_hours += (float)$req->hours ?? 0;
                         break;
                     case 'APPROVED':
                         $total_approved++;
-                        $total_hours += (float)$request->hours ?? 0;
+                        $total_hours += (float)$req->hours ?? 0;
                         break;
                     case 'PENDING':
                         $total_pending++;
@@ -544,15 +555,19 @@ class OvertimeRequestController extends Controller
 
     public function fetchOvertimeRequestsViaStatus(Request $request)
     {
+        $request->validate(['page' => 'required|string']);
+
         $week = $request->input('week', $this->calculator->currentWeekSundayBased());
         $year = $request->input('year', Carbon::now()->year);
         $status = $request->input('status', '');
-        $page = $request->input('page', null);
+        $page = $request->input('page');
 
         $overtimelist = [];
         $overtime_requests = [];
         $message = '';
         $remaining_hours = 0;
+        $required_registered_hours = null;
+        $success = false;
         try {
             $overtime_requests = DB::table('overtime_requests')->join('schedules', 'schedules.id', '=', 'overtime_requests.employee_schedule_id')->join('users', 'users.id', '=', 'schedules.user_id')
                 ->leftJoin('shift_codes', 'shift_codes.id', '=', 'schedules.shift_id')
@@ -570,8 +585,6 @@ class OvertimeRequestController extends Controller
                     'shift_codes.code as shift_code',
                     'shift_codes.start_time as shift_start',
                     'shift_codes.end_time as shift_end',
-                    'overtime_requests.start_time',
-                    'overtime_requests.end_time',
                     'overtime_requests.hours',
                     'overtime_requests.status',
                     'overtime_requests.reason',
@@ -764,6 +777,7 @@ class OvertimeRequestController extends Controller
         $search = $request->input('search', '');
         $sort = $request->input('sort', 'date_desc');
         $message = '';
+        $success = false;
         try {
 
             $requests = OvertimeRequest::with(['schedule.user', 'schedule.shift'])
@@ -946,7 +960,7 @@ class OvertimeRequestController extends Controller
             $label = $request->update_status === 'APPROVED' ? 'approved' : 'filed';
             return redirect()->back()->with('message', count($request->ids) . " request(s) have been {$label}.");
         } catch (\Throwable $th) {
-            return redirect()->back()->withErrors("Bulk update failed: {$th->getMessage()}")->withInput();
+            return redirect()->back()->withErrors(['error' => "Bulk update failed: {$th->getMessage()}"])->withInput();
         }
     }
 
