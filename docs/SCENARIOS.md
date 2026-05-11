@@ -64,19 +64,35 @@ The value must be in **15-minute (0.25) increments**. Any other value falls back
 | 19 | 7:00 AM – 9:00 AM | 8AM–6PM | 2.00 hrs | ❌ | Ends inside shift, straddles shift start |
 | 20 | 7:30 AM – 6:30 PM | 8AM–6PM | 11.00 hrs | ❌ | Wraps the entire shift |
 
+### Cross-Midnight After Shift (Day Shift)
+
+> When end time < start time on a day shift, end time is interpreted as next day.
+> Only valid if the entire overtime window falls after the shift.
+
+| #  | Filing              | Shift    | Duration | Valid? | Reason |
+|----|---------------------|----------|----------|--------|--------|
+| 28 | 6:00 PM – 4:00 AM  | 8AM–6PM | 10.00 hrs | ✅   | Entirely after shift (end adjusted to next day), duration >= 1hr |
+| 29 | 6:00 PM – 2:00 AM  | 8AM–6PM | 8.00 hrs  | ✅   | Entirely after shift (end adjusted to next day), duration >= 1hr |
+| 30 | 6:00 PM – 7:00 AM  | 8AM–6PM | 13.00 hrs | ✅   | Entirely after shift (end adjusted to next day), duration >= 1hr |
+| 31 | 8:00 PM – 5:00 AM  | 8AM–6PM | 9.00 hrs  | ✅   | Entirely after shift (end adjusted to next day), duration >= 1hr |
+| 32 | 6:00 PM – 5:00 PM  | 8AM–6PM | 23.00 hrs | ✅   | Entirely after shift (end adjusted to next day), duration >= 1hr |
+| 33 | 6:00 PM – 12:00 AM | 8AM–6PM | 6.00 hrs  | ✅   | Entirely after shift (end adjusted to next day), touches shift end boundary |
+
 ### Swapped / Inverted Times (End <= Start on same date)
 
-> When end time is earlier than or equal to start time on the same date, the filing is ambiguous.
-> The system rejects these because the implied duration crosses midnight and wraps into or through the shift.
+> When end time is earlier than or equal to start time on the same date:
+> - **Day shift**: If end < start, it is interpreted as next day (cross-midnight). Only valid if the overtime falls entirely after the shift.
+> - **Night shift**: Always rejected — crosses midnight through the shift.
+> - **Zero duration** (start = end): Always rejected regardless of shift type.
 
 | # | Filing | Shift | Implied Duration | Valid? | Reason |
 |---|--------|-------|------------------|--------|--------|
-| 21 | 8:00 AM – 6:00 AM | 8AM–6PM | 22.00 hrs | ❌ | End < Start — crosses midnight, would wrap through the shift |
+| 21 | 8:00 AM – 6:00 AM | 8AM–6PM | 22.00 hrs | ❌ | Cross-midnight: start=8AM is inside shift, adjusted end=Jan6 6AM still overlaps |
 | 22 | 8:00 AM – 8:00 AM | 8AM–6PM | 0.00 hr | ❌ | Zero duration (start = end) |
 | 23 | 6:00 PM – 6:00 PM | 8AM–6PM | 0.00 hr | ❌ | Zero duration (start = end) |
-| 24 | 6:00 PM – 5:00 PM | 8AM–6PM | 23.00 hrs | ❌ | End < Start — crosses midnight, wraps through the shift |
-| 25 | 7:00 AM – 6:00 AM | 8AM–6PM | 23.00 hrs | ❌ | End < Start — crosses midnight, wraps through the shift |
-| 26 | 9:00 AM – 8:00 AM | 9AM–5PM | 23.00 hrs | ❌ | End < Start — crosses midnight, wraps through the shift |
+| 24 | 6:00 PM – 5:00 PM | 8AM–6PM | 23.00 hrs | ✅ | Cross-midnight: entirely after shift (6PM >= 6PM), 23 hrs |
+| 25 | 7:00 AM – 6:00 AM | 8AM–6PM | 23.00 hrs | ❌ | Cross-midnight: start=7AM is inside shift |
+| 26 | 9:00 AM – 8:00 AM | 9AM–5PM | 23.00 hrs | ❌ | Cross-midnight: start=9AM is inside shift |
 
 ### Other Edge Cases (Day Shift)
 
@@ -126,8 +142,8 @@ The value must be in **15-minute (0.25) increments**. Any other value falls back
 
 ### Swapped / Inverted Times (End <= Start on same date)
 
-> When end time is earlier than or equal to start time on the same date, the filing is ambiguous.
-> The system rejects these because the implied duration crosses midnight and would overlap with the shift.
+> Night shift: swapped/inverted times are always rejected because they cross midnight through the shift.
+> Zero duration (start = end) is always rejected regardless of shift type.
 
 | # | Filing | Shift | Implied Duration | Valid? | Reason |
 |---|--------|-------|------------------|--------|--------|
@@ -169,13 +185,21 @@ else:
     parse shift start/end from database
     detect night shift: raw shift_end < raw shift_start
 
+    // Zero duration is always invalid
+    if submitted_end == submitted_start:
+        → REJECT (zero duration)
+
     if night shift:
         shift_end += 1 day
+        if submitted_start.hour < 12:
+            submitted_start += 1 day
+            submitted_end += 1 day
+        if submitted_end <= submitted_start:
+            → REJECT (crosses midnight through the shift)
 
-    // Reject swapped/inverted times (end <= start on same date)
-    // These cross midnight ambiguously and always overlap with the shift
-    if submitted_end <= submitted_start:
-        → REJECT (end is before or equal to start — ambiguous, wraps through shift)
+    else (day shift):
+        if submitted_end < submitted_start:
+            submitted_end += 1 day (interpret as cross-midnight)
 
     classify the filing:
 
@@ -188,14 +212,6 @@ else:
         else if submitted_start >= shift_end:
             → AFTER SHIFT
             check: duration >= minimum_overtime_hours
-
-        // Night shift: try interpreting AM times as next day
-        else if night shift:
-            submitted_start += 1 day
-            submitted_end += 1 day
-            if submitted_start >= shift_end:
-                → AFTER SHIFT (next day)
-                check: duration >= minimum_overtime_hours
 
         else:
             → REJECT (overlaps, wraps, or straddles the shift)
