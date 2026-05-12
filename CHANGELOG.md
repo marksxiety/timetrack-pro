@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.6.2] - 2026-05-13
+
+### Fixed
+
+- Allow cross-midnight overtime for day shifts and handle swapped times correctly in `OvertimeOverlapValidator`
+
+### Changed
+
+- Update overtime filing scenarios documentation with cross-midnight day shift logic
+
+### Testing
+
+- Add cross-midnight day shift and zero duration unit tests for `OvertimeOverlapValidator`
+- Update validation tests to expect cross-midnight filings as valid
+
 ## [v1.6.1] - 2026-05-10
 
 ### Added

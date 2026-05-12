@@ -294,10 +294,10 @@ class OvertimeRequestValidationTest extends TestCase
         $this->assertInvalidInsert($response, 'end_time');
     }
 
-    public function test_swapped_evening_invalid(): void
+    public function test_swapped_evening_valid_cross_midnight(): void
     {
         $response = $this->postInsertOvertime(['start_time' => '18:00', 'end_time' => '17:00'], $this->daySchedule);
-        $this->assertInvalidInsert($response, 'end_time');
+        $this->assertValidInsert($response, $this->daySchedule->id);
     }
 
     public function test_swapped_morning_invalid(): void
@@ -544,10 +544,10 @@ class OvertimeRequestValidationTest extends TestCase
         $this->assertInvalidUpdate($response);
     }
 
-    public function test_update_swapped_times_invalid(): void
+    public function test_update_swapped_times_valid_cross_midnight(): void
     {
         $response = $this->postUpdateOvertime(['start_time' => '18:00', 'end_time' => '06:00'], $this->daySchedule);
-        $this->assertInvalidUpdate($response, 'end_time');
+        $this->assertValidUpdate($response);
     }
 
     public function test_update_zero_duration_invalid(): void
