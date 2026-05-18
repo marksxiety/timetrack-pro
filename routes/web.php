@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OvertimeRequestController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ShiftContoller;
 use App\Http\Controllers\RequiredHoursController;
 use App\Http\Controllers\ScheduleController;
@@ -86,8 +87,8 @@ Route::middleware('admin-approver')->group(function () {
     Route::get('/users/registered', [AuthController::class, 'RegisteredUsers'])->name('approver.manage.user');
     Route::post('/users/update', [AuthController::class, 'updateUserInformation'])->name('approver.update.user');
 
-    Route::inertia('/generate/report/option', 'Approver/Report')->name('approver.generate.report');
-    Route::get('/generate/report', [OvertimeRequestController::class, 'fetchOvertimeRequestsViaDateRange'])->name('approver.generate.report.daterange');
+    Route::get('/generate/report/option', [ReportController::class, 'reportPage'])->name('approver.generate.report');
+    Route::get('/generate/report', [ReportController::class, 'fetchReport'])->name('approver.generate.report.daterange');
 });
 
 Route::get('/404', fn() => Inertia::render('Unauthorized'))->name('404');
