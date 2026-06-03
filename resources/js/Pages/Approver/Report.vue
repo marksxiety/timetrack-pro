@@ -76,20 +76,8 @@
                 <Card title="Pending" :value="report?.cards?.pending" description="Awaiting action" />
             </div>
 
-            <div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
-                <div class="card-body p-0 !gap-0">
-                    <div class="px-6 py-4 border-b border-base-200">
-                        <h2
-                            class="text-xs font-semibold uppercase tracking-widest text-base-content/40">
-                            Overtime Activity
-                        </h2>
-                    </div>
-                    <div class="p-4">
-                        <Heatmap :data="report?.heatmap?.data ?? {}" :years="report?.heatmap?.years ?? []"
-                            :loading="isRegenerating" />
-                    </div>
-                </div>
-            </div>
+            <Heatmap :data="report?.heatmap?.data ?? {}" :years="report?.heatmap?.years ?? []"
+                :loading="isRegenerating" :show-settings="false" />
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="lg:col-span-2 card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
@@ -121,7 +109,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
                     <div class="card-body p-0 !gap-0">
                         <div class="px-6 py-4 border-b border-base-200">
@@ -149,9 +137,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
                     <div class="card-body p-0 !gap-0">
                         <div class="px-6 py-4 border-b border-base-200">
@@ -165,51 +151,51 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="card bg-base-100 border border-base-200 shadow-sm">
-                    <div class="card-body gap-4">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                                <Icon icon="mingcute:ai-line" class="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h2 class="text-base font-bold tracking-tight italic">AI Insight Engine</h2>
-                                <p class="text-xs text-base-content/50 mt-0.5">Powered by {{ config?.ai_model
-                                    || 'AI' }}</p>
-                            </div>
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body gap-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <Icon icon="mingcute:ai-line" class="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold tracking-tight italic">AI Insight Engine</h2>
+                            <p class="text-xs text-base-content/50 mt-0.5">Powered by {{ config?.ai_model
+                                || 'AI' }}</p>
+                        </div>
+                    </div>
+
+                    <div ref="aiContainer" class="min-h-32">
+                        <div v-if="AIresponse === ''"
+                            class="flex flex-col items-center justify-center py-10 gap-4 rounded-xl border border-dashed border-base-300">
+                            <p class="text-sm text-base-content/50 max-w-sm text-center leading-relaxed">
+                                Let AI analyze the trends, identify outliers, and suggest resource
+                                optimizations based on this period's data.
+                            </p>
+                            <button class="btn btn-primary btn-sm gap-2" @click="handleAnalyzeAI"
+                                :disabled="analyzingAI">
+                                <span v-if="analyzingAI" class="loading loading-dots loading-sm"></span>
+                                <template v-else>
+                                    Generate Insights
+                                    <Icon icon="lucide:sparkles" class="w-3.5 h-3.5" />
+                                </template>
+                            </button>
                         </div>
 
-                        <div ref="aiContainer" class="min-h-32">
-                            <div v-if="AIresponse === ''"
-                                class="flex flex-col items-center justify-center py-10 gap-4 rounded-xl border border-dashed border-base-300">
-                                <p class="text-sm text-base-content/50 max-w-sm text-center leading-relaxed">
-                                    Let AI analyze the trends, identify outliers, and suggest resource
-                                    optimizations based on this period's data.
-                                </p>
-                                <button class="btn btn-primary btn-sm gap-2" @click="handleAnalyzeAI"
+                        <div v-else class="bg-base-200/40 rounded-xl p-6 border border-base-200">
+                            <VueMarkdown :source="AIresponse"
+                                class="prose prose-slate max-w-none prose-headings:text-primary prose-sm" />
+                            <div class="flex justify-end mt-4 pt-4 border-t border-base-200">
+                                <button class="btn btn-ghost btn-xs gap-2" @click="handleAnalyzeAI"
                                     :disabled="analyzingAI">
-                                    <span v-if="analyzingAI" class="loading loading-dots loading-sm"></span>
+                                    <span v-if="analyzingAI" class="loading loading-spinner loading-xs"></span>
                                     <template v-else>
-                                        Generate Insights
-                                        <Icon icon="lucide:sparkles" class="w-3.5 h-3.5" />
+                                        <Icon icon="mingcute:ai-line" class="w-3.5 h-3.5" />
+                                        Regenerate Insights
                                     </template>
                                 </button>
-                            </div>
-
-                            <div v-else class="bg-base-200/40 rounded-xl p-6 border border-base-200">
-                                <VueMarkdown :source="AIresponse"
-                                    class="prose prose-slate max-w-none prose-headings:text-primary prose-sm" />
-                                <div class="flex justify-end mt-4 pt-4 border-t border-base-200">
-                                    <button class="btn btn-ghost btn-xs gap-2" @click="handleAnalyzeAI"
-                                        :disabled="analyzingAI">
-                                        <span v-if="analyzingAI" class="loading loading-spinner loading-xs"></span>
-                                        <template v-else>
-                                            <Icon icon="mingcute:ai-line" class="w-3.5 h-3.5" />
-                                            Regenerate Insights
-                                        </template>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
