@@ -90,7 +90,7 @@ class FetchOvertimeRequestsViaDateRangeTest extends TestCase
         $response = $this->get('/generate/report?start_date=2026-01-01&end_date=2026-01-31&unit=' . $this->orgUnit->id);
 
         $response->assertInertia(fn ($page) => $page
-            ->has('requests.list', 1)
+            ->has('report.list', 1)
         );
     }
 
@@ -102,7 +102,7 @@ class FetchOvertimeRequestsViaDateRangeTest extends TestCase
         $response = $this->get('/generate/report?start_date=2026-01-01&end_date=2026-01-31&unit=' . $this->orgUnit->id);
 
         $response->assertInertia(fn ($page) => $page
-            ->has('requests.list', 0)
+            ->has('report.list', 0)
         );
     }
 
@@ -111,7 +111,7 @@ class FetchOvertimeRequestsViaDateRangeTest extends TestCase
         $response = $this->get('/generate/report?start_date=2026-01-01&end_date=2026-01-14&unit=' . $this->orgUnit->id);
 
         $response->assertInertia(fn ($page) => $page
-            ->has('weeks')
+            ->has('report.trends.weekly')
         );
     }
 
@@ -127,7 +127,7 @@ class FetchOvertimeRequestsViaDateRangeTest extends TestCase
         $response = $this->get('/generate/report?start_date=2026-01-01&end_date=2026-01-14&unit=' . $this->orgUnit->id);
 
         $response->assertInertia(fn ($page) => $page
-            ->has('requests.required_hours')
+            ->has('report.gauge.required_hours')
         );
     }
 
@@ -136,8 +136,8 @@ class FetchOvertimeRequestsViaDateRangeTest extends TestCase
         $response = $this->get('/generate/report?start_date=2026-01-01&end_date=2026-01-31&unit=' . $this->orgUnit->id);
 
         $response->assertInertia(fn ($page) => $page
-            ->has('requests.list', 0)
-            ->has('weeks')
+            ->has('report.list', 0)
+            ->has('report.trends.weekly')
         );
     }
 }
