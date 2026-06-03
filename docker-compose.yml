@@ -1,0 +1,14 @@
+services:
+  app:
+    container_name: timetrack-pro
+    build: .
+    ports:
+      - "8080:8000"
+    environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=3306
+    env_file:
+      - .env
+    volumes:
+      - ./storage:/var/www/html/storage
+    restart: unless-stopped
