@@ -68,11 +68,12 @@
                                             <div class="col-span-1">
                                                 <TimePickerInput name="Start Time:"
                                                     :message="formFiling.errors?.start_time" :minuteStep="minuteStep"
-                                                    v-model="formFiling.start_time" />
+                                                    :teleported="false" v-model="formFiling.start_time" />
                                             </div>
                                             <div class="col-span-1">
                                                 <TimePickerInput name="End Time:" :message="formFiling.errors?.end_time"
-                                                    :minuteStep="minuteStep" v-model="formFiling.end_time" />
+                                                    :minuteStep="minuteStep" :teleported="false"
+                                                    v-model="formFiling.end_time" />
                                             </div>
                                         </div>
 
@@ -258,12 +259,14 @@
                                             <div class="col-span-1">
                                                 <TimePickerInput name="Start Time:"
                                                     :message="formFilledOvertime.errors?.start_time"
-                                                    :minuteStep="minuteStep" v-model="formFilledOvertime.start_time" />
+                                                    :minuteStep="minuteStep" :teleported="false"
+                                                    v-model="formFilledOvertime.start_time" />
                                             </div>
                                             <div class="col-span-1">
                                                 <TimePickerInput name="End Time:"
                                                     :message="formFilledOvertime.errors?.end_time"
-                                                    :minuteStep="minuteStep" v-model="formFilledOvertime.end_time" />
+                                                    :minuteStep="minuteStep" :teleported="false"
+                                                    v-model="formFilledOvertime.end_time" />
                                             </div>
                                         </template>
                                         <template v-else>
@@ -761,8 +764,8 @@ const showOvertimeFilingModal = async (year, month, day) => {
             formFiling.week = scheduledata.week
             formFiling.shift_code = scheduledata.shift_code
             formFiling.employee_schedule_id = scheduledata.id
-            formFiling.shift_start_time = scheduledata.shift_start_time
-            formFiling.shift_end_time = scheduledata.shift_end_time
+            formFiling.shift_start_time = to24hr(scheduledata.shift_start_time) || scheduledata.shift_start_time
+            formFiling.shift_end_time = to24hr(scheduledata.shift_end_time) || scheduledata.shift_end_time
         } else {
             withShedule.value = false
         }
