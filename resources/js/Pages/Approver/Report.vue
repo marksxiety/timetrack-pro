@@ -15,7 +15,7 @@
                     <h1 class="text-2xl font-black tracking-tight">Overtime Analysis</h1>
                     <p class="text-sm text-base-content/50 mt-0.5">Aggregated employee overtime data</p>
                 </div>
-                <div class="badge badge-success badge-outline gap-1.5">
+                <div class="badge bg-success/30 border border-success text-success">
                     <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
                     Live Data
                 </div>
@@ -49,7 +49,7 @@
                         <label class="label py-0">
                             <span class="label-text text-xs font-semibold uppercase tracking-widest text-base-content/40">Organization Unit</span>
                         </label>
-                        <SelectOption name="Org Unit" :options="orgUnitOptions" v-model="selectedOrgUnit"
+                        <SelectOption :options="orgUnitOptions" v-model="selectedOrgUnit"
                             class="select-bordered" />
                     </div>
 
@@ -70,7 +70,7 @@
                         </div>
                     </div>
 
-                    <div class="form-control gap-2">
+                    <div class="form-control flex flex-col gap-1.5">
                         <label class="label py-0">
                             <span class="label-text text-xs font-semibold uppercase tracking-widest text-base-content/40">View</span>
                         </label>
