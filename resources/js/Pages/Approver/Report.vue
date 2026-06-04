@@ -273,15 +273,11 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-col gap-2 mt-2">
+                    <div class="mt-2">
                         <button class="btn btn-primary btn-block" @click="handleGenerateReport"
                             :disabled="isLoading">
                             <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
                             Generate Report
-                        </button>
-                        <button class="btn btn-ghost btn-block btn-sm" @click="handleClearState"
-                            :disabled="isLoading">
-                            Reset Filters
                         </button>
                     </div>
                 </div>
@@ -385,12 +381,6 @@ const selectedDateRange = useForm({
     end_date: null,
     organization_unit_id: '',
 })
-
-const handleClearState = () => {
-    selectedDateRange.start_date = ''
-    selectedDateRange.end_date = ''
-    selectedOrgUnit.value = ''
-}
 
 const handleModalApply = () => {
     configModal.value?.close()
