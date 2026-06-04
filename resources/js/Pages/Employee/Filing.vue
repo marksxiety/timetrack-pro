@@ -99,7 +99,10 @@
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-3">
-                                        <TextInput name="Date:" type="date" v-model="selectedDate" @change="onDateChange" />
+                                        <div :class="{ 'pointer-events-none opacity-60': editingIndex !== null }">
+                                            <TextInput name="Date:" type="date" v-model="selectedDate"
+                                                @change="onDateChange" />
+                                        </div>
                                         <fieldset class="fieldset bg-base-200/40 rounded-xl border border-base-300">
                                             <legend class="fieldset-legend text-[10px] uppercase tracking-widest text-base-content/40 font-semibold">
                                                 Schedule
@@ -308,7 +311,7 @@
 
                                 <div class="flex items-center gap-1.5 mt-1">
                                     <span
-                                        class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-base-200 text-base-content/50">{{
+                                        class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-primary text-base-content/50">{{
                                             item.shift_code }}</span>
                                     <span class="text-xs text-base-content/45">
                                         {{ to12hr(item.start_time) }} &rarr; {{ to12hr(item.end_time) }}
