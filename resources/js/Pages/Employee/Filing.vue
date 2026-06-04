@@ -76,17 +76,17 @@
             <form method="dialog" class="modal-backdrop"><button>close</button></form>
         </dialog>
 
-        <div class="gap-6 grid grid-cols-12 max-w-7xl mx-auto w-full h-[71vh]">
+        <div class="gap-6 grid grid-cols-1 lg:grid-cols-12 max-w-7xl mx-auto w-full lg:max-h-[calc(100vh-14rem)]">
 
             <!-- ── LEFT: Form ── -->
-            <div class="col-span-7 min-h-0 h-full">
+            <div class="col-span-12 lg:col-span-7 min-h-0 lg:h-full">
                 <form @submit.prevent="editingIndex === null ? addToQueue() : updateInQueue()" class="h-full">
                     <div class="card bg-base-100 border border-base-300 shadow-sm h-full min-h-0">
                         <div class="card-body p-0 gap-0 flex flex-col h-full min-h-0">
 
                             <div class="overflow-y-auto flex-1 min-h-0">
 
-                                <!-- Section 1: Date -->
+                                <!-- Section 1: Date & Schedule -->
                                 <div class="px-6 pt-6 pb-5">
                                     <div class="flex items-center gap-2 mb-2">
                                         <div class="bg-base-200 rounded-lg p-1.5">
@@ -97,71 +97,55 @@
                                             Overtime Date
                                         </h3>
                                     </div>
+
                                     <div class="grid grid-cols-2 gap-3">
-                                        <div>
-                                            <TextInput name="Date:" type="date" v-model="selectedDate" />
-                                        </div>
-                                        <div>
-                                            <TextInput name="Week:" type="text" v-model="form.week" :readonly="true"
-                                                :placeholder="selectedDate ? '' : 'Select a date first'" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="divider mx-6 my-0"></div>
-
-                                <!-- Section 2: Shift -->
-                                <div class="px-6 py-5">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="bg-base-200 rounded-lg p-1.5">
-                                            <Icon icon="material-symbols:work-outline" width="16" height="16" />
-                                        </div>
-                                        <h3 class="text-sm font-semibold text-base-content tracking-wide uppercase">
-                                            Scheduled Shift
-                                        </h3>
-                                    </div>
-
-                                    <!-- Loading -->
-                                    <div v-if="selectedDate && fetchingSchedule"
-                                        class="flex items-center gap-3 py-5 px-4 rounded-xl bg-base-200/60">
-                                        <span class="loading loading-spinner loading-sm text-primary"></span>
-                                        <span class="text-sm text-base-content/60">Fetching your schedule...</span>
-                                    </div>
-
-                                    <!-- No schedule -->
-                                    <template v-else-if="selectedDate && !withSchedule">
-                                        <div class="alert alert-warning rounded-xl">
-                                            <Icon icon="material-symbols:warning-outline" width="20" height="20" />
-                                            <div>
-                                                <h3 class="font-semibold text-sm">No Schedule Found</h3>
-                                                <div class="text-xs opacity-70 mt-0.5">
-                                                    You need a registered schedule before filing an overtime request.
+                                        <TextInput name="Date:" type="date" v-model="selectedDate" @change="onDateChange" />
+                                        <fieldset class="fieldset bg-base-200/40 rounded-xl border border-base-300">
+                                            <legend class="fieldset-legend text-[10px] uppercase tracking-widest text-base-content/40 font-semibold">
+                                                Schedule
+                                            </legend>
+                                            <div class="px-3 pb-2 pt-1 min-h-[4.5rem] flex flex-col justify-center">
+                                                <div v-if="selectedDate && fetchingSchedule" class="flex items-center gap-2">
+                                                    <span class="loading loading-spinner loading-xs text-primary"></span>
+                                                    <span class="text-xs text-base-content/40">Loading...</span>
+                                                </div>
+                                                <div v-else-if="selectedDate && !withSchedule" class="flex flex-col items-center gap-2 py-1">
+                                                    <div class="flex items-center gap-1.5 text-warning/70">
+                                                        <Icon icon="material-symbols:warning-outline" width="16" height="16" />
+                                                        <span class="text-xs">No schedule registered</span>
+                                                    </div>
+                                                    <Link :href="route('schedule')" class="btn btn-xs btn-primary btn-outline gap-1">
+                                                        <Icon icon="material-symbols:add-circle-outline" width="13" height="13" />
+                                                        Add Schedule
+                                                    </Link>
+                                                </div>
+                                                <div v-else-if="withSchedule" class="space-y-1.5">
+                                                    <div class="flex justify-between items-baseline">
+                                                        <span class="text-[10px] uppercase tracking-wider text-base-content/30">Week</span>
+                                                        <span class="text-xs font-medium text-base-content/70 font-mono">{{ form.week }}</span>
+                                                    </div>
+                                                    <div class="flex justify-between items-baseline">
+                                                        <span class="text-[10px] uppercase tracking-wider text-base-content/30">Shift</span>
+                                                        <span class="text-xs font-medium text-base-content/70 font-mono">{{ form.shift_code }}</span>
+                                                    </div>
+                                                    <div class="flex justify-between items-baseline">
+                                                        <span class="text-[10px] uppercase tracking-wider text-base-content/30">Hours</span>
+                                                        <span class="text-xs font-medium text-base-content/70 font-mono">{{ to12hr(form.shift_start_time) }} → {{ to12hr(form.shift_end_time) }}</span>
+                                                    </div>
+                                                </div>
+                                                <div v-else class="text-xs text-base-content/25 text-center">
+                                                    Select a date to view schedule
                                                 </div>
                                             </div>
-                                            <Link :href="route('schedule')" class="btn btn-sm btn-ghost">
-                                                Add Schedule
-                                            </Link>
-                                        </div>
-                                    </template>
-
-                                    <!-- Shift details -->
-                                    <template v-else>
-                                        <div class="grid grid-cols-3 gap-3"
-                                            :class="{ 'opacity-40 pointer-events-none': !withSchedule }">
-                                            <TextInput name="Shift Code:" type="text" v-model="form.shift_code"
-                                                :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
-                                            <TextInput name="Start:" type="text" v-model="form.shift_start_time"
-                                                :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
-                                            <TextInput name="End:" type="text" v-model="form.shift_end_time"
-                                                :readonly="true" :placeholder="!withSchedule ? '—' : ''" />
-                                        </div>
-                                    </template>
+                                        </fieldset>
+                                    </div>
                                 </div>
 
                                 <div class="divider mx-6 my-0"></div>
 
                                 <!-- Section 3: Duration & Reason -->
-                                <div class="px-6 py-5" :class="{ 'opacity-40 pointer-events-none': fieldsDisabled }">
+                                <template v-if="withSchedule">
+                                <div class="px-6 py-5">
                                     <div class="flex items-center gap-2 mb-4">
                                         <div class="bg-base-200 rounded-lg p-1.5">
                                             <Icon icon="material-symbols:timer-outline" width="16" height="16" />
@@ -173,11 +157,9 @@
 
                                     <div class="grid grid-cols-2 gap-3 mb-2">
                                         <TimePickerInput name="Start Time:" :message="form.errors?.start_time"
-                                            :minuteStep="minuteStep" :disabled="fieldsDisabled"
-                                            v-model="form.start_time" />
+                                            :minuteStep="minuteStep" v-model="form.start_time" />
                                         <TimePickerInput name="End Time:" :message="form.errors?.end_time"
-                                            :minuteStep="minuteStep" :disabled="fieldsDisabled"
-                                            v-model="form.end_time" />
+                                            :minuteStep="minuteStep" v-model="form.end_time" />
                                     </div>
 
                                     <div class="space-y-2">
@@ -188,7 +170,7 @@
                                                     height="16" />
                                                 Reason
                                             </label>
-                                            <div v-if="withSchedule" class="tooltip tooltip-left tooltip-break"
+                                            <div class="tooltip tooltip-left tooltip-break"
                                                 data-tip="The better you describe, the better AI can enhance it!">
                                                 <span tabindex="0" class="inline-block">
                                                     <button type="button" class="btn btn-sm btn-primary gap-1.5"
@@ -203,14 +185,7 @@
                                             </div>
                                         </div>
 
-                                        <TextArea type="text" v-model="form.reason" :message="form.errors?.reason"
-                                            :disabled="fieldsDisabled" />
-
-                                        <p v-if="form.errors?.reason && typeof form.errors?.reason === 'object'"
-                                            class="text-xs text-warning flex items-center gap-1.5">
-                                            <Icon icon="material-symbols:warning-outline" width="14" height="14" />
-                                            {{ form.errors?.reason.message }}
-                                        </p>
+                                        <TextArea type="text" v-model="form.reason" :message="form.errors?.reason" />
 
                                         <p v-if="isEnhancing" class="text-xs text-primary flex items-center gap-1.5">
                                             <Icon icon="hugeicons:chat-gpt" width="14" height="14" />
@@ -218,6 +193,17 @@
                                         </p>
                                     </div>
                                 </div>
+                                </template>
+                                <template v-else>
+                                <div class="px-6 py-5">
+                                    <div class="flex flex-col items-center justify-center py-10 text-center">
+                                        <div class="bg-base-200/50 rounded-2xl p-4">
+                                            <Icon icon="material-symbols:timer-off-outline" width="28" height="28" class="text-base-content/15" />
+                                        </div>
+                                        <p class="text-sm text-base-content/40 mt-3">Select a date with a schedule to file overtime</p>
+                                    </div>
+                                </div>
+                                </template>
 
                             </div>
 
@@ -242,7 +228,7 @@
             </div>
 
             <!-- ── RIGHT: Queue ── -->
-            <div class="col-span-5 min-h-0 h-full">
+            <div class="col-span-12 lg:col-span-5 min-h-0 lg:h-full">
                 <div class="card bg-base-100 border border-base-300 shadow-sm flex flex-col h-full min-h-0">
 
                     <!-- Queue header -->
@@ -314,7 +300,7 @@
                                         {{ item.displayDate }}
                                     </p>
                                     <button v-if="item.state !== 'submitting'" type="button"
-                                        class="btn btn-ghost btn-xs flex-shrink-0 opacity-0 group-hover:opacity-50 hover:!opacity-100 hover:text-error transition-opacity -mr-1"
+                                        class="btn btn-ghost btn-xs flex-shrink-0 opacity-30 hover:opacity-100 hover:text-error transition-opacity -mr-1"
                                         @click.stop="removeFromQueue(index)">
                                         <Icon icon="material-symbols:close-rounded" width="14" height="14" />
                                     </button>
@@ -341,12 +327,17 @@
                                     </div>
                                 </div>
 
-                                <!-- Footer: editing indicator + status badge -->
+                                <!-- Footer: editing indicator + retry hint + status badge -->
                                 <div class="flex items-center justify-between mt-auto pt-2">
-                                    <div v-if="(item.state === 'pending' || item.state === 'error') && editingIndex === index"
+                                    <div v-if="editingIndex === index"
                                         class="inline-flex items-center gap-1 text-[11px] text-primary font-medium">
                                         <Icon icon="material-symbols:edit-outline" width="11" height="11" />
                                         Editing
+                                    </div>
+                                    <div v-else-if="item.state === 'error'"
+                                        class="inline-flex items-center gap-1 text-[11px] text-error/60">
+                                        <Icon icon="material-symbols:touch-app-outline" width="11" height="11" />
+                                        Tap to retry
                                     </div>
                                     <span v-else class="w-0"></span>
                                     <span class="badge badge-xs font-medium gap-1" :class="[
@@ -374,7 +365,7 @@
 
 <script setup>
 import { Link, useForm } from '@inertiajs/vue3'
-import { onMounted, ref, inject, watch, computed, nextTick } from 'vue'
+import { onMounted, ref, inject, computed, nextTick } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import TextInput from '../Components/TextInput.vue'
 import TextArea from '../Components/TextArea.vue'
@@ -382,7 +373,7 @@ import TimePickerInput from '../Components/TimePicker.vue'
 import { fetchUserSchedule } from '../api/schedule.js'
 import { submitBulkOvertime } from '../api/overtime.js'
 import { enhanceReason } from '../composables/useOvertimeRequest.js'
-import { currentWeek, to12hr } from '../utils/helpers/date.js'
+import { currentWeek, to12hr, to24hr } from '../utils/helpers/date.js'
 import { Icon } from "@iconify/vue"
 
 const toast = inject('toast')
@@ -531,7 +522,7 @@ const editItem = (index) => {
 
 const cancelEdit = () => {
     editingIndex.value = null
-    resetForm()
+    resetFormState()
 }
 
 const removeFromQueue = (index) => {
@@ -549,11 +540,18 @@ const clearQueue = () => {
     if (isSubmitting.value) return
     queue.value = []
     editingIndex.value = null
-    resetForm()
+    resetFormState()
     toast('Queue cleared.', 'info')
 }
 
 const resetForm = () => {
+    form.start_time = ''
+    form.end_time = ''
+    form.reason = ''
+    form.clearErrors()
+}
+
+const resetFormState = () => {
     form.reset()
     form.clearErrors()
     selectedDate.value = ''
@@ -626,8 +624,10 @@ const getItemStateLabel = (state) => {
     }
 }
 
-watch(selectedDate, async (newDate) => {
+const onDateChange = async () => {
     if (isEditing.value) return
+    const newDate = selectedDate.value
+
     if (!newDate) {
         withSchedule.value = false
         form.reset()
@@ -669,8 +669,8 @@ watch(selectedDate, async (newDate) => {
                 form.week = scheduledata.week
                 form.shift_code = scheduledata.shift_code
                 form.employee_schedule_id = scheduledata.id
-                form.shift_start_time = scheduledata.shift_start_time
-                form.shift_end_time = scheduledata.shift_end_time
+                form.shift_start_time = to24hr(scheduledata.shift_start_time) || scheduledata.shift_start_time
+                form.shift_end_time = to24hr(scheduledata.shift_end_time) || scheduledata.shift_end_time
             } else {
                 withSchedule.value = false
             }
@@ -682,7 +682,7 @@ watch(selectedDate, async (newDate) => {
     } finally {
         fetchingSchedule.value = false
     }
-})
+}
 </script>
 
 <style scoped>
