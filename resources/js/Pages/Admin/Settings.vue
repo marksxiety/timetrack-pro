@@ -1,7 +1,7 @@
 <template>
 
     <Head title="System Settings" />
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 mx-auto w-full max-w-7xl">
         <Breadcrumbs :items="[
             { label: 'Home', route: 'main' },
             { label: 'Settings', active: true },
@@ -17,8 +17,8 @@
             <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 w-full max-w-7xl">
 
                 <div class="col-span-2 flex flex-col gap-8">
-                    <div class="bg-base-100 p-8 rounded-md shadow-xs border border-base-200 flex flex-col gap-6">
-                        <h2 class="text-xl font-bold text-center text-primary uppercase tracking-wide">
+                    <div class="bg-base-100 p-8 rounded-md shadow-xs border border-base-200 flex flex-col gap-6 h-[40%] overflow-auto">
+                        <h2 class="text-lg font-semibold text-base-content">
                             Overtime Configuration
                         </h2>
 
@@ -57,7 +57,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col">
+                    <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col h-[40%] overflow-auto">
                         <h2 class="text-lg font-semibold mb-1 text-base-content">Organization Units</h2>
                         <p class="text-xs text-base-content/40 mb-4">Manage the organization units used for scoping
                             employees, approvers, required hours, and reports.</p>
@@ -92,7 +92,7 @@
                         </div>
 
                         <form @submit.prevent="addUnit" class="flex items-end gap-3 mt-4">
-                            <div class="form-control flex-1">
+                            <div class="form-control h-auto">
                                 <label class="label pb-0">
                                     <span
                                         class="label-text font-semibold text-base-content/80 text-xs uppercase tracking-wider">New
@@ -229,7 +229,7 @@ const minuteStepOptions = [
     { label: '30 minutes', value: 30 },
 ]
 
-const orgUnits = ref([...(props.organization_units ?? [])])
+const orgUnits = computed(() => props.organization_units ?? [])
 
 const form = useForm({
     default_shift_codes: props.settings?.default_shift_codes ?? [
@@ -298,8 +298,6 @@ const cancelEdit = () => {
 const saveEdit = () => {
     editForm.put(route('admin.organization-units.update', editingId.value), {
         onSuccess: () => {
-            const idx = orgUnits.value.findIndex(u => u.id === editingId.value)
-            if (idx !== -1) orgUnits.value[idx].unit_path = editForm.unit_path
             editModal.value?.close()
             editingId.value = null
             editForm.reset()
@@ -340,7 +338,6 @@ const deleteUnit = () => {
     deleteForm.reassign_to = reassignTo.value
     deleteForm.delete(route('admin.organization-units.destroy', deleteTarget.value.id), {
         onSuccess: () => {
-            orgUnits.value = orgUnits.value.filter(u => u.id !== deleteTarget.value.id)
             deleteModal.value?.close()
             deleteTarget.value = null
             reassignTo.value = null
