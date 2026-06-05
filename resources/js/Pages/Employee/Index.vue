@@ -86,44 +86,54 @@
                                                         height="18" />
                                                     Reason
                                                 </label>
-                                                <div class="tooltip tooltip-left tooltip-break"
-                                                    data-tip="The better you describe, the better AI can enhance it!">
-                                                    <span tabindex="0" class="inline-block">
-                                                        <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                            @click="handleEnhance(formFiling)" :disabled="isEnhancing">
-                                                            <span v-if="isEnhancing"
-                                                                class="loading loading-spinner loading-xs"></span>
-                                                            <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
-                                                                height="18" />
-                                                            <span class="font-medium">{{ isEnhancing ?
-                                                                'Enhancing...' :
-                                                                'Enhance with AI' }}</span>
-                                                        </button>
-                                                    </span>
+                                                <div class="flex items-center gap-1.5">
+                                                    <button v-if="originalReason && !isEnhancing" type="button"
+                                                        class="btn btn-xs btn-ghost text-base-content/40 hover:text-error gap-1"
+                                                        @click="undoEnhance(formFiling)">
+                                                        <Icon icon="material-symbols:undo-rounded" width="13"
+                                                            height="13" />
+                                                        Undo
+                                                    </button>
+                                                    <button v-if="originalReason && !isEnhancing" type="button"
+                                                        class="btn btn-xs btn-ghost text-base-content/40 hover:text-primary gap-1"
+                                                        @click="handleEnhance(formFiling)"
+                                                        :disabled="enhanceCooldown > 0">
+                                                        <Icon icon="material-symbols:refresh-rounded" width="13"
+                                                            height="13" />
+                                                        Re-enhance
+                                                    </button>
+                                                    <div v-else class="tooltip tooltip-left tooltip-break"
+                                                        :data-tip="!canEnhance(formFiling) ? 'Type at least 3 words to enhance' : 'The better you describe, the better AI can enhance it!'">
+                                                        <span tabindex="0" class="inline-block">
+                                                            <button type="button" class="btn btn-sm gap-2 btn-primary"
+                                                                @click="handleEnhance(formFiling)"
+                                                                :disabled="isEnhancing || !canEnhance(formFiling) || enhanceCooldown > 0">
+                                                                <span v-if="isEnhancing"
+                                                                    class="loading loading-spinner loading-xs"></span>
+                                                                <Icon v-else icon="mingcute:ai-line" width="18"
+                                                                    height="18" />
+                                                                <span class="font-medium">{{ isEnhancing
+                                                                    ? 'Enhancing...'
+                                                                    : enhanceCooldown > 0
+                                                                        ? `Wait ${enhanceCooldown}s`
+                                                                        : 'Enhance with AI' }}</span>
+                                                            </button>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <textarea ref="reasonTextarea" v-model="formFiling.reason"
-                                                placeholder="Enter your reason for overtime request..."
-                                                :disabled="isEnhancing" :class="['textarea break-words whitespace-normal w-full min-h-24', {
-                                                    'textarea-error': formFiling.errors?.reason && typeof formFiling.errors?.reason !== 'object',
-                                                    'textarea-warning': typeof formFiling.errors?.reason === 'object'
-                                                }]" @input="autoResize"></textarea>
 
-                                            <p v-if="formFiling.errors?.reason" :class="[
-                                                'text-sm flex items-center gap-2',
-                                                typeof formFiling.errors?.reason === 'object' ? 'text-warning' : 'text-error'
-                                            ]">
-                                                <Icon
-                                                    :icon="typeof formFiling.errors?.reason === 'object' ? 'material-symbols:warning-outline' : 'material-symbols:error-outline'"
-                                                    width="16" height="16" />
-                                                {{ typeof formFiling.errors?.reason === 'object' ?
-                                                    formFiling.errors?.reason.message : formFiling.errors?.reason }}
-                                            </p>
+                                            <TextArea v-model="formFiling.reason" :glowing="isEnhancing"
+                                                :message="isEnhancing ? null : formFiling.errors?.reason"
+                                                :autoResize="isEnhancing"
+                                                placeholder="Enter your reason for overtime request..." />
 
-                                            <p v-if="isEnhancing" class="text-sm text-primary flex items-center gap-2">
-                                                <Icon icon="hugeicons:chat-gpt" width="16" height="16" />
-                                                Currently Enhancing.. The longer the reason, the more time it will take
+
+                                            <p v-if="formFiling.reason && !isEnhancing"
+                                                class="text-[10px] text-base-content/25 text-right">
+                                                {{ getWordCount(formFiling) }} word{{ getWordCount(formFiling) !== 1 ?
+                                                's' : '' }}
                                             </p>
                                         </div>
                                     </div>
@@ -273,12 +283,12 @@
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">Start Time</span>
                                                 <span class="font-semibold">{{ to12hr(formFilledOvertime.start_time)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                             <div class="flex flex-col">
                                                 <span class="text-xs opacity-60 mb-1">End Time</span>
                                                 <span class="font-semibold">{{ to12hr(formFilledOvertime.end_time)
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </template>
                                     </div>
@@ -293,31 +303,53 @@
                                                 Reason
                                             </label>
                                             <div v-if="withShedule && formFilledOvertime.current_status === 'PENDING'">
-                                                <div class="tooltip tooltip-left tooltip-break"
-                                                    data-tip="The better you describe, the better AI can enhance it!">
-                                                    <span tabindex="0" class="inline-block">
-                                                        <button type="button" class="btn btn-sm gap-2 btn-primary"
-                                                            @click="handleEnhance(formFilledOvertime)"
-                                                            :disabled="isEnhancing">
-                                                            <span v-if="isEnhancing"
-                                                                class="loading loading-spinner loading-xs"></span>
-                                                            <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="18"
-                                                                height="18" />
-                                                            <span class="font-medium">{{ isEnhancing ? 'Enhancing...' :
-                                                                'Enhance with AI' }}</span>
-                                                        </button>
-                                                    </span>
+                                                <div class="flex items-center gap-1.5">
+                                                    <button v-if="originalReason && !isEnhancing" type="button"
+                                                        class="btn btn-xs btn-ghost text-base-content/40 hover:text-error gap-1"
+                                                        @click="undoEnhance(formFilledOvertime)">
+                                                        <Icon icon="material-symbols:undo-rounded" width="13"
+                                                            height="13" />
+                                                        Undo
+                                                    </button>
+                                                    <button v-if="originalReason && !isEnhancing" type="button"
+                                                        class="btn btn-xs btn-ghost text-base-content/40 hover:text-primary gap-1"
+                                                        @click="handleEnhance(formFilledOvertime)"
+                                                        :disabled="enhanceCooldown > 0">
+                                                        <Icon icon="material-symbols:refresh-rounded" width="13"
+                                                            height="13" />
+                                                        Re-enhance
+                                                    </button>
+                                                    <div v-else class="tooltip tooltip-left tooltip-break"
+                                                        :data-tip="!canEnhance(formFilledOvertime) ? 'Type at least 3 words to enhance' : 'The better you describe, the better AI can enhance it!'">
+                                                        <span tabindex="0" class="inline-block">
+                                                            <button type="button" class="btn btn-sm gap-2 btn-primary"
+                                                                @click="handleEnhance(formFilledOvertime)"
+                                                                :disabled="isEnhancing || !canEnhance(formFilledOvertime) || enhanceCooldown > 0">
+                                                                <span v-if="isEnhancing"
+                                                                    class="loading loading-spinner loading-xs"></span>
+                                                                <Icon v-else icon="mingcute:ai-line" width="18"
+                                                                    height="18" />
+                                                                <span class="font-medium">{{ isEnhancing ?
+                                                                    'Enhancing...' :
+                                                                    enhanceCooldown > 0
+                                                                        ? `Wait ${enhanceCooldown}s`
+                                                                        : 'Enhance with AI' }}</span>
+                                                            </button>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <TextArea type="text" v-model="formFilledOvertime.reason"
-                                            :message="formFilledOvertime.errors?.reason"
-                                            :readonly="formFilledOvertime.current_status !== 'PENDING'" />
 
-                                        <!-- enhancing message -->
-                                        <p v-if="isEnhancing" class="text-sm text-primary flex items-center gap-2">
-                                            <Icon icon="hugeicons:chat-gpt" width="16" height="16" />
-                                            Currently Enhancing.. The longer the reason, the more time it will take
+                                        <TextArea type="text" v-model="formFilledOvertime.reason" :glowing="isEnhancing"
+                                            :message="isEnhancing ? null : formFilledOvertime.errors?.reason"
+                                            :readonly="formFilledOvertime.current_status !== 'PENDING'"
+                                            :autoResize="isEnhancing" />
+
+                                        <p v-if="formFilledOvertime.reason && !isEnhancing"
+                                            class="text-[10px] text-base-content/25 text-right">
+                                            {{ getWordCount(formFilledOvertime) }} word{{
+                                                getWordCount(formFilledOvertime) !== 1 ? 's' : '' }}
                                         </p>
                                     </div>
                                 </div>
@@ -551,7 +583,7 @@ import fetchUpcomingHolidays from '../api/upcomingHolidays.js'
 import { getTimeOptions } from '../utils/dropdownOptions.js'
 import { to12hr, to24hr } from '../utils/helpers/date.js'
 import { getStatusBadgeClass, getStatusBgClass } from '../utils/helpers/status.js'
-import { enhanceReason, submitCancelation as submitCancelationComposable } from '../composables/useOvertimeRequest.js'
+import { enhanceReason, originalReason, enhanceCooldown, undoEnhance as undoEnhanceReason, submitCancelation as submitCancelationComposable } from '../composables/useOvertimeRequest.js'
 import Stepper from '../Components/Stepper.vue'
 import { Icon } from "@iconify/vue"
 
@@ -912,9 +944,21 @@ const submitCancelation = () => {
 }
 
 
-// ======== Watchers ==========
-
 const handleEnhance = (form) => enhanceReason(form, isEnhancing)
+
+const canEnhance = (form) => {
+    const words = form.reason?.trim().split(/\s+/).filter(Boolean).length ?? 0
+    return words >= 3
+}
+
+const getWordCount = (form) => {
+    return form.reason?.trim().split(/\s+/).filter(Boolean).length ?? 0
+}
+
+const undoEnhance = (form) => undoEnhanceReason(form)
+
+
+// ======== Watchers ==========
 
 watch(() => props.info?.overtimelist, (updatedRequests) => {
     monthOvertimes.value = [...updatedRequests]
