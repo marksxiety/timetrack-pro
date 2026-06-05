@@ -173,27 +173,50 @@
                                                     height="16" />
                                                 Reason
                                             </label>
-                                            <div class="tooltip tooltip-left tooltip-break"
-                                                data-tip="The better you describe, the better AI can enhance it!">
-                                                <span tabindex="0" class="inline-block">
-                                                    <button type="button" class="btn btn-sm btn-primary gap-1.5"
-                                                        @click="handleEnhance(form)" :disabled="isEnhancing">
-                                                        <span v-if="isEnhancing"
-                                                            class="loading loading-spinner loading-xs"></span>
-                                                        <Icon v-if="!isEnhancing" icon="mingcute:ai-line" width="16"
-                                                            height="16" />
-                                                        {{ isEnhancing ? 'Enhancing...' : 'Enhance with AI' }}
-                                                    </button>
-                                                </span>
+                                            <div class="flex items-center gap-1.5">
+                                                <button v-if="originalReason" type="button"
+                                                    class="btn btn-xs btn-ghost text-base-content/40 hover:text-error gap-1"
+                                                    @click="undoEnhance(form)">
+                                                    <Icon icon="material-symbols:undo-rounded" width="13" height="13" />
+                                                    Undo
+                                                </button>
+                                                <button v-if="originalReason && !isEnhancing" type="button"
+                                                    class="btn btn-xs btn-ghost text-base-content/40 hover:text-primary gap-1"
+                                                    @click="handleEnhance(form)" :disabled="enhanceCooldown > 0">
+                                                    <Icon icon="material-symbols:refresh-rounded" width="13" height="13" />
+                                                    Re-enhance
+                                                </button>
+                                                <div v-else-if="!originalReason" class="tooltip tooltip-left tooltip-break"
+                                                    :data-tip="!canEnhance ? 'Type at least 3 words to enhance' : 'The better you describe, the better AI can enhance it!'">
+                                                    <span tabindex="0" class="inline-block">
+                                                        <button type="button" class="btn btn-sm btn-primary gap-1.5"
+                                                            @click="handleEnhance(form)"
+                                                            :disabled="isEnhancing || !canEnhance || enhanceCooldown > 0">
+                                                            <span v-if="isEnhancing"
+                                                                class="loading loading-spinner loading-xs"></span>
+                                                            <Icon v-else icon="mingcute:ai-line" width="16"
+                                                                height="16" />
+                                                            {{ isEnhancing
+                                                                ? 'Enhancing...'
+                                                                : enhanceCooldown > 0
+                                                                    ? `Wait ${enhanceCooldown}s`
+                                                                    : 'Enhance with AI' }}
+                                                        </button>
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <TextArea type="text" v-model="form.reason" :message="form.errors?.reason" />
+                                        <TextArea type="text" v-model="form.reason"
+                                            :message="isEnhancing ? null : form.errors?.reason"
+                                            :readonly="isEnhancing"
+                                            :autoResize="isEnhancing"
+                                            :glowing="isEnhancing" />
 
-                                        <p v-if="isEnhancing" class="text-xs text-primary flex items-center gap-1.5">
-                                            <Icon icon="hugeicons:chat-gpt" width="14" height="14" />
-                                            Enhancing your reason — longer text takes more time.
+                                        <p v-if="form.reason && !isEnhancing" class="text-[10px] text-base-content/25 text-right">
+                                            {{ reasonWordCount }} word{{ reasonWordCount !== 1 ? 's' : '' }}
                                         </p>
+
                                     </div>
                                 </div>
                                 </template>
@@ -375,7 +398,7 @@ import TextArea from '../Components/TextArea.vue'
 import TimePickerInput from '../Components/TimePicker.vue'
 import { fetchUserSchedule } from '../api/schedule.js'
 import { submitBulkOvertime } from '../api/overtime.js'
-import { enhanceReason } from '../composables/useOvertimeRequest.js'
+import { enhanceReason, originalReason, enhanceCooldown, undoEnhance } from '../composables/useOvertimeRequest.js'
 import { currentWeek, to12hr, to24hr } from '../utils/helpers/date.js'
 import { Icon } from "@iconify/vue"
 
@@ -428,6 +451,15 @@ onMounted(() => {
 })
 
 const handleEnhance = (f) => enhanceReason(f, isEnhancing)
+
+const canEnhance = computed(() => {
+    const words = form.reason?.trim().split(/\s+/).filter(Boolean).length ?? 0
+    return words >= 3
+})
+
+const reasonWordCount = computed(() => {
+    return form.reason?.trim().split(/\s+/).filter(Boolean).length ?? 0
+})
 
 const getFormData = () => ({
     dateRaw: selectedDate.value,
@@ -696,3 +728,4 @@ const onDateChange = async () => {
     text-align: center;
 }
 </style>
+
