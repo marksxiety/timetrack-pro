@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+vendor
+docker/mysql-data
+storage/logs/*
+.phpunit.result.cache
+.env
+.env.backup
+.env.production
+*.md
+docs
+.idea
+.vscode
+.fleet

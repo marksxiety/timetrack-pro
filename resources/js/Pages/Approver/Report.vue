@@ -15,58 +15,84 @@
                     <h1 class="text-2xl font-black tracking-tight">Overtime Analysis</h1>
                     <p class="text-sm text-base-content/50 mt-0.5">Aggregated employee overtime data</p>
                 </div>
-                <div class="badge badge-success badge-outline gap-1.5">
+                <div class="badge bg-success/30 border border-success text-success">
                     <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
                     Live Data
                 </div>
             </div>
 
-            <div class="card bg-base-100 border border-base-200 shadow-sm sticky top-4 z-10">
-                <div class="card-body px-5 py-3 flex-row flex-wrap items-center gap-4">
+            <div class="flex items-center gap-3 flex-wrap">
+                <div class="card bg-base-100 border border-base-200 shadow-sm flex-1 min-w-0">
+                    <div class="card-body px-4 py-2.5 flex-row items-center gap-3">
+                        <Icon icon="lucide:calendar-range" class="w-4 h-4 text-base-content/40 shrink-0" />
+                        <span class="text-sm text-base-content/70 truncate">{{ displayDateRange }}</span>
+                        <span class="text-base-content/20">·</span>
+                        <span class="text-sm text-base-content/70">{{ displayViewType }}</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-sm gap-2" @click="configModal?.open()"
+                    :disabled="isRegenerating">
+                    <Icon icon="lucide:settings-2" class="w-4 h-4" />
+                    Configure
+                </button>
+                <button class="btn btn-primary btn-sm gap-2" @click="handleRegenerateReport()"
+                    :disabled="isRegenerating">
+                    <span v-if="isRegenerating" class="loading loading-spinner loading-xs"></span>
+                    <Icon v-else icon="lucide:refresh-cw" class="w-3.5 h-3.5" />
+                    Regenerate
+                </button>
+            </div>
 
-                    <div v-if="props.userRole === 'admin'" class="flex items-center gap-2">
-                        <span
-                            class="text-[10px] font-semibold uppercase tracking-widest text-base-content/40">Unit</span>
-                        <SelectOption name="Org Unit" :options="orgUnitOptions" v-model="selectedOrgUnit"
-                            margin="" class="select-sm select-bordered w-44" :disabled="isRegenerating" />
+            <Modal ref="configModal" title="Report Configuration">
+                <div class="flex flex-col gap-5">
+                    <div v-if="props.userRole === 'admin'" class="form-control gap-1.5">
+                        <label class="label py-0">
+                            <span class="label-text text-xs font-semibold uppercase tracking-widest text-base-content/40">Organization Unit</span>
+                        </label>
+                        <SelectOption :options="orgUnitOptions" v-model="selectedOrgUnit"
+                            class="select-bordered" />
                     </div>
 
-                    <div class="flex items-center gap-2">
-                        <span
-                            class="text-[10px] font-semibold uppercase tracking-widest text-base-content/40">From</span>
-                        <TextInput type="date" v-model="selectedDateRange.start_date" margin=""
-                            class="input-sm input-bordered w-36" :disabled="isRegenerating" />
-                        <span class="text-base-content/30">&rarr;</span>
-                        <TextInput type="date" v-model="selectedDateRange.end_date" margin=""
-                            class="input-sm input-bordered w-36" :disabled="isRegenerating" />
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="form-control gap-1.5">
+                            <label class="label py-0">
+                                <span class="label-text text-xs font-semibold uppercase tracking-widest text-base-content/40">Start Date</span>
+                            </label>
+                            <TextInput type="date" v-model="selectedDateRange.start_date"
+                                :message="selectedDateRange.errors?.start_date" class="input-bordered" />
+                        </div>
+                        <div class="form-control gap-1.5">
+                            <label class="label py-0">
+                                <span class="label-text text-xs font-semibold uppercase tracking-widest text-base-content/40">End Date</span>
+                            </label>
+                            <TextInput type="date" v-model="selectedDateRange.end_date"
+                                :message="selectedDateRange.errors?.end_date" class="input-bordered" />
+                        </div>
                     </div>
 
-                    <div class="divider divider-horizontal mx-0 hidden md:flex"></div>
-
-                    <div class="flex items-center gap-2">
-                        <span
-                            class="text-[10px] font-semibold uppercase tracking-widest text-base-content/40">View</span>
+                    <div class="form-control flex flex-col gap-1.5">
+                        <label class="label py-0">
+                            <span class="label-text text-xs font-semibold uppercase tracking-widest text-base-content/40">View</span>
+                        </label>
                         <div class="join">
-                            <input class="join-item btn btn-xs no-animation" type="radio" aria-label="Weekly"
+                            <input class="join-item btn btn-sm no-animation flex-1" type="radio" aria-label="Weekly"
                                 value="weekly" v-model="selectedReportType" :disabled="isRegenerating" />
-                            <input class="join-item btn btn-xs no-animation" type="radio" aria-label="Monthly"
+                            <input class="join-item btn btn-sm no-animation flex-1" type="radio" aria-label="Monthly"
                                 value="monthly" v-model="selectedReportType" :disabled="isRegenerating" />
-                            <input class="join-item btn btn-xs no-animation" type="radio" aria-label="Yearly"
+                            <input class="join-item btn btn-sm no-animation flex-1" type="radio" aria-label="Yearly"
                                 value="yearly" v-model="selectedReportType" :disabled="isRegenerating" />
                         </div>
                     </div>
 
-                    <div class="flex-1"></div>
+                    <div class="divider my-0"></div>
 
-                    <button class="btn btn-primary btn-sm gap-2" @click="handleRegenerateReport()"
-                        :disabled="isRegenerating">
-                        <span v-if="isRegenerating" class="loading loading-spinner loading-xs"></span>
-                        <Icon v-else icon="lucide:refresh-cw" class="w-3.5 h-3.5" />
-                        Regenerate
+                    <button class="btn btn-primary gap-2" @click="handleModalApply" :disabled="isRegenerating">
+                        <span v-if="isRegenerating" class="loading loading-spinner loading-sm"></span>
+                        <Icon v-else icon="lucide:check" class="w-4 h-4" />
+                        Apply &amp; Regenerate
                     </button>
-
                 </div>
-            </div>
+            </Modal>
 
             <div class="stats stats-horizontal shadow-xs flex-wrap">
                 <Card title="Approved" :value="report?.cards?.filed + 'h'" description="Confirmed OT hours" />
@@ -76,20 +102,8 @@
                 <Card title="Pending" :value="report?.cards?.pending" description="Awaiting action" />
             </div>
 
-            <div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
-                <div class="card-body p-0 !gap-0">
-                    <div class="px-6 py-4 border-b border-base-200">
-                        <h2
-                            class="text-xs font-semibold uppercase tracking-widest text-base-content/40">
-                            Overtime Activity
-                        </h2>
-                    </div>
-                    <div class="p-4">
-                        <Heatmap :data="report?.heatmap?.data ?? {}" :years="report?.heatmap?.years ?? []"
-                            :loading="isRegenerating" />
-                    </div>
-                </div>
-            </div>
+            <Heatmap :data="report?.heatmap?.data ?? {}" :years="report?.heatmap?.years ?? []"
+                :loading="isRegenerating" :show-settings="false" />
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="lg:col-span-2 card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
@@ -121,7 +135,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
                     <div class="card-body p-0 !gap-0">
                         <div class="px-6 py-4 border-b border-base-200">
@@ -149,9 +163,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <div class="card bg-base-100 border border-base-200 shadow-sm overflow-hidden">
                     <div class="card-body p-0 !gap-0">
                         <div class="px-6 py-4 border-b border-base-200">
@@ -165,51 +177,51 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="card bg-base-100 border border-base-200 shadow-sm">
-                    <div class="card-body gap-4">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                                <Icon icon="mingcute:ai-line" class="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h2 class="text-base font-bold tracking-tight italic">AI Insight Engine</h2>
-                                <p class="text-xs text-base-content/50 mt-0.5">Powered by {{ config?.ai_model
-                                    || 'AI' }}</p>
-                            </div>
+            <div class="card bg-base-100 border border-base-200 shadow-sm">
+                <div class="card-body gap-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                            <Icon icon="mingcute:ai-line" class="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold tracking-tight italic">AI Insight Engine</h2>
+                            <p class="text-xs text-base-content/50 mt-0.5">Powered by {{ config?.ai_model
+                                || 'AI' }}</p>
+                        </div>
+                    </div>
+
+                    <div ref="aiContainer" class="min-h-32">
+                        <div v-if="AIresponse === ''"
+                            class="flex flex-col items-center justify-center py-10 gap-4 rounded-xl border border-dashed border-base-300">
+                            <p class="text-sm text-base-content/50 max-w-sm text-center leading-relaxed">
+                                Let AI analyze the trends, identify outliers, and suggest resource
+                                optimizations based on this period's data.
+                            </p>
+                            <button class="btn btn-primary btn-sm gap-2" @click="handleAnalyzeAI"
+                                :disabled="analyzingAI">
+                                <span v-if="analyzingAI" class="loading loading-dots loading-sm"></span>
+                                <template v-else>
+                                    Generate Insights
+                                    <Icon icon="lucide:sparkles" class="w-3.5 h-3.5" />
+                                </template>
+                            </button>
                         </div>
 
-                        <div ref="aiContainer" class="min-h-32">
-                            <div v-if="AIresponse === ''"
-                                class="flex flex-col items-center justify-center py-10 gap-4 rounded-xl border border-dashed border-base-300">
-                                <p class="text-sm text-base-content/50 max-w-sm text-center leading-relaxed">
-                                    Let AI analyze the trends, identify outliers, and suggest resource
-                                    optimizations based on this period's data.
-                                </p>
-                                <button class="btn btn-primary btn-sm gap-2" @click="handleAnalyzeAI"
+                        <div v-else class="bg-base-200/40 rounded-xl p-6 border border-base-200">
+                            <VueMarkdown :source="AIresponse"
+                                class="prose prose-slate max-w-none prose-headings:text-primary prose-sm" />
+                            <div class="flex justify-end mt-4 pt-4 border-t border-base-200">
+                                <button class="btn btn-ghost btn-xs gap-2" @click="handleAnalyzeAI"
                                     :disabled="analyzingAI">
-                                    <span v-if="analyzingAI" class="loading loading-dots loading-sm"></span>
+                                    <span v-if="analyzingAI" class="loading loading-spinner loading-xs"></span>
                                     <template v-else>
-                                        Generate Insights
-                                        <Icon icon="lucide:sparkles" class="w-3.5 h-3.5" />
+                                        <Icon icon="mingcute:ai-line" class="w-3.5 h-3.5" />
+                                        Regenerate Insights
                                     </template>
                                 </button>
-                            </div>
-
-                            <div v-else class="bg-base-200/40 rounded-xl p-6 border border-base-200">
-                                <VueMarkdown :source="AIresponse"
-                                    class="prose prose-slate max-w-none prose-headings:text-primary prose-sm" />
-                                <div class="flex justify-end mt-4 pt-4 border-t border-base-200">
-                                    <button class="btn btn-ghost btn-xs gap-2" @click="handleAnalyzeAI"
-                                        :disabled="analyzingAI">
-                                        <span v-if="analyzingAI" class="loading loading-spinner loading-xs"></span>
-                                        <template v-else>
-                                            <Icon icon="mingcute:ai-line" class="w-3.5 h-3.5" />
-                                            Regenerate Insights
-                                        </template>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -219,16 +231,15 @@
         </div>
 
         <div v-else class="flex items-center justify-center min-h-[70vh] p-4">
-            <div class="card lg:card-side bg-base-100 shadow-sm max-w-5xl border border-base-200">
-                <figure class="lg:w-1/2 bg-base-200/50 p-12">
+            <div class="flex flex-col lg:flex-row bg-base-100 shadow-sm max-w-5xl border border-base-200 rounded-box overflow-hidden">
+                <div class="lg:w-1/2 bg-base-200/50 flex items-center justify-center p-12">
                     <img :src="reportImage" alt="Report Illustration"
-                        class="w-full h-auto drop-shadow-xl animate-float" />
-                </figure>
-                <div class="card-body lg:w-1/2 justify-center p-8 lg:p-12 gap-6">
+                        class="w-full h-auto max-h-[50vh] object-contain drop-shadow-xl animate-float" />
+                </div>
+                <div class="lg:w-1/2 flex flex-col justify-center p-8 lg:p-12 gap-6">
                     <div>
-                        <h2 class="text-3xl font-black tracking-tight mb-2">Ready to analyze?</h2>
-                        <p class="text-base-content/50 text-sm leading-relaxed">Select a timeframe to aggregate
-                            employee overtime data and generate executive summaries.</p>
+                        <h2 class="text-3xl font-black tracking-tight mb-2">Generate Report</h2>
+                        <p class="text-base-content/50 text-sm leading-relaxed">Select a date range and organization unit to generate a comprehensive overtime report.</p>
                     </div>
 
                     <div v-if="props.userRole === 'admin'" class="form-control gap-1.5">
@@ -262,15 +273,11 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-col gap-2 mt-2">
+                    <div class="mt-2">
                         <button class="btn btn-primary btn-block" @click="handleGenerateReport"
                             :disabled="isLoading">
                             <span v-if="isLoading" class="loading loading-spinner loading-sm"></span>
                             Generate Report
-                        </button>
-                        <button class="btn btn-ghost btn-block btn-sm" @click="handleClearState"
-                            :disabled="isLoading">
-                            Reset Filters
                         </button>
                     </div>
                 </div>
@@ -304,6 +311,7 @@ import { watch, ref, nextTick, computed, onMounted, onBeforeUnmount } from 'vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import Card from '../Components/Card.vue'
 import Heatmap from '../Components/Heatmap.vue'
+import Modal from '../Components/Modal.vue'
 import SelectOption from '../Components/SelectOption.vue'
 import { useForm } from '@inertiajs/vue3'
 import reportImage from '../../images/generate-report.svg'
@@ -334,6 +342,7 @@ const selectedOrgUnit = ref('')
 const analyzingAI = ref(false)
 const AIresponse = ref("")
 const isRegenerating = ref(false)
+const configModal = ref(null)
 
 const aiContainer = ref(null)
 
@@ -367,23 +376,29 @@ const orgUnitOptions = computed(() => {
     return options
 })
 
-watch(selectedOrgUnit, () => {
-    if (reportLoaded.value) {
-        handleRegenerateReport()
-    }
-})
-
 const selectedDateRange = useForm({
     start_date: null,
     end_date: null,
     organization_unit_id: '',
 })
 
-const handleClearState = () => {
-    selectedDateRange.start_date = ''
-    selectedDateRange.end_date = ''
-    selectedOrgUnit.value = ''
+const handleModalApply = () => {
+    configModal.value?.close()
+    handleRegenerateReport()
 }
+
+const displayDateRange = computed(() => {
+    const start = selectedDateRange.start_date
+    const end = selectedDateRange.end_date
+    if (start && end) return `${start} → ${end}`
+    if (start) return `From ${start}`
+    return 'No date range set'
+})
+
+const displayViewType = computed(() => {
+    const map = { weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly' }
+    return map[selectedReportType.value] ?? 'Weekly'
+})
 
 function initChart(dom, instanceRef, key) {
     if (instanceRef) instanceRef.dispose()

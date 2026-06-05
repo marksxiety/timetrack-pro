@@ -17,15 +17,12 @@
                     :class="{ 'rotate-180': isOpen }" />
             </button>
 
-            <!-- Popover -->
-            <div v-if="isOpen"
+            <!-- Inline popover (for use inside <dialog> modals) -->
+            <div v-if="isOpen && !teleported"
                 class="absolute top-[calc(100%+6px)] left-0 z-50 bg-base-100 border border-base-300 rounded-xl shadow-lg w-52 overflow-hidden">
-                <!-- Columns -->
                 <div class="flex relative">
-                    <!-- Hour column -->
                     <div ref="hourColRef" class="flex-1 h-48 overflow-y-auto scrollbar-none scroll-smooth relative">
-                        <div
-                            class="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 right-0 h-10 bg-primary/5 border-y border-primary/20 z-10" />
+                        <div class="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 right-0 h-10 bg-primary/5 border-y border-primary/20 z-10" />
                         <div class="py-[80px]">
                             <div v-for="h in hours" :key="h" @click="selectHour(h)" :class="[
                                 'h-10 flex items-center justify-center text-sm cursor-pointer transition-colors relative z-20',
@@ -35,13 +32,9 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="w-px bg-base-200" />
-
-                    <!-- Minute column -->
                     <div ref="minColRef" class="flex-1 h-48 overflow-y-auto scrollbar-none scroll-smooth relative">
-                        <div
-                            class="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 right-0 h-10 bg-primary/5 border-y border-primary/20 z-10" />
+                        <div class="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 right-0 h-10 bg-primary/5 border-y border-primary/20 z-10" />
                         <div class="py-[80px]">
                             <div v-for="m in minutes" :key="m" @click="selectMinute(m)" :class="[
                                 'h-10 flex items-center justify-center text-sm cursor-pointer transition-colors relative z-20',
@@ -52,18 +45,53 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- AM/PM -->
                 <div class="flex border-t border-base-200">
                     <button type="button" @click="setAmPm('AM')"
                         :class="['flex-1 py-2 text-sm font-medium transition-colors border-r border-base-200', selectedAmPm === 'AM' ? 'bg-primary text-primary-content' : 'hover:bg-base-200 text-base-content/60']">AM</button>
                     <button type="button" @click="setAmPm('PM')"
                         :class="['flex-1 py-2 text-sm font-medium transition-colors', selectedAmPm === 'PM' ? 'bg-primary text-primary-content' : 'hover:bg-base-200 text-base-content/60']">PM</button>
                 </div>
-
-
             </div>
         </div>
+
+        <!-- Teleported popover (for pages with overflow-y-auto containers) -->
+        <Teleport v-if="teleported" to="body">
+            <div v-if="isOpen" ref="popoverRef"
+                class="fixed z-[9999] bg-base-100 border border-base-300 rounded-xl shadow-lg w-52 overflow-hidden"
+                :style="popoverStyle">
+                <div class="flex relative">
+                    <div ref="hourColRefTeleported" class="flex-1 h-48 overflow-y-auto scrollbar-none scroll-smooth relative">
+                        <div class="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 right-0 h-10 bg-primary/5 border-y border-primary/20 z-10" />
+                        <div class="py-[80px]">
+                            <div v-for="h in hours" :key="h" @click="selectHour(h)" :class="[
+                                'h-10 flex items-center justify-center text-sm cursor-pointer transition-colors relative z-20',
+                                selectedHour === h ? 'text-primary font-semibold' : 'text-base-content/50 hover:text-base-content'
+                            ]">
+                                {{ String(h).padStart(2, '0') }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-px bg-base-200" />
+                    <div ref="minColRefTeleported" class="flex-1 h-48 overflow-y-auto scrollbar-none scroll-smooth relative">
+                        <div class="pointer-events-none absolute top-1/2 -translate-y-1/2 left-0 right-0 h-10 bg-primary/5 border-y border-primary/20 z-10" />
+                        <div class="py-[80px]">
+                            <div v-for="m in minutes" :key="m" @click="selectMinute(m)" :class="[
+                                'h-10 flex items-center justify-center text-sm cursor-pointer transition-colors relative z-20',
+                                selectedMinute === m ? 'text-primary font-semibold' : 'text-base-content/50 hover:text-base-content'
+                            ]">
+                                {{ String(m).padStart(2, '0') }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex border-t border-base-200">
+                    <button type="button" @click="setAmPm('AM')"
+                        :class="['flex-1 py-2 text-sm font-medium transition-colors border-r border-base-200', selectedAmPm === 'AM' ? 'bg-primary text-primary-content' : 'hover:bg-base-200 text-base-content/60']">AM</button>
+                    <button type="button" @click="setAmPm('PM')"
+                        :class="['flex-1 py-2 text-sm font-medium transition-colors', selectedAmPm === 'PM' ? 'bg-primary text-primary-content' : 'hover:bg-base-200 text-base-content/60']">PM</button>
+                </div>
+            </div>
+        </Teleport>
 
         <p v-if="message" class="mt-1 text-sm text-error px-1">
             {{ message === '-' ? '' : message }}
@@ -80,15 +108,23 @@ const props = defineProps({
     message: String,
     margin: { type: String, default: 'mb-4' },
     disabled: { type: Boolean, default: false },
-    minuteStep: { type: Number, default: 15 } // 15 or 30 or 1
+    minuteStep: { type: Number, default: 15 },
+    teleported: { type: Boolean, default: true }
 })
 
 const model = defineModel({ type: String, required: true })
 
 const isOpen = ref(false)
 const wrapperRef = ref(null)
+const popoverRef = ref(null)
 const hourColRef = ref(null)
 const minColRef = ref(null)
+const hourColRefTeleported = ref(null)
+const minColRefTeleported = ref(null)
+const popoverStyle = ref({})
+
+const activeHourCol = computed(() => props.teleported ? hourColRefTeleported.value : hourColRef.value)
+const activeMinCol = computed(() => props.teleported ? minColRefTeleported.value : minColRef.value)
 
 const selectedHour = ref(null)
 const selectedMinute = ref(null)
@@ -101,7 +137,6 @@ const minutes = computed(() => {
     return result
 })
 
-// Parse incoming model value (24hr format "HH:mm" from your backend)
 const parseModel = (val) => {
     if (!val) return
     const [h, m] = val.split(':').map(Number)
@@ -113,7 +148,6 @@ const parseModel = (val) => {
 onMounted(() => parseModel(model.value))
 watch(() => model.value, parseModel)
 
-// Display in 12hr format
 const displayValue = computed(() => {
     if (selectedHour.value === null || selectedMinute.value === null) return ''
     return `${String(selectedHour.value).padStart(2, '0')}:${String(selectedMinute.value).padStart(2, '0')} ${selectedAmPm.value}`
@@ -126,15 +160,41 @@ const to24hr = () => {
     return `${String(h).padStart(2, '0')}:${String(selectedMinute.value).padStart(2, '0')}`
 }
 
+const updatePopoverPosition = () => {
+    if (!wrapperRef.value) return
+    const rect = wrapperRef.value.getBoundingClientRect()
+    const popoverHeight = 296
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+
+    if (spaceBelow >= popoverHeight + 6) {
+        popoverStyle.value = {
+            top: `${rect.bottom + 6}px`,
+            left: `${rect.left}px`,
+        }
+    } else if (spaceAbove >= popoverHeight + 6) {
+        popoverStyle.value = {
+            bottom: `${window.innerHeight - rect.top + 6}px`,
+            left: `${rect.left}px`,
+        }
+    } else {
+        popoverStyle.value = {
+            top: `${Math.max(8, rect.bottom + 6)}px`,
+            left: `${rect.left}px`,
+            maxHeight: `${Math.min(spaceBelow - 12, 360)}px`,
+        }
+    }
+}
+
 const scrollToSelected = () => {
     nextTick(() => {
-        if (hourColRef.value && selectedHour.value) {
+        if (activeHourCol.value && selectedHour.value) {
             const idx = hours.indexOf(selectedHour.value)
-            hourColRef.value.scrollTop = idx * 40
+            activeHourCol.value.scrollTop = idx * 40
         }
-        if (minColRef.value && selectedMinute.value !== null) {
+        if (activeMinCol.value && selectedMinute.value !== null) {
             const idx = minutes.value.indexOf(selectedMinute.value)
-            minColRef.value.scrollTop = idx * 40
+            activeMinCol.value.scrollTop = idx * 40
         }
     })
 }
@@ -142,7 +202,10 @@ const scrollToSelected = () => {
 const togglePicker = () => {
     if (props.disabled) return
     isOpen.value = !isOpen.value
-    if (isOpen.value) scrollToSelected()
+    if (isOpen.value) {
+        if (props.teleported) updatePopoverPosition()
+        scrollToSelected()
+    }
 }
 
 watch([selectedHour, selectedMinute, selectedAmPm], () => {
@@ -162,17 +225,37 @@ const setAmPm = (v) => {
     selectedAmPm.value = v
 }
 
-// Close on outside click
 const handleOutsideClick = (e) => {
-    if (wrapperRef.value && !wrapperRef.value.contains(e.target) && isOpen.value) {
+    const target = e.target
+    if (!isOpen.value) return
+    if (wrapperRef.value && !wrapperRef.value.contains(target)) {
+        if (props.teleported && popoverRef.value && popoverRef.value.contains(target)) return
+        if (!props.teleported && wrapperRef.value.querySelector('[class*="absolute"]')?.contains(target)) return
         isOpen.value = false
         if (selectedHour.value !== null && selectedMinute.value !== null) {
             model.value = to24hr()
         }
     }
 }
-onMounted(() => document.addEventListener('click', handleOutsideClick))
-onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
+
+const handleScroll = () => {
+    if (isOpen.value) updatePopoverPosition()
+}
+
+const handleResize = () => {
+    if (isOpen.value) updatePopoverPosition()
+}
+
+onMounted(() => {
+    document.addEventListener('click', handleOutsideClick)
+    window.addEventListener('scroll', handleScroll, true)
+    window.addEventListener('resize', handleResize)
+})
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleOutsideClick)
+    window.removeEventListener('scroll', handleScroll, true)
+    window.removeEventListener('resize', handleResize)
+})
 </script>
 
 <style scoped>

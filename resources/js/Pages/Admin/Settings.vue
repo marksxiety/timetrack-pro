@@ -1,7 +1,8 @@
 <template>
 
     <Head title="System Settings" />
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 mx-auto w-full max-w-7xl">
+
         <Breadcrumbs :items="[
             { label: 'Home', route: 'main' },
             { label: 'Settings', active: true },
@@ -14,11 +15,13 @@
         </div>
 
         <form @submit.prevent="submitForm">
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-8 w-full max-w-7xl">
+            <div class="grid grid-cols-2 lg:grid-cols-5 gap-8">
 
-                <div class="col-span-2 flex flex-col gap-8">
-                    <div class="bg-base-100 p-8 rounded-md shadow-xs border border-base-200 flex flex-col gap-6">
-                        <h2 class="text-xl font-bold text-center text-primary uppercase tracking-wide">
+                <div class="col-span-2 flex flex-col gap-4">
+
+                    <div
+                        class="bg-base-100 p-8 rounded-md shadow-xs border border-base-200 flex flex-col gap-6 overflow-hidden">
+                        <h2 class="text-lg font-semibold text-base-content">
                             Overtime Configuration
                         </h2>
 
@@ -57,22 +60,20 @@
                         </div>
                     </div>
 
-                    <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col">
+                    <div
+                        class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col overflow-hidden max-h-[50vh]">
                         <h2 class="text-lg font-semibold mb-1 text-base-content">Organization Units</h2>
-                        <p class="text-xs text-base-content/40 mb-4">Manage the organization units used for scoping
-                            employees, approvers, required hours, and reports.</p>
-
-                        <div class="overflow-auto flex-1">
+                        <div class="flex-1 overflow-y-auto min-h-0 max-h-[17vh]">
                             <table class="table w-full text-sm">
                                 <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
-                                    <tr class="text-center">
+                                    <tr>
                                         <th class="py-3">Unit Name</th>
                                         <th class="w-32">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr v-for="unit in orgUnits" :key="unit.id"
-                                        class="text-center hover:bg-base-300/30 transition-colors">
+                                        class="hover:bg-base-300/30 transition-colors">
                                         <td class="py-2 font-semibold">{{ unit.unit_path }}</td>
                                         <td>
                                             <div class="flex items-center justify-center gap-1">
@@ -91,7 +92,8 @@
                             </table>
                         </div>
 
-                        <form @submit.prevent="addUnit" class="flex items-end gap-3 mt-4">
+                        <form @submit.prevent="addUnit"
+                            class="flex items-end gap-3 mt-4 pt-4 border-t border-base-200 flex-shrink-0">
                             <div class="form-control flex-1">
                                 <label class="label pb-0">
                                     <span
@@ -110,14 +112,15 @@
                             </button>
                         </form>
                     </div>
-                </div>
 
-                <div class="col-span-3 flex">
-                    <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 flex flex-col flex-1">
-                        <h2 class="text-lg font-semibold mb-4 text-base-content">Default Shift Codes</h2>
+                </div>
+                <div class="col-span-3 h-full">
+                    <div class="bg-base-100 rounded-md p-6 shadow-xs border border-base-200 h-full flex flex-col">
+                        <h2 class="text-lg font-semibold mb-1 text-base-content">Default Shift Codes</h2>
                         <p class="text-xs text-base-content/40 mb-4">Assign a default shift code for each day of the
                             week. Leave blank for no default.</p>
-                        <div class="overflow-auto flex-1">
+
+                        <div class="flex-1 overflow-y-auto min-h-0">
                             <table class="table w-full text-sm">
                                 <thead class="sticky top-0 bg-base-200 z-10 text-base-content">
                                     <tr class="text-center">
@@ -139,7 +142,7 @@
                             </table>
                         </div>
 
-                        <div class="mt-6 flex justify-end">
+                        <div class="mt-4 pt-4 border-t border-base-200 flex justify-end flex-shrink-0">
                             <button type="submit" class="btn btn-primary" :disabled="form.processing">
                                 <span v-if="form.processing" class="loading loading-spinner"></span>
                                 <span>Save Settings</span>
@@ -151,6 +154,7 @@
             </div>
         </form>
 
+        <!-- Modals unchanged -->
         <Modal ref="editModal" title="Edit Organization Unit">
             <form @submit.prevent="saveEdit" class="flex flex-col gap-4">
                 <div class="form-control gap-1">
@@ -205,9 +209,9 @@
                 </div>
             </div>
         </Modal>
+
     </div>
 </template>
-
 <script setup>
 import { useForm } from '@inertiajs/vue3'
 import { inject, ref, computed, nextTick } from 'vue'
@@ -229,7 +233,7 @@ const minuteStepOptions = [
     { label: '30 minutes', value: 30 },
 ]
 
-const orgUnits = ref([...(props.organization_units ?? [])])
+const orgUnits = computed(() => props.organization_units ?? [])
 
 const form = useForm({
     default_shift_codes: props.settings?.default_shift_codes ?? [
@@ -298,8 +302,6 @@ const cancelEdit = () => {
 const saveEdit = () => {
     editForm.put(route('admin.organization-units.update', editingId.value), {
         onSuccess: () => {
-            const idx = orgUnits.value.findIndex(u => u.id === editingId.value)
-            if (idx !== -1) orgUnits.value[idx].unit_path = editForm.unit_path
             editModal.value?.close()
             editingId.value = null
             editForm.reset()
@@ -340,7 +342,6 @@ const deleteUnit = () => {
     deleteForm.reassign_to = reassignTo.value
     deleteForm.delete(route('admin.organization-units.destroy', deleteTarget.value.id), {
         onSuccess: () => {
-            orgUnits.value = orgUnits.value.filter(u => u.id !== deleteTarget.value.id)
             deleteModal.value?.close()
             deleteTarget.value = null
             reassignTo.value = null

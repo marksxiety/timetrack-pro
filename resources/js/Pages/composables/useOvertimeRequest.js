@@ -1,4 +1,10 @@
+import { ref } from 'vue';
 import { enhanceReasonWithAI } from '../services/ai.js';
+
+export const originalReason = ref('')
+export const enhanceCooldown = ref(0)
+
+let cooldownTimer = null
 
 /**
  * @typedef {Object} OvertimeRequestForm
@@ -26,8 +32,6 @@ import { enhanceReasonWithAI } from '../services/ai.js';
  * @returns {Promise<void>}
  */
 export async function enhanceReason(form, isEnhancing) {
-    const originalReason = form.reason;
-
     if (!form.reason) {
         form.errors.reason = 'Please enter a reason to enhance.';
         return;
@@ -45,7 +49,13 @@ export async function enhanceReason(form, isEnhancing) {
     }
 
     delete form.errors.reason;
+    originalReason.value = form.reason;
     isEnhancing.value = true;
+
+    if (cooldownTimer) {
+        clearInterval(cooldownTimer);
+        cooldownTimer = null;
+    }
 
     try {
         const enhanced = await enhanceReasonWithAI(form.reason, (streamedText) => {
@@ -55,7 +65,7 @@ export async function enhanceReason(form, isEnhancing) {
         if (enhanced.success) {
             form.reason = enhanced.data;
         } else {
-            form.reason = originalReason;
+            form.reason = originalReason.value;
             if (enhanced.status === 422) {
                 form.errors.reason = { message: enhanced.data, type: 'warning' };
             } else {
@@ -64,7 +74,25 @@ export async function enhanceReason(form, isEnhancing) {
         }
     } finally {
         isEnhancing.value = false;
+        enhanceCooldown.value = 5;
+        cooldownTimer = setInterval(() => {
+            enhanceCooldown.value--;
+            if (enhanceCooldown.value <= 0) {
+                clearInterval(cooldownTimer);
+                cooldownTimer = null;
+            }
+        }, 1000);
     }
+}
+
+/**
+ * Restore the reason to its pre-enhancement state.
+ * @param {Object} form - Inertia useForm instance
+ */
+export function undoEnhance(form) {
+    if (!originalReason.value) return;
+    form.reason = originalReason.value;
+    originalReason.value = '';
 }
 
 /**

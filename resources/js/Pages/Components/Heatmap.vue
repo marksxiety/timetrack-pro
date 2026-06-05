@@ -59,7 +59,7 @@
                 </div>
 
                 <!-- Status filter popover -->
-                <div class="dropdown dropdown-end">
+                <div v-if="showSettings" class="dropdown dropdown-end">
                     <label tabindex="0" class="btn btn-xs btn-ghost btn-square">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -120,6 +120,10 @@ const props = defineProps({
     availableStatuses: {
         type: Array,
         default: () => ['APPROVED', 'FILED', 'PENDING']
+    },
+    showSettings: {
+        type: Boolean,
+        default: true
     }
 })
 
