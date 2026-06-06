@@ -82,7 +82,7 @@
                                         Schedule
                                     </span>
                                     <span class="font-semibold">
-                                        {{ schedule.shift_start === '--' || schedule.shift_end === '--'
+                                        {{ !schedule.shift_start || !schedule.shift_end
                                             ? 'N/A'
                                             : schedule.shift_start + ' → ' + schedule.shift_end }}
                                     </span>
