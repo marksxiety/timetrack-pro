@@ -133,7 +133,7 @@
                                                     </div>
                                                     <div class="flex justify-between items-baseline">
                                                         <span class="text-[10px] uppercase tracking-wider text-base-content/30">Hours</span>
-                                                        <span class="text-xs font-medium text-base-content/70 font-mono">{{ to12hr(form.shift_start_time) }} → {{ to12hr(form.shift_end_time) }}</span>
+                                                        <span class="text-xs font-medium text-base-content/70 font-mono">{{ form.shift_start_time && form.shift_end_time ? to12hr(form.shift_start_time) + ' → ' + to12hr(form.shift_end_time) : 'N/A' }}</span>
                                                     </div>
                                                 </div>
                                                 <div v-else class="text-xs text-base-content/25 text-center">
