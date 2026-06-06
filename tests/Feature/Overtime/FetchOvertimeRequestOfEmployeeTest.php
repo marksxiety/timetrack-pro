@@ -181,6 +181,60 @@ class FetchOvertimeRequestOfEmployeeTest extends TestCase
             ->has('info.requests.data.0.status')
             ->has('info.requests.data.0.hours')
             ->has('info.requests.data.0.reason')
+            ->has('info.counts.total_hours')
+            ->has('info.counts.filed')
+            ->has('info.counts.pending')
+            ->has('info.counts.approved')
+            ->has('info.counts.rejected')
+        );
+    }
+
+    public function test_counts_match_created_overtimes()
+    {
+        $schedule = $this->createSchedule('2026-01-05');
+        $this->createOvertime($schedule, 'PENDING');
+        $this->createOvertime($schedule, 'APPROVED');
+        $this->createOvertime($schedule, 'DECLINED');
+
+        $response = $this->get('/overtime/requests');
+
+        $response->assertInertia(fn ($page) => $page
+            ->where('info.counts.pending', 1)
+            ->where('info.counts.approved', 1)
+            ->where('info.counts.rejected', 1)
+            ->where('info.counts.filed', 0)
+            ->where('info.counts.total_hours', '6.00')
+        );
+    }
+
+    public function test_counts_reflect_filtered_results()
+    {
+        $schedule = $this->createSchedule('2026-01-05');
+        $this->createOvertime($schedule, 'APPROVED');
+        $this->createOvertime($schedule, 'PENDING');
+        $this->createOvertime($schedule, 'PENDING');
+
+        $response = $this->get('/overtime/requests?status=APPROVED');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('info.requests.data', 1)
+            ->where('info.counts.approved', 1)
+            ->where('info.counts.pending', 0)
+        );
+    }
+
+    public function test_counts_bypass_pagination()
+    {
+        for ($i = 0; $i < 12; $i++) {
+            $schedule = $this->createSchedule('2026-01-' . str_pad($i + 1, 2, '0', STR_PAD_LEFT));
+            $this->createOvertime($schedule, 'PENDING');
+        }
+
+        $response = $this->get('/overtime/requests');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('info.requests.data', 10)
+            ->where('info.counts.pending', 12)
         );
     }
 
@@ -191,6 +245,11 @@ class FetchOvertimeRequestOfEmployeeTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->has('info.requests.data', 0)
             ->where('success', true)
+            ->where('info.counts.total_hours', '0.00')
+            ->where('info.counts.filed', 0)
+            ->where('info.counts.pending', 0)
+            ->where('info.counts.approved', 0)
+            ->where('info.counts.rejected', 0)
         );
     }
 
