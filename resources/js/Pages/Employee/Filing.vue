@@ -398,7 +398,7 @@ import TextArea from '../Components/TextArea.vue'
 import TimePickerInput from '../Components/TimePicker.vue'
 import { fetchUserSchedule } from '../api/schedule.js'
 import { submitBulkOvertime } from '../api/overtime.js'
-import { enhanceReason, originalReason, enhanceCooldown, undoEnhance } from '../composables/useOvertimeRequest.js'
+import { enhanceReason, originalReason, enhanceCooldown, undoEnhance, resetEnhanceState } from '../composables/useOvertimeRequest.js'
 import { currentWeek, to12hr, to24hr } from '../utils/helpers/date.js'
 import { Icon } from "@iconify/vue"
 
@@ -531,6 +531,7 @@ const updateInQueue = () => {
 const editItem = (index) => {
     if (isSubmitting.value) return
     isEditing.value = true
+    resetEnhanceState()
     const item = queue.value[index]
     editingIndex.value = index
     selectedDate.value = item.dateRaw || ''
@@ -557,6 +558,7 @@ const editItem = (index) => {
 
 const cancelEdit = () => {
     editingIndex.value = null
+    resetEnhanceState()
     resetFormState()
 }
 
@@ -584,6 +586,7 @@ const resetForm = () => {
     form.end_time = ''
     form.reason = ''
     form.clearErrors()
+    resetEnhanceState()
 }
 
 const resetFormState = () => {
@@ -661,6 +664,7 @@ const getItemStateLabel = (state) => {
 
 const onDateChange = async () => {
     if (isEditing.value) return
+    resetEnhanceState()
     const newDate = selectedDate.value
 
     if (!newDate) {
