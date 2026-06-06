@@ -780,19 +780,29 @@ class OvertimeRequestController extends Controller
         $success = false;
         try {
 
-            $requests = OvertimeRequest::with(['schedule.user', 'schedule.shift'])
+            $query = OvertimeRequest::with(['schedule.user', 'schedule.shift'])
                 ->join('schedules', 'overtime_requests.employee_schedule_id', '=', 'schedules.id')
                 ->whereHas('schedule.user', fn($q) => $q->where('id', Auth::id()))
                 ->when($week, fn($q) => $q->where('schedules.week', $week))
                 ->when($status !== 'ALL', fn($q) => $q->where('overtime_requests.status', $status))
-                ->when($search, function ($query) use ($search) {
-                    return $query->where(function ($q) use ($search) {
+                ->when($search, function ($q) use ($search) {
+                    return $q->where(function ($q) use ($search) {
                         $q->where('overtime_requests.reason', 'like', '%' . $search . '%')
                             ->orWhere('overtime_requests.remarks', 'like', '%' . $search . '%')
                             ->orWhere('schedules.date', 'like', '%' . $search . '%')
                             ->orWhere('schedules.week', 'like', '%' . $search . '%');
                     });
-                })
+                });
+
+            $counts = [
+                'total_hours' => number_format((clone $query)->sum('overtime_requests.hours'), 2),
+                'filed' => (clone $query)->where('overtime_requests.status', 'FILED')->count(DB::raw('DISTINCT overtime_requests.id')),
+                'pending' => (clone $query)->where('overtime_requests.status', 'PENDING')->count(DB::raw('DISTINCT overtime_requests.id')),
+                'approved' => (clone $query)->where('overtime_requests.status', 'APPROVED')->count(DB::raw('DISTINCT overtime_requests.id')),
+                'rejected' => (clone $query)->whereIn('overtime_requests.status', ['DECLINED', 'DISAPPROVED', 'CANCELED'])->count(DB::raw('DISTINCT overtime_requests.id')),
+            ];
+
+            $requests = (clone $query)
                 ->when($sort === 'date_asc', fn($q) => $q->orderBy('schedules.date', 'asc')
                     ->orderBy('overtime_requests.updated_at', 'asc'))
                 ->when($sort === 'date_desc', fn($q) => $q->orderBy('schedules.date', 'desc')
@@ -840,7 +850,8 @@ class OvertimeRequestController extends Controller
 
         return inertia('Employee/Request', [
             'info' => [
-                'requests' => $requests
+                'requests' => $requests,
+                'counts' => $counts,
             ],
             'payload' => [
                 'week' => $week,
