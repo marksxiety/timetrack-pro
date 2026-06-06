@@ -231,13 +231,14 @@ const submitForm = async () => {
 
 onMounted(async () => {
     isLoading.value = true
-    await loadConfig()
     await loadMonthData()
 })
 
 async function loadMonthData() {
     isLoading.value = true
     skippedIds.value = []
+
+    await loadConfig(true)
 
     const weeksInMonth = getWeeksInMonth(selectedYear.value, selectedMonth.value)
 
@@ -262,7 +263,6 @@ async function loadMonthData() {
 
     isLoading.value = false
 }
-
 
 function removeWeek(index) {
     weeklySchedules.value.splice(index, 1)
