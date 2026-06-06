@@ -201,11 +201,11 @@
 
         <!-- Stats Cards -->
         <div class="stats shadow grid grid-cols-5">
-            <Card title="Total Hours" :value="heatmapStats.total_hours + ' hrs'" />
-            <Card title="Filed Requests" :value="heatmapStats.filed" />
-            <Card title="Pending Requests" :value="heatmapStats.pending" />
-            <Card title="Approved Requests" :value="heatmapStats.approved" />
-            <Card title="Rejected Requests" :value="heatmapStats.rejected" />
+            <Card title="Total Hours" :value="filterCounts.total_hours + ' hrs'" />
+            <Card title="Filed Requests" :value="filterCounts.filed" />
+            <Card title="Pending Requests" :value="filterCounts.pending" />
+            <Card title="Approved Requests" :value="filterCounts.approved" />
+            <Card title="Rejected Requests" :value="filterCounts.rejected" />
         </div>
 
         <!-- Heatmap -->
@@ -419,6 +419,14 @@ const searchValue = ref(props.payload?.search ?? '')
 const paginator = ref(props.info?.requests ?? { data: [], links: [] })
 const requests = ref(paginator.value.data ?? [])
 
+const filterCounts = ref({
+    total_hours: props.info?.counts?.total_hours ?? '0.00',
+    filed: props.info?.counts?.filed ?? 0,
+    pending: props.info?.counts?.pending ?? 0,
+    approved: props.info?.counts?.approved ?? 0,
+    rejected: props.info?.counts?.rejected ?? 0,
+})
+
 const heatmapStats = ref({
     total_hours: '0.00',
     filed: 0,
@@ -511,6 +519,9 @@ watch(() => props.info?.requests, (newRequests) => {
         paginator.value = newRequests
         requests.value = newRequests.data || []
     }
+    if (props.info?.counts) {
+        filterCounts.value = props.info.counts
+    }
 }, { immediate: true })
 
 const handleFilter = () => {
@@ -536,6 +547,9 @@ const fetchRequests = () => {
         onSuccess: (page) => {
             paginator.value = page.props.info.requests
             requests.value = paginator.value.data
+            if (page.props.info.counts) {
+                filterCounts.value = page.props.info.counts
+            }
         }
     })
 }
