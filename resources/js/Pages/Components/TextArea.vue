@@ -7,7 +7,7 @@
                 borderClass,
                 textClass,
                 { 'overflow-hidden': autoResize }
-            ]" :placeholder="placeholder" :disabled="disabled" :readonly="readonly"></textarea>
+            ]" :placeholder="placeholder" :disabled="disabled" :readonly="readonly || glowing"></textarea>
         <p v-if="displayMessage" :class="['mt-1 text-sm px-2 py-1 text-center', textClass]">
             {{ displayMessage }}
         </p>
