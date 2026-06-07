@@ -36,7 +36,6 @@ function generateUid() {
 function persist() {
     try {
         const items = queue.value
-            .filter(item => item.state !== 'success')
             .map(({ _uid, errors, ...data }) => ({
                 ...data,
                 ...(errors ? { errors } : {}),
