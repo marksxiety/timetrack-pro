@@ -401,6 +401,7 @@ import { submitBulkOvertime } from '../api/overtime.js'
 import { enhanceReason, originalReason, enhanceCooldown, undoEnhance, resetEnhanceState } from '../composables/useOvertimeRequest.js'
 import { currentWeek, to12hr, to24hr } from '../utils/helpers/date.js'
 import { Icon } from "@iconify/vue"
+import { queue, persist as persistQueue, addToQueue as storeAddToQueue, updateInQueue as storeUpdateInQueue, removeFromQueue as storeRemoveFromQueue, clearQueue as storeClearQueue } from '../composables/useOvertimeQueue.js'
 
 const toast = inject('toast')
 const appConfig = inject('appConfig')
@@ -414,9 +415,6 @@ const editingIndex = ref(null)
 const isEditing = ref(false)
 const modalSubmitConfirm = ref(null)
 const modalClearConfirm = ref(null)
-let uid = 0
-
-const queue = ref([])
 
 const fieldsDisabled = computed(() => !withSchedule.value)
 
@@ -508,7 +506,7 @@ const addToQueue = () => {
         toast('This date, start time, and end time already exists in the queue.', 'error')
         return
     }
-    queue.value.push({ _uid: ++uid, ...data, state: 'pending', errors: null })
+    storeAddToQueue(data)
     toast('Request added to queue.', 'success')
     resetForm()
 }
@@ -521,8 +519,7 @@ const updateInQueue = () => {
         toast('This date, start time, and end time already exists in the queue.', 'error')
         return
     }
-    const item = queue.value[editingIndex.value]
-    queue.value[editingIndex.value] = { ...item, ...data, state: 'pending', errors: null }
+    storeUpdateInQueue(editingIndex.value, data)
     toast('Request updated in queue.', 'success')
     editingIndex.value = null
     resetForm()
@@ -570,12 +567,12 @@ const removeFromQueue = (index) => {
     } else if (editingIndex.value !== null && editingIndex.value > index) {
         editingIndex.value--
     }
-    queue.value.splice(index, 1)
+    storeRemoveFromQueue(index)
 }
 
 const clearQueue = () => {
     if (isSubmitting.value) return
-    queue.value = []
+    storeClearQueue()
     editingIndex.value = null
     resetFormState()
     toast('Queue cleared.', 'info')
@@ -635,6 +632,7 @@ const submitBulk = async () => {
         } else {
             toast('All requests failed. Please review the errors.', 'error')
         }
+        persistQueue()
     } finally {
         isSubmitting.value = false
         editingIndex.value = null
