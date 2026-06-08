@@ -85,6 +85,15 @@ export async function enhanceReason(form, isEnhancing) {
     }
 }
 
+export function resetEnhanceState() {
+    originalReason.value = ''
+    enhanceCooldown.value = 0
+    if (cooldownTimer) {
+        clearInterval(cooldownTimer)
+        cooldownTimer = null
+    }
+}
+
 /**
  * Restore the reason to its pre-enhancement state.
  * @param {Object} form - Inertia useForm instance

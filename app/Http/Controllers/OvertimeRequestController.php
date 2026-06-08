@@ -210,10 +210,10 @@ class OvertimeRequestController extends Controller
                     'shift_code' => $overtime->schedule->shift->code ?? 'No Shift',
                     'shift_start_time' => $overtime->schedule->shift && $overtime->schedule->shift->start_time
                         ? Carbon::createFromFormat('H:i:s', $overtime->schedule->shift->start_time)->format('h:i A')
-                        : '--',
+                        : null,
                     'shift_end_time' => $overtime->schedule->shift && $overtime->schedule->shift->end_time
                         ? Carbon::createFromFormat('H:i:s', $overtime->schedule->shift->end_time)->format('h:i A')
-                        : '--',
+                        : null,
                     'id' => $overtime->id,
                     'start_time' => $overtime->start_time ? Carbon::createFromFormat('H:i:s', $overtime->start_time)->format('h:i A') : 'N/A',
                     'end_time' => $overtime->end_time ? Carbon::createFromFormat('H:i:s', $overtime->end_time)->format('h:i A') : 'N/A',
@@ -246,10 +246,10 @@ class OvertimeRequestController extends Controller
                     'shift_code' => $overtime->schedule->shift->code ?? 'No Shift',
                     'shift_start_time' => $overtime->schedule->shift && $overtime->schedule->shift->start_time
                         ? Carbon::createFromFormat('H:i:s', $overtime->schedule->shift->start_time)->format('h:i A')
-                        : '--',
+                        : null,
                     'shift_end_time' => $overtime->schedule->shift && $overtime->schedule->shift->end_time
                         ? Carbon::createFromFormat('H:i:s', $overtime->schedule->shift->end_time)->format('h:i A')
-                        : '--',
+                        : null,
                     'id' => $overtime->id,
                     'start_time' => $overtime->start_time ? Carbon::createFromFormat('H:i:s', $overtime->start_time)->format('h:i A') : 'N/A',
                     'end_time' => $overtime->end_time ? Carbon::createFromFormat('H:i:s', $overtime->end_time)->format('h:i A') : 'N/A',
@@ -613,8 +613,8 @@ class OvertimeRequestController extends Controller
                 $overtime_start = Carbon::createFromFormat('H:i:s', $overtime->start_time);
                 $overtime_end = Carbon::createFromFormat('H:i:s', $overtime->end_time);
 
-                $schedule_start = $overtime->shift_start === null ? '--' :  Carbon::createFromFormat('H:i:s', $overtime->shift_start);
-                $schedule_end = $overtime->shift_start === null ? '--' :  Carbon::createFromFormat('H:i:s', $overtime->shift_end);
+                $schedule_start = $overtime->shift_start === null ? null :  Carbon::createFromFormat('H:i:s', $overtime->shift_start);
+                $schedule_end = $overtime->shift_start === null ? null :  Carbon::createFromFormat('H:i:s', $overtime->shift_end);
 
                 $overtime_created = Carbon::createFromFormat('Y-m-d H:i:s', $overtime->created_at);
 
@@ -630,8 +630,8 @@ class OvertimeRequestController extends Controller
                         'date' => $overtime->date,
                         'week' => $overtime->week,
                         'shift_code' => $overtime->shift_code ?? 'N/A',
-                        'shift_start' => $schedule_start === '--' ? '--' : $schedule_start->format('h:i A'),
-                        'shift_end' => $schedule_end === '--' ? '--' : $schedule_end->format('h:i A'),
+                        'shift_start' => $schedule_start ? $schedule_start->format('h:i A') : null,
+                        'shift_end' => $schedule_end ? $schedule_end->format('h:i A') : null,
                     ],
                     'overtime' => [
                         'start_time' => $overtime_start->format('h:i A'),
@@ -780,19 +780,29 @@ class OvertimeRequestController extends Controller
         $success = false;
         try {
 
-            $requests = OvertimeRequest::with(['schedule.user', 'schedule.shift'])
+            $query = OvertimeRequest::with(['schedule.user', 'schedule.shift'])
                 ->join('schedules', 'overtime_requests.employee_schedule_id', '=', 'schedules.id')
                 ->whereHas('schedule.user', fn($q) => $q->where('id', Auth::id()))
                 ->when($week, fn($q) => $q->where('schedules.week', $week))
                 ->when($status !== 'ALL', fn($q) => $q->where('overtime_requests.status', $status))
-                ->when($search, function ($query) use ($search) {
-                    return $query->where(function ($q) use ($search) {
+                ->when($search, function ($q) use ($search) {
+                    return $q->where(function ($q) use ($search) {
                         $q->where('overtime_requests.reason', 'like', '%' . $search . '%')
                             ->orWhere('overtime_requests.remarks', 'like', '%' . $search . '%')
                             ->orWhere('schedules.date', 'like', '%' . $search . '%')
                             ->orWhere('schedules.week', 'like', '%' . $search . '%');
                     });
-                })
+                });
+
+            $counts = [
+                'total_hours' => number_format((clone $query)->sum('overtime_requests.hours'), 2),
+                'filed' => (clone $query)->where('overtime_requests.status', 'FILED')->count(DB::raw('DISTINCT overtime_requests.id')),
+                'pending' => (clone $query)->where('overtime_requests.status', 'PENDING')->count(DB::raw('DISTINCT overtime_requests.id')),
+                'approved' => (clone $query)->where('overtime_requests.status', 'APPROVED')->count(DB::raw('DISTINCT overtime_requests.id')),
+                'rejected' => (clone $query)->whereIn('overtime_requests.status', ['DECLINED', 'DISAPPROVED', 'CANCELED'])->count(DB::raw('DISTINCT overtime_requests.id')),
+            ];
+
+            $requests = (clone $query)
                 ->when($sort === 'date_asc', fn($q) => $q->orderBy('schedules.date', 'asc')
                     ->orderBy('overtime_requests.updated_at', 'asc'))
                 ->when($sort === 'date_desc', fn($q) => $q->orderBy('schedules.date', 'desc')
@@ -816,10 +826,10 @@ class OvertimeRequestController extends Controller
                     'shift'   => $req->schedule->shift ? $req->schedule->shift->code : 'N/A',
                     'shift_start_time' => $req->schedule->shift && $req->schedule->shift->start_time
                         ? Carbon::createFromFormat('H:i:s', $req->schedule->shift->start_time)->format('h:i A')
-                        : '--',
+                        : null,
                     'shift_end_time' => $req->schedule->shift && $req->schedule->shift->end_time
                         ? Carbon::createFromFormat('H:i:s', $req->schedule->shift->end_time)->format('h:i A')
-                        : '--',
+                        : null,
                     'start_time' => $req->start_time ? Carbon::createFromFormat('H:i:s', $req->start_time)->format('h:i A') : 'N/A',
                     'end_time' => $req->end_time ? Carbon::createFromFormat('H:i:s', $req->end_time)->format('h:i A') : 'N/A',
                     'date'    => $req->schedule->date,
@@ -840,7 +850,8 @@ class OvertimeRequestController extends Controller
 
         return inertia('Employee/Request', [
             'info' => [
-                'requests' => $requests
+                'requests' => $requests,
+                'counts' => $counts,
             ],
             'payload' => [
                 'week' => $week,

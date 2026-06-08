@@ -108,7 +108,7 @@
                             </label>
                         </li>
                         <li>
-                            <Link :href="route('logout')" method="post" class="justify-between px-4 py-2">
+                            <Link :href="route('logout')" method="post" @click="clearOvertimeQueue" class="justify-between px-4 py-2">
                                 <Icon icon="ic:round-logout" width="24" height="24" />
                                 Logout
                             </Link>
@@ -133,6 +133,7 @@ import { ref, provide, onMounted } from 'vue'
 import { Icon } from "@iconify/vue"
 import { theme, setTheme } from '../Pages/utils/themeStore.js'
 import { useConfig } from '../Pages/utils/configStore.js'
+import { clearAll as clearOvertimeQueue } from '../Pages/composables/useOvertimeQueue.js'
 
 const toastRef = ref()
 const slotClass = ref('overflow-hidden')

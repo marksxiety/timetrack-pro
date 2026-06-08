@@ -10,8 +10,8 @@ const loading = ref(false);
  * Returns cached value on subsequent calls.
  * @returns {Promise<Object>}
  */
-export async function loadConfig() {
-    if (config.value !== null) return config.value;
+export async function loadConfig(force = false) {
+    if (!force && config.value !== null) return config.value;
 
     loading.value = true;
     try {

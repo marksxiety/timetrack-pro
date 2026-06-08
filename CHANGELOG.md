@@ -2,6 +2,81 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.7.1] - 2026-06-08
+
+### Added
+
+- `useOvertimeQueue` composable with sessionStorage persistence, hydrate on load, and `clearAll` for logout cleanup
+- Server-side overtime request counts (`total_hours`, `filed`, `pending`, `approved`, `rejected`) returned alongside paginated employee requests
+- `resetEnhanceState` function to clear original reason text and cooldown timer for AI enhancement
+
+### Changed
+
+- Replace client-side `heatmapStats` with server-driven `filterCounts` populated from `info.counts`
+- Replace local queue ref and uid counter with shared `useOvertimeQueue` composable across filing views
+- Add `force` parameter to `loadConfig` to bypass cached config when refreshing schedule data
+- Move config refresh into `loadMonthData` so stale settings are cleared on every month load
+- Add JSDoc types to `useOvertimeQueue` and preserve error state in sessionStorage during persist/hydrate
+
+### Fixed
+
+- Replace `'--'` string fallback with `null` for missing shift start/end times across overtime request queries and user schedule response
+- Guard `to12hr` calls with null check for shift times in filing schedule hours display, show `N/A` when missing
+- Check `null` instead of `'--'` when conditionally displaying schedule shift times in `OvertimeRequestDetailModal`
+- Clear overtime filing queue from sessionStorage on logout via `clearAll`
+- Reset enhance state across all entry points to ensure clean original reason and cooldown on each use
+- Allow textarea to remain readonly when `glowing` animated border prop is active
+- Remove unused visibility toggle for password input and simplify input type handling
+
+### Testing
+
+- Add assertions for `info.counts` fields covering total hours, status breakdowns, filtered counts, and counts bypassing pagination
+
+### Style
+
+- Rename Actions column to Default Shift and highlight today's date with primary badge on schedule page
+- Remove unused `removeWeek` function and stale imports (`Link`, `Icon`, `buildShiftReference`)
+
+### Chore
+
+- Ensure all overtime request statuses are persisted in sessionStorage queue
+
+## [v1.7.0] - 2026-06-05
+
+### Added
+
+- `ReportController` with report page render and data fetch endpoints supporting organization unit filtering
+- `ReportDataService` with dedicated methods for stat cards, heatmap, trends, rankings, cumulative, gauge, and pie chart data
+- Multi-stage `Dockerfile` with Composer install, Node build, and `php:8.2-cli-alpine` runtime with `pdo_mysql`, `mbstring`, and `gd` extensions
+- `docker-compose.yml` exposing port `8080:8000` with `DB_HOST` pointed to `host.docker.internal` and persistent storage volume
+- Docker entrypoint script automating `storage:link`, migrations, config/route/view cache, and `artisan serve`
+- `.dockerignore` excluding `.git`, `node_modules`, `vendor`, Docker data, and IDE files from build context
+- Docker Build CI workflow triggering on main push/PR with Buildx and GitHub Actions cache
+- Teleported popover mode with dynamic viewport-aware positioning to `TimePicker` component
+- `autoResize` and glowing animated border props to `TextArea` component
+- Undo and re-enhance controls with word count display on filing enhance textarea
+- `undoEnhance` with 5-second cooldown timer and shared reactive state for enhance workflow
+
+### Changed
+
+- Replace Inertia report route and controller endpoint with dedicated `ReportController` backed by `ReportDataService`
+- Redesign report page with server-driven heatmap, cumulative hours, gauge, and pie charts with org unit filtering
+- Flatten Heatmap wrapper card, add `showSettings` prop for conditional status filter rendering, and merge gauge/pie into 3-column grid
+- Redesign filing page with compact inline schedule fieldset and responsive grid layout
+- Simplify report generation controls by removing reset filters button and related client-side logic
+- Enhance Settings page layout with fixed org units overflow, left-aligned tables, and tightened grid gaps
+
+### Fixed
+
+- Update report data structure in tests to align with new `ReportController` response format
+- Pass `teleported=false` to `TimePickerInputs` inside dialog modals and apply `to24hr` conversion to shift times
+- Update `APP_URL` port to `8000` in `.env.example` to match Laravel serve default
+
+### Style
+
+- Disable pointer events on date input when editing a schedule row and update shift code styling
+- Update badge styling and adjust layout for organization unit and view selection in report page
+
 ## [v1.6.2] - 2026-05-13
 
 ### Fixed

@@ -60,7 +60,7 @@
                                         class="text-xs font-medium text-base-content/50 uppercase tracking-wider text-center">
                                         Sat</th>
                                     <th class="text-xs font-medium text-base-content/50 uppercase tracking-wider">
-                                        Actions</th>
+                                        Default Shift</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -80,7 +80,8 @@
                                         <td v-for="day in week.schedules" :key="day.date">
                                             <div class="flex flex-col gap-1">
                                                 <div class="flex justify-end">
-                                                    <span class="text-[10px] font-semibold bg-base-200 text-base-content/50 rounded-full px-1.5 py-0.5 leading-tight">
+                                                    <span class="text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-tight"
+                                                        :class="isToday(day.date) ? 'bg-primary text-primary-content' : 'bg-base-200 text-base-content/50'">
                                                         {{ new Date(day.date).getDate() }}
                                                     </span>
                                                 </div>
@@ -93,17 +94,13 @@
                                         <td>
                                             <div class="flex flex-col items-center gap-2">
                                                 <label v-if="defaultShiftCodes.length > 0"
-                                                    class="label tooltip tooltip-left" data-tip="Default Shift">
+                                                    class="label">
                                                     <input type="checkbox" class="checkbox checkbox-primary checkbox-xs"
                                                         :checked="isDefaultShift(week.schedules)"
                                                         :disabled="isLoading || isSubmitting"
                                                         @change="handleDefaultShiftFill($event, weekIndex)" />
                                                 </label>
-                                                <div class="tooltip tooltip-left tooltip-error" data-tip="Remove Week">
-                                                    <Icon icon="gg:remove" width="20" height="20"
-                                                        @click="removeWeek(weekIndex)"
-                                                        class="hover:bg-error hover:cursor-pointer rounded-full" />
-                                                </div>
+
                                             </div>
                                         </td>
                                     </tr>
@@ -171,13 +168,12 @@
 import SelectOption from '../Components/SelectOption.vue'
 import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { onMounted, ref, inject, computed } from 'vue'
-import { Link, usePage } from '@inertiajs/vue3'
-import { Icon } from '@iconify/vue'
+import { usePage } from '@inertiajs/vue3'
 import { years, months, getWeeksInMonth } from '../utils/dropdownOptions.js'
 import { to12hr } from '../utils/helpers/date.js'
 import { fetchSchedule, submitSchedule } from '../api/schedule.js'
 import { useConfig } from '../utils/configStore.js'
-import { buildShiftReference, isDefaultShift as checkDefaultShift, applyDefaultShiftFill } from '../composables/useScheduleManager.js'
+import { isDefaultShift as checkDefaultShift, applyDefaultShiftFill } from '../composables/useScheduleManager.js'
 
 const page = usePage()
 const toast = inject('toast')
@@ -231,13 +227,14 @@ const submitForm = async () => {
 
 onMounted(async () => {
     isLoading.value = true
-    await loadConfig()
     await loadMonthData()
 })
 
 async function loadMonthData() {
     isLoading.value = true
     skippedIds.value = []
+
+    await loadConfig(true)
 
     const weeksInMonth = getWeeksInMonth(selectedYear.value, selectedMonth.value)
 
@@ -263,16 +260,19 @@ async function loadMonthData() {
     isLoading.value = false
 }
 
-
-function removeWeek(index) {
-    weeklySchedules.value.splice(index, 1)
-}
-
 const handleDefaultShiftFill = (event, weekIndex) => {
     const schedule = weeklySchedules.value[weekIndex].schedules
     applyDefaultShiftFill(event.target.checked, schedule, defaultShiftCodes.value, shifts.value, toast, 'shift_code')
 }
 
 const isDefaultShift = (schedule) => checkDefaultShift(schedule, defaultShiftCodes.value, props.shifts, 'shift_code')
+
+const isToday = (dateStr) => {
+    const d = new Date(dateStr)
+    const now = new Date()
+    return d.getFullYear() === now.getFullYear()
+        && d.getMonth() === now.getMonth()
+        && d.getDate() === now.getDate()
+}
 
 </script>

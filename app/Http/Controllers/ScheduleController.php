@@ -179,8 +179,8 @@ class ScheduleController extends Controller
                     'id' => $schedule->id,
                     'shift_id' => $schedule->shift_id,
                     'shift_code' => $schedule->shift?->code,
-                    'shift_start_time' => ($schedule->shift->start_time == null) ? '--' : date('h:i A', strtotime($schedule->shift?->start_time)),
-                    'shift_end_time' => ($schedule->shift->end_time == null) ? '--' : date('h:i A', strtotime($schedule->shift?->end_time)),
+                    'shift_start_time' => ($schedule->shift->start_time == null) ? null : date('h:i A', strtotime($schedule->shift?->start_time)),
+                    'shift_end_time' => ($schedule->shift->end_time == null) ? null : date('h:i A', strtotime($schedule->shift?->end_time)),
                     'date' => $schedule->date,
                     'week' => $schedule->week
                 ];

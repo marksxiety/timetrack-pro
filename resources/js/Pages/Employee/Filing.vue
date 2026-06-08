@@ -133,7 +133,7 @@
                                                     </div>
                                                     <div class="flex justify-between items-baseline">
                                                         <span class="text-[10px] uppercase tracking-wider text-base-content/30">Hours</span>
-                                                        <span class="text-xs font-medium text-base-content/70 font-mono">{{ to12hr(form.shift_start_time) }} → {{ to12hr(form.shift_end_time) }}</span>
+                                                        <span class="text-xs font-medium text-base-content/70 font-mono">{{ form.shift_start_time && form.shift_end_time ? to12hr(form.shift_start_time) + ' → ' + to12hr(form.shift_end_time) : 'N/A' }}</span>
                                                     </div>
                                                 </div>
                                                 <div v-else class="text-xs text-base-content/25 text-center">
@@ -398,9 +398,10 @@ import TextArea from '../Components/TextArea.vue'
 import TimePickerInput from '../Components/TimePicker.vue'
 import { fetchUserSchedule } from '../api/schedule.js'
 import { submitBulkOvertime } from '../api/overtime.js'
-import { enhanceReason, originalReason, enhanceCooldown, undoEnhance } from '../composables/useOvertimeRequest.js'
+import { enhanceReason, originalReason, enhanceCooldown, undoEnhance, resetEnhanceState } from '../composables/useOvertimeRequest.js'
 import { currentWeek, to12hr, to24hr } from '../utils/helpers/date.js'
 import { Icon } from "@iconify/vue"
+import { queue, persist as persistQueue, addToQueue as storeAddToQueue, updateInQueue as storeUpdateInQueue, removeFromQueue as storeRemoveFromQueue, clearQueue as storeClearQueue } from '../composables/useOvertimeQueue.js'
 
 const toast = inject('toast')
 const appConfig = inject('appConfig')
@@ -414,9 +415,6 @@ const editingIndex = ref(null)
 const isEditing = ref(false)
 const modalSubmitConfirm = ref(null)
 const modalClearConfirm = ref(null)
-let uid = 0
-
-const queue = ref([])
 
 const fieldsDisabled = computed(() => !withSchedule.value)
 
@@ -508,7 +506,7 @@ const addToQueue = () => {
         toast('This date, start time, and end time already exists in the queue.', 'error')
         return
     }
-    queue.value.push({ _uid: ++uid, ...data, state: 'pending', errors: null })
+    storeAddToQueue(data)
     toast('Request added to queue.', 'success')
     resetForm()
 }
@@ -521,8 +519,7 @@ const updateInQueue = () => {
         toast('This date, start time, and end time already exists in the queue.', 'error')
         return
     }
-    const item = queue.value[editingIndex.value]
-    queue.value[editingIndex.value] = { ...item, ...data, state: 'pending', errors: null }
+    storeUpdateInQueue(editingIndex.value, data)
     toast('Request updated in queue.', 'success')
     editingIndex.value = null
     resetForm()
@@ -531,6 +528,7 @@ const updateInQueue = () => {
 const editItem = (index) => {
     if (isSubmitting.value) return
     isEditing.value = true
+    resetEnhanceState()
     const item = queue.value[index]
     editingIndex.value = index
     selectedDate.value = item.dateRaw || ''
@@ -557,6 +555,7 @@ const editItem = (index) => {
 
 const cancelEdit = () => {
     editingIndex.value = null
+    resetEnhanceState()
     resetFormState()
 }
 
@@ -568,12 +567,12 @@ const removeFromQueue = (index) => {
     } else if (editingIndex.value !== null && editingIndex.value > index) {
         editingIndex.value--
     }
-    queue.value.splice(index, 1)
+    storeRemoveFromQueue(index)
 }
 
 const clearQueue = () => {
     if (isSubmitting.value) return
-    queue.value = []
+    storeClearQueue()
     editingIndex.value = null
     resetFormState()
     toast('Queue cleared.', 'info')
@@ -584,6 +583,7 @@ const resetForm = () => {
     form.end_time = ''
     form.reason = ''
     form.clearErrors()
+    resetEnhanceState()
 }
 
 const resetFormState = () => {
@@ -632,6 +632,7 @@ const submitBulk = async () => {
         } else {
             toast('All requests failed. Please review the errors.', 'error')
         }
+        persistQueue()
     } finally {
         isSubmitting.value = false
         editingIndex.value = null
@@ -661,6 +662,7 @@ const getItemStateLabel = (state) => {
 
 const onDateChange = async () => {
     if (isEditing.value) return
+    resetEnhanceState()
     const newDate = selectedDate.value
 
     if (!newDate) {

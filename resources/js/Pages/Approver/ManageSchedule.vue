@@ -197,11 +197,13 @@ import { to12hr } from '../utils/helpers/date.js'
 import { fetchShiftList } from '../api/shift.js'
 import { fetchEmployeeSchedule, submitEmployeeSchedule } from '../api/schedule.js'
 import { buildShiftReference, isDefaultShift as checkDefaultShift, applyDefaultShiftFill } from '../composables/useScheduleManager.js'
+import { useConfig } from '../utils/configStore.js'
 import SelectOption from '../Components/SelectOption.vue'
 import Modal from '../Components/Modal.vue'
 
 const toast = inject('toast')
 const appConfig = inject('appConfig')
+const { loadConfig } = useConfig()
 
 const props = defineProps({
     flash: Object,
@@ -284,6 +286,7 @@ const handleAddWeek = async () => {
 
     alreadyLoaded.value = false
     addingWeek.value = true
+    await loadConfig(true)
     const scheduleResponse = await fetchEmployeeSchedule(selectedYear.value, selectedWeek.value)
     if (scheduleResponse.success) {
         employeeSchedules.value.push({

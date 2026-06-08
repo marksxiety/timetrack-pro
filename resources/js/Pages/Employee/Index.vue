@@ -583,7 +583,7 @@ import fetchUpcomingHolidays from '../api/upcomingHolidays.js'
 import { getTimeOptions } from '../utils/dropdownOptions.js'
 import { to12hr, to24hr } from '../utils/helpers/date.js'
 import { getStatusBadgeClass, getStatusBgClass } from '../utils/helpers/status.js'
-import { enhanceReason, originalReason, enhanceCooldown, undoEnhance as undoEnhanceReason, submitCancelation as submitCancelationComposable } from '../composables/useOvertimeRequest.js'
+import { enhanceReason, originalReason, enhanceCooldown, undoEnhance as undoEnhanceReason, resetEnhanceState, submitCancelation as submitCancelationComposable } from '../composables/useOvertimeRequest.js'
 import Stepper from '../Components/Stepper.vue'
 import { Icon } from "@iconify/vue"
 
@@ -760,10 +760,12 @@ onMounted(async () => {
 
 // ========== Modal Handlers ==========
 const closeOvertimeFilingModal = () => {
+    resetEnhanceState()
     overtimeFilingModal.value?.close()
 }
 
 const closeOvertimeRequestModal = () => {
+    resetEnhanceState()
     overtimeRequestModal.value?.close()
     formFilledOvertime.reset()
 }
@@ -774,6 +776,7 @@ const handleDateClick = (days) => {
 }
 
 const showOvertimeFilingModal = async (year, month, day) => {
+    resetEnhanceState()
     overtimeFilingModal.value?.open()
     fetchingSchedule.value = true
     withShedule.value = true
@@ -825,6 +828,7 @@ const handleMonthSelection = (year, month) => {
 }
 
 const showOvertimeRequestModal = (data) => {
+    resetEnhanceState()
     formFilledOvertime.id = data.id
     formFilledOvertime.employee_schedule_id = data.employee_schedule_id
     formFilledOvertime.date = data.date
