@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.7.1] - 2026-06-08
+
+### Added
+
+- `useOvertimeQueue` composable with sessionStorage persistence, hydrate on load, and `clearAll` for logout cleanup
+- Server-side overtime request counts (`total_hours`, `filed`, `pending`, `approved`, `rejected`) returned alongside paginated employee requests
+- `resetEnhanceState` function to clear original reason text and cooldown timer for AI enhancement
+
+### Changed
+
+- Replace client-side `heatmapStats` with server-driven `filterCounts` populated from `info.counts`
+- Replace local queue ref and uid counter with shared `useOvertimeQueue` composable across filing views
+- Add `force` parameter to `loadConfig` to bypass cached config when refreshing schedule data
+- Move config refresh into `loadMonthData` so stale settings are cleared on every month load
+- Add JSDoc types to `useOvertimeQueue` and preserve error state in sessionStorage during persist/hydrate
+
+### Fixed
+
+- Replace `'--'` string fallback with `null` for missing shift start/end times across overtime request queries and user schedule response
+- Guard `to12hr` calls with null check for shift times in filing schedule hours display, show `N/A` when missing
+- Check `null` instead of `'--'` when conditionally displaying schedule shift times in `OvertimeRequestDetailModal`
+- Clear overtime filing queue from sessionStorage on logout via `clearAll`
+- Reset enhance state across all entry points to ensure clean original reason and cooldown on each use
+- Allow textarea to remain readonly when `glowing` animated border prop is active
+- Remove unused visibility toggle for password input and simplify input type handling
+
+### Testing
+
+- Add assertions for `info.counts` fields covering total hours, status breakdowns, filtered counts, and counts bypassing pagination
+
+### Style
+
+- Rename Actions column to Default Shift and highlight today's date with primary badge on schedule page
+- Remove unused `removeWeek` function and stale imports (`Link`, `Icon`, `buildShiftReference`)
+
+### Chore
+
+- Ensure all overtime request statuses are persisted in sessionStorage queue
+
 ## [v1.7.0] - 2026-06-05
 
 ### Added
