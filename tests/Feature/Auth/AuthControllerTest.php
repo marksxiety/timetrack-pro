@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
 use App\Models\OrganizationUnit;
+use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -170,6 +170,54 @@ class AuthControllerTest extends TestCase
         $response = $this->post('/login', [
             'email' => 'nonexistent@example.com',
             'password' => 'password123',
+        ]);
+
+        $response->assertSessionHasErrors(['email', 'password']);
+    }
+
+    public function test_login_with_username_only_when_domain_is_configured(): void
+    {
+        config(['auth.username_domain' => 'example.com']);
+
+        $user = User::factory()->create([
+            'organization_unit_id' => $this->orgUnit->id,
+            'email' => 'employee@example.com',
+            'password' => bcrypt('correct-password'),
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'employee',
+            'password' => 'correct-password',
+        ]);
+
+        $response->assertRedirect(route('main'));
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_login_with_username_only_ignores_domain_when_email_has_at_sign(): void
+    {
+        config(['auth.username_domain' => 'example.com']);
+
+        $user = User::factory()->create([
+            'organization_unit_id' => $this->orgUnit->id,
+            'email' => 'employee@other.com',
+            'password' => bcrypt('correct-password'),
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => 'employee@other.com',
+            'password' => 'correct-password',
+        ]);
+
+        $response->assertRedirect(route('main'));
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_login_with_username_only_fails_when_domain_is_not_configured(): void
+    {
+        $response = $this->post('/login', [
+            'email' => 'employee',
+            'password' => 'correct-password',
         ]);
 
         $response->assertSessionHasErrors(['email', 'password']);
