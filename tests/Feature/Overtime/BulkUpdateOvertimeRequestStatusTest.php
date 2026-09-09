@@ -12,8 +12,11 @@ use Tests\TestCase;
 class BulkUpdateOvertimeRequestStatusTest extends TestCase
 {
     private User $approver;
+
     private User $employee;
+
     private OrganizationUnit $orgUnit;
+
     private Shift $shift;
 
     protected function setUp(): void
@@ -38,13 +41,20 @@ class BulkUpdateOvertimeRequestStatusTest extends TestCase
         ]);
     }
 
+    private function nextScheduleDate(): string
+    {
+        static $day = 5;
+
+        return sprintf('2026-01-%02d', $day++);
+    }
+
     private function createPendingOvertime(): OvertimeRequest
     {
         $schedule = Schedule::create([
             'user_id' => $this->employee->id,
             'shift_id' => $this->shift->id,
             'week' => 1,
-            'date' => '2026-01-05',
+            'date' => $this->nextScheduleDate(),
         ]);
 
         return OvertimeRequest::create([
@@ -63,7 +73,7 @@ class BulkUpdateOvertimeRequestStatusTest extends TestCase
             'user_id' => $this->employee->id,
             'shift_id' => $this->shift->id,
             'week' => 1,
-            'date' => '2026-01-05',
+            'date' => $this->nextScheduleDate(),
         ]);
 
         return OvertimeRequest::create([
