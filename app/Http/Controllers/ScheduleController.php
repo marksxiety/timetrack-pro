@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\OvertimeRequest;
 use App\Models\Schedule;
 use App\Models\Shift;
 use App\Models\User;
@@ -91,7 +92,32 @@ class ScheduleController extends Controller
 
                     if (! empty($item['id'])) {
                         if (empty($item['shift_code'])) {
-                            $skippedIds[] = $item['id'];
+                            $schedule = Schedule::find($item['id']);
+
+                            $hasOvertime = OvertimeRequest::where('employee_schedule_id', $item['id'])->exists();
+
+                            if ($hasOvertime) {
+                                $skippedIds[] = $item['id'];
+                                $resultSchedules[] = [
+                                    'id' => $schedule->id,
+                                    'date' => $schedule->date,
+                                    'week' => $schedule->week,
+                                    'day' => $item['day'],
+                                    'shift_code' => $schedule->shift_id,
+                                ];
+
+                                continue;
+                            }
+
+                            $schedule?->delete();
+
+                            $resultSchedules[] = [
+                                'id' => null,
+                                'date' => $item['date'],
+                                'week' => $item['week'],
+                                'day' => $item['day'],
+                                'shift_code' => null,
+                            ];
 
                             continue;
                         }
@@ -154,7 +180,7 @@ class ScheduleController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => count($result['skipped_ids']) > 0
-                    ? 'Submission Successful. Note: Some shifts cannot be removed since there are already registered shifts on those days.'
+                    ? 'Submission Successful. Note: Some shifts cannot be removed because overtime requests already exist on those days.'
                     : 'Submission Successful',
                 'schedules' => $result['schedules'],
                 'skipped_ids' => $result['skipped_ids'],
