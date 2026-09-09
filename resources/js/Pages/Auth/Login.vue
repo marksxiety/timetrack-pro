@@ -48,8 +48,10 @@
                                     class="input input-bordered flex items-center gap-2 focus-within:input-primary transition-all w-full">
                                     <Icon icon="material-symbols:mail-outline" width="16" height="16"
                                         class="text-base-content/40 shrink-0" />
-                                    <input type="email" class="grow bg-transparent outline-none text-sm"
-                                        placeholder="you@example.com" v-model="form.email" autocomplete="off" />
+                                    <input type="text" inputmode="email" autocomplete="username"
+                                        autocapitalize="none" spellcheck="false"
+                                        class="grow bg-transparent outline-none text-sm"
+                                        :placeholder="emailPlaceholder" v-model="form.email" />
                                 </label>
                                 <span v-if="form.errors.email" class="text-error text-xs mt-0.5">{{ form.errors.email
                                     }}</span>
@@ -107,8 +109,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useForm, Link } from '@inertiajs/vue3'
+import { computed } from 'vue'
+import { useForm, Link, usePage } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 import loginImage from '../../images/Secure-login.svg'
 import AuthBackground from '../../Components/AuthBackground.vue'
@@ -120,6 +122,11 @@ const form = useForm({
     password: null,
     remember: null
 })
+
+const usernameDomain = usePage().props.app?.username_domain
+const emailPlaceholder = computed(() =>
+    usernameDomain ? `you@${usernameDomain}` : 'you@example.com'
+)
 
 const submitForm = () => {
     form.post(route('login'), {
