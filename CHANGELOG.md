@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Allow employees to clear an existing schedule's shift on submit when the day has no overtime requests; the schedule row is removed instead of silently refusing the update
+- When a shift cannot be cleared because overtime requests already exist on that day, the schedule submission response now includes the day with its current shift so the UI stays in sync with the database, and the warning message clarifies the reason
+
 ## [v1.7.1] - 2026-06-08
 
 ### Added
