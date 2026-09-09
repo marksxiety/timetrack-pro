@@ -2,21 +2,27 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
+use App\Models\OrganizationUnit;
+use App\Models\OvertimeRequest;
 use App\Models\Schedule;
 use App\Models\Shift;
-use App\Models\OvertimeRequest;
-use App\Models\OrganizationUnit;
+use App\Models\User;
+use Tests\TestCase;
 
 class OvertimeRequestValidationTest extends TestCase
 {
     private User $user;
+
     private Shift $dayShift;
+
     private Shift $nightShift;
+
     private Shift $noShift;
+
     private Schedule $daySchedule;
+
     private Schedule $nightSchedule;
+
     private Schedule $restDaySchedule;
 
     protected function setUp(): void
@@ -63,14 +69,14 @@ class OvertimeRequestValidationTest extends TestCase
             'user_id' => $this->user->id,
             'shift_id' => $this->nightShift->id,
             'week' => 1,
-            'date' => '2026-01-05',
+            'date' => '2026-01-06',
         ]);
 
         $this->restDaySchedule = Schedule::create([
             'user_id' => $this->user->id,
             'shift_id' => $this->noShift->id,
             'week' => 1,
-            'date' => '2026-01-05',
+            'date' => '2026-01-07',
         ]);
     }
 
@@ -313,7 +319,7 @@ class OvertimeRequestValidationTest extends TestCase
             'user_id' => $this->user->id,
             'shift_id' => $nineToFiveShift->id,
             'week' => 1,
-            'date' => '2026-01-06',
+            'date' => '2026-01-08',
         ]);
 
         $response = $this->postInsertOvertime(['start_time' => '09:00', 'end_time' => '08:00'], $schedule);
@@ -595,5 +601,4 @@ class OvertimeRequestValidationTest extends TestCase
         $response = $this->postUpdateOvertime(['start_time' => '20:00', 'end_time' => '20:00'], $this->nightSchedule);
         $this->assertInvalidUpdate($response, 'end_time');
     }
-
 }
