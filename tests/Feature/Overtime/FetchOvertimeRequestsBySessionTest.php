@@ -193,4 +193,26 @@ class FetchOvertimeRequestsBySessionTest extends TestCase
             ->where('message', '')
         );
     }
+
+    public function test_schedule_list_includes_scheduled_shift_codes()
+    {
+        $this->createSchedule('2026-01-05');
+
+        $response = $this->get('/?month=1&year=2026');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('info.scheduleList', 1)
+            ->where('info.scheduleList.0.date', '2026-01-05')
+            ->where('info.scheduleList.0.shift_code', 'DAY')
+        );
+    }
+
+    public function test_schedule_list_is_empty_when_no_schedule()
+    {
+        $response = $this->get('/?month=1&year=2026');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('info.scheduleList', 0)
+        );
+    }
 }
