@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\OrganizationUnit;
+use App\Models\User;
+use App\Support\LoginIdentifier;
+use App\Traits\HasScopedQueries;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Models\OrganizationUnit;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password as PasswordRule;
-use App\Traits\HasScopedQueries;
 
 class AuthController extends Controller
 {
     use HasScopedQueries;
+
     public function register(Request $request)
     {
 
@@ -28,7 +29,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ], [
-            'organization_unit_id.required' => 'Unit is required'
+            'organization_unit_id.required' => 'Unit is required',
         ]);
 
         // implement hash value in the password
@@ -40,7 +41,7 @@ class AuthController extends Controller
         Auth::login($user);
 
         // Redirect to home
-        return redirect()->route('main')->with('message', 'Welcome, ' . $user->name);
+        return redirect()->route('main')->with('message', 'Welcome, '.$user->name);
     }
 
     public function login(Request $request)
@@ -50,12 +51,12 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $identifier = LoginIdentifier::normalize($request->input('email'), config('auth.username_domain'));
 
-        if (Auth::attempt($credentials, $request->remember)) {
+        if (Auth::attempt(['email' => $identifier, 'password' => $request->input('password')], $request->remember)) {
             $request->session()->regenerate();
 
-            return redirect()->route('main')->with('message', 'Welcome back, ' . Auth::user()->name . '!');
+            return redirect()->route('main')->with('message', 'Welcome back, '.Auth::user()->name.'!');
         }
 
         return redirect()->back()->withErrors(['email' => 'Email or Password is incorrect.', 'password' => 'Email or Password is incorrect.']);
@@ -75,14 +76,14 @@ class AuthController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors(['message' => 'Invalid Request! Not authenticated user.']);
         }
 
         $rules = [
             'name' => 'required|string|max:255',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
         ];
 
         if (
@@ -94,11 +95,10 @@ class AuthController extends Controller
             $rules['new_password'] = 'required|string|min:8|confirmed';
         }
 
-
         $request->validate($rules);
 
         // Check if old password matches
-        if ($request->old_password && !Hash::check($request->old_password, $user->password)) {
+        if ($request->old_password && ! Hash::check($request->old_password, $user->password)) {
             return back()->withErrors(['old_password' => 'Old password is incorrect.']);
         }
 
@@ -110,7 +110,7 @@ class AuthController extends Controller
         $avatarPath = null;
         if ($request->hasFile('avatar')) {
             // Delete old avatar if it exists
-            if ($user->avatar && file_exists(public_path('storage/' . $user->avatar))) {
+            if ($user->avatar && file_exists(public_path('storage/'.$user->avatar))) {
                 Storage::disk('public')->delete($user->avatar);
             }
             // Store new avatar
@@ -139,12 +139,11 @@ class AuthController extends Controller
     public function loadUserProfile()
     {
         $user = Auth::user();
+
         return inertia('Profile', [
             'avatar_url' => $user->avatar ? Storage::url($user->avatar) : null,
         ]);
     }
-
-
 
     public function RegisteredUsers()
     {
@@ -161,6 +160,7 @@ class AuthController extends Controller
                     $user->avatar_url = $user->avatar
                         ? Storage::url($user->avatar)
                         : null;
+
                     return $user;
                 });
 
@@ -168,29 +168,28 @@ class AuthController extends Controller
 
             return inertia('Approver/ManageUser', [
                 'users' => $users,
-                'units' => $units
+                'units' => $units,
             ]);
         } catch (\Throwable $th) {
             return inertia('Approver/ManageUser', [
                 'users' => [],
                 'units' => [],
-                'errors' => 'Failed to load registered users'
+                'errors' => 'Failed to load registered users',
             ]);
         }
     }
-
 
     public function updateUserInformation(Request $request)
     {
         $user = User::find($request->id);
 
-        if (!$user) {
+        if (! $user) {
             return back()->withErrors(['message' => 'User is not registered.']);
         }
 
         $rules = [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
         ];
 
         if ($request->filled('new_password') || $request->filled('new_password_confirmation')) {
@@ -211,10 +210,12 @@ class AuthController extends Controller
         }
 
         $user->update();
+
         return redirect()->back()->with('message', 'User Profile has been updated successfully!');
     }
 
-    public function directRegisterForm() {
+    public function directRegisterForm()
+    {
         $units = OrganizationUnit::select('id', 'unit_path')->get();
 
         return inertia('Auth/Register', [

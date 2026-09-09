@@ -20,6 +20,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Username Domain
+    |--------------------------------------------------------------------------
+    |
+    | When set, users may sign in with just their username (the part before
+    | the "@") and this domain is appended automatically. Leave empty to
+    | require the full email address.
+    |
+    */
+
+    'username_domain' => env('AUTH_USERNAME_DOMAIN'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Authentication Guards
     |--------------------------------------------------------------------------
     |

@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.7.2] - 2026-09-09
+
+### Fixed
+
+- **Schedule re-submission**: before this fix, submitting a schedule only worked for the initial save. Every resubmission called `Schedule::create`, so an already-saved day received a brand-new duplicate row and the existing schedule could not be updated — later saves silently created extra rows that were never applied to the original schedule. `submitSchedule` now upserts with `updateOrCreate` keyed on `(user_id, date)`, so the first save creates the row and every subsequent save updates that same row in place; a data migration removes existing duplicates keeping the latest row per user/date, a unique `(user_id, date)` index on `schedules` enforces one schedule per day, and the client applies the returned shift IDs after saving (guarded against double submission)
+- Remove the `->limit(5)` from the monthly overtime query so the employee dashboard lists all of a month's overtimes while the recent requests list stays capped at five
+
+### Added
+
+- `LoginIdentifier::normalize` helper that appends a configured username domain to a bare username while leaving full email addresses untouched
+- `auth.username_domain` config key read from the `AUTH_USERNAME_DOMAIN` env var to support username-only sign-in
+- Domain-aware login page: input switched to text/username autocomplete with placeholder from the `app` prop shared via `HandleInertiaRequests`
+- Shift-code badges on employee calendar tiles, fed by the new `scheduleList` payload from `fetchOvertimeRequestsBySession`
+
+### Changed
+
+- Allow employees to clear an existing schedule's shift on submit when the day has no overtime requests; the schedule row is removed instead of silently refusing the update
+- When a shift cannot be cleared because overtime requests already exist on that day, the schedule submission response now includes the day with its current shift so the UI stays in sync with the database, and the warning message clarifies the reason
+- Rename monthly overtime payload from `overtimelist` to `monthOvertimes` in controller and employee index
+
+### Chore
+
+- Data migration removing duplicate schedules (keeps latest row per `(user_id, date)`) and repointing overtime requests to the surviving schedule
+- Replace the composite index on `schedules` with a unique `(user_id, date)` index to enforce one schedule per day
+- Document the optional `AUTH_USERNAME_DOMAIN` env var in `.env.example`
+
+### Testing
+
+- Schedule tests for clearing a shift with and without existing overtime requests, `updateOrCreate` replacing stale ids, and the unique `(user_id, date)` constraint
+- Login cases for username-only with/without configured domain and full email override; `LoginIdentifier` unit coverage
+- Assert `scheduleList` includes scheduled shift codes and is empty when no schedules exist; monthly overtimes return all entries while recent requests stay capped at five
+
 ## [v1.7.1] - 2026-06-08
 
 ### Added

@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
 use App\Models\OrganizationUnit;
+use App\Models\OvertimeRequest;
 use App\Models\Schedule;
 use App\Models\Shift;
+use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ScheduleControllerTest extends TestCase
@@ -14,7 +17,9 @@ class ScheduleControllerTest extends TestCase
     use WithFaker;
 
     private User $employee;
+
     private OrganizationUnit $orgUnit;
+
     private Shift $shift;
 
     protected function setUp(): void
@@ -176,7 +181,44 @@ class ScheduleControllerTest extends TestCase
         $this->assertEquals($newShift->id, $schedule->fresh()->shift_id);
     }
 
-    public function test_submit_schedule_skips_clearing_existing_shift(): void
+    public function test_submit_schedule_skips_clearing_existing_shift_with_overtime(): void
+    {
+        $schedule = Schedule::create([
+            'user_id' => $this->employee->id,
+            'shift_id' => $this->shift->id,
+            'date' => '2026-01-04',
+            'week' => 1,
+        ]);
+
+        OvertimeRequest::create([
+            'employee_schedule_id' => $schedule->id,
+            'start_time' => '06:00:00',
+            'end_time' => '08:00:00',
+            'hours' => '2.00',
+            'reason' => 'Test reason',
+            'status' => 'PENDING',
+        ]);
+
+        $response = $this->actingAs($this->employee)->postJson('/schedule/submit', [
+            'schedule' => [
+                [
+                    'id' => $schedule->id,
+                    'date' => '2026-01-04',
+                    'week' => 1,
+                    'day' => 'Sunday',
+                    'shift_code' => null,
+                ],
+            ],
+        ]);
+
+        $response->assertSuccessful();
+        $response->assertJson(['success' => true]);
+        $response->assertJsonPath('skipped_ids', [$schedule->id]);
+        $response->assertJsonPath('schedules.0.shift_code', $this->shift->id);
+        $this->assertDatabaseHas('schedules', ['id' => $schedule->id, 'shift_id' => $this->shift->id]);
+    }
+
+    public function test_submit_schedule_allows_clearing_shift_without_overtime(): void
     {
         $schedule = Schedule::create([
             'user_id' => $this->employee->id,
@@ -199,8 +241,10 @@ class ScheduleControllerTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertJson(['success' => true]);
-        $response->assertJsonPath('skipped_ids', [$schedule->id]);
-        $this->assertDatabaseHas('schedules', ['id' => $schedule->id]);
+        $response->assertJsonPath('skipped_ids', []);
+        $response->assertJsonPath('schedules.0.id', null);
+        $response->assertJsonPath('schedules.0.shift_code', null);
+        $this->assertDatabaseMissing('schedules', ['id' => $schedule->id]);
     }
 
     public function test_submit_schedule_skips_empty_shift_on_create(): void
@@ -256,6 +300,66 @@ class ScheduleControllerTest extends TestCase
         $response->assertJson(['success' => true]);
         $schedules = $response->json('schedules');
         $this->assertCount(2, $schedules);
+    }
+
+    public function test_submit_schedule_updates_existing_date_instead_of_duplicating_when_id_is_stale(): void
+    {
+        $existing = Schedule::create([
+            'user_id' => $this->employee->id,
+            'shift_id' => $this->shift->id,
+            'date' => '2026-01-04',
+            'week' => 1,
+        ]);
+
+        $newShift = Shift::create([
+            'code' => 'NIGHT',
+            'start_time' => '22:00:00',
+            'end_time' => '06:00:00',
+        ]);
+
+        $response = $this->actingAs($this->employee)->postJson('/schedule/submit', [
+            'schedule' => [
+                [
+                    'id' => null,
+                    'date' => '2026-01-04',
+                    'week' => 1,
+                    'day' => 'Sunday',
+                    'shift_code' => $newShift->id,
+                ],
+            ],
+        ]);
+
+        $response->assertSuccessful();
+        $response->assertJson(['success' => true]);
+        $response->assertJsonPath('schedules.0.id', $existing->id);
+        $this->assertDatabaseHas('schedules', [
+            'user_id' => $this->employee->id,
+            'date' => '2026-01-04',
+            'shift_id' => $newShift->id,
+        ]);
+        $this->assertSame(1, DB::table('schedules')
+            ->where('user_id', $this->employee->id)
+            ->where('date', '2026-01-04')
+            ->count());
+    }
+
+    public function test_schedules_table_is_unique_per_user_and_date(): void
+    {
+        $this->expectException(QueryException::class);
+
+        Schedule::create([
+            'user_id' => $this->employee->id,
+            'shift_id' => $this->shift->id,
+            'date' => '2026-01-04',
+            'week' => 1,
+        ]);
+
+        Schedule::create([
+            'user_id' => $this->employee->id,
+            'shift_id' => $this->shift->id,
+            'date' => '2026-01-04',
+            'week' => 1,
+        ]);
     }
 
     // ─── Get User Schedule ───────────────────────────────────

@@ -448,7 +448,7 @@
 
                 <div class="grid grid-cols-7 flex-1">
                     <div v-for="(days, index) in calendardays" :key="index" :class="[
-                        'calendar-tile min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-300 transition-all ease-out',
+                        'calendar-tile min-h-[5.5rem] sm:min-h-24 p-1.5 sm:p-2 border border-base-300 transition-all ease-out relative',
                         days.type !== 'current'
                             ? 'outside-month'
                             : 'cursor-pointer hover:bg-base-300 hover:border-primary hover:rounded-lg hover:scale-[1.03] hover:-translate-y-0.5 hover:shadow-md',
@@ -486,6 +486,11 @@
                                 </span>
                             </template>
                         </div>
+
+                        <span v-if="getDateShiftCode(days)"
+                            class="absolute bottom-1 right-1 badge badge-xs badge-neutral font-medium">
+                            {{ getDateShiftCode(days) }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -642,7 +647,8 @@ const clickedDate = ref('')
 
 // ========== Overtime Request ==========
 const recentRequests = ref([...props.info?.recentRequestsList] ?? [])
-const monthOvertimes = ref([...props.info?.overtimelist] ?? [])
+const monthOvertimes = ref([...props.info?.monthOvertimes] ?? [])
+const scheduleList = ref([...props.info?.scheduleList] ?? [])
 const holidays = ref([])
 
 
@@ -676,6 +682,22 @@ const holidayMapByDate = computed(() => {
     }
     return map
 })
+
+const scheduleMapByDate = computed(() => {
+    const map = {}
+    for (const s of scheduleList.value) {
+        if (s.date) {
+            map[s.date] = s
+        }
+    }
+    return map
+})
+
+const getDateShiftCode = (day) => {
+    if (day.type !== 'current') return null
+    const dateStr = `${day.year}-${String(day.month + 1).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`
+    return scheduleMapByDate.value[dateStr]?.shift_code || null
+}
 
 const getDateOvertimes = (day) => {
     if (day.type !== 'current') return null
@@ -964,7 +986,7 @@ const undoEnhance = (form) => undoEnhanceReason(form)
 
 // ======== Watchers ==========
 
-watch(() => props.info?.overtimelist, (updatedRequests) => {
+watch(() => props.info?.monthOvertimes, (updatedRequests) => {
     monthOvertimes.value = [...updatedRequests]
     totalovertime.value = props?.stats?.total_overtime_hours ?? 0
     tentativeHours.value = props?.stats?.tentative_overtime_hours ?? 0
@@ -975,6 +997,10 @@ watch(() => props.info?.overtimelist, (updatedRequests) => {
 
 watch(() => props.info?.recentRequestsList, (updatedRequests) => {
     recentRequests.value = [...updatedRequests]
+})
+
+watch(() => props.info?.scheduleList, (updatedSchedules) => {
+    scheduleList.value = [...updatedSchedules]
 })
 
 watch(() => props.payload, (updatedPayload) => {

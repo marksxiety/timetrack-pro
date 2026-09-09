@@ -213,16 +213,31 @@ const shiftReference = computed(() => {
 
 
 const submitForm = async () => {
+    if (isSubmitting.value) return
     isSubmitting.value = true
     const allSchedules = weeklySchedules.value.flatMap(week => week.schedules)
     const submitResponse = await submitSchedule(allSchedules)
     if (submitResponse?.success) {
         toast(submitResponse?.message, 'success')
         skippedIds.value = submitResponse.skipped_ids || []
+        applySubmittedSchedules(submitResponse.schedules || [])
     } else {
         toast(submitResponse?.message, 'error')
     }
     isSubmitting.value = false
+}
+
+function applySubmittedSchedules(submitted) {
+    const byDate = new Map(submitted.map(s => [s.date, s]))
+    for (const week of weeklySchedules.value) {
+        for (const day of week.schedules) {
+            const update = byDate.get(day.date)
+            if (update) {
+                day.id = update.id
+                day.shift_code = update.shift_code
+            }
+        }
+    }
 }
 
 onMounted(async () => {

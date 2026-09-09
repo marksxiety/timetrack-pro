@@ -134,6 +134,21 @@ class FetchOvertimeRequestsBySessionTest extends TestCase
         );
     }
 
+    public function test_monthly_overtimes_are_not_limited_to_five()
+    {
+        for ($i = 0; $i < 7; $i++) {
+            $schedule = $this->createSchedule('2026-01-' . str_pad($i + 1, 2, '0', STR_PAD_LEFT));
+            $this->createOvertime($schedule, 'APPROVED');
+        }
+
+        $response = $this->get('/?month=1&year=2026');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('info.monthOvertimes', 7)
+            ->has('info.recentRequestsList', 5)
+        );
+    }
+
     public function test_monthly_filter_with_query_params()
     {
         $schedule = $this->createSchedule('2026-01-05');
@@ -142,7 +157,7 @@ class FetchOvertimeRequestsBySessionTest extends TestCase
         $response = $this->get('/?month=1&year=2026');
 
         $response->assertInertia(fn ($page) => $page
-            ->has('info.overtimelist')
+            ->has('info.monthOvertimes')
             ->where('payload.year', '2026')
             ->where('payload.month', '1')
         );
@@ -176,6 +191,28 @@ class FetchOvertimeRequestsBySessionTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->where('success', true)
             ->where('message', '')
+        );
+    }
+
+    public function test_schedule_list_includes_scheduled_shift_codes()
+    {
+        $this->createSchedule('2026-01-05');
+
+        $response = $this->get('/?month=1&year=2026');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('info.scheduleList', 1)
+            ->where('info.scheduleList.0.date', '2026-01-05')
+            ->where('info.scheduleList.0.shift_code', 'DAY')
+        );
+    }
+
+    public function test_schedule_list_is_empty_when_no_schedule()
+    {
+        $response = $this->get('/?month=1&year=2026');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('info.scheduleList', 0)
         );
     }
 }

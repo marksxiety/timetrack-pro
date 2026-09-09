@@ -2,31 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\OvertimeRequest;
-use App\Models\User;
-use Illuminate\Http\Request;
 use App\Models\Schedule;
 use App\Models\Shift;
+use App\Models\User;
+use App\Traits\HasScopedQueries;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use App\Traits\HasScopedQueries;
-
-use function PHPUnit\Framework\isEmpty;
 
 class ScheduleController extends Controller
 {
     use HasScopedQueries;
+
     public function schedulePage(Request $request)
     {
         return Inertia::render('Employee/Schedule', [
             'shifts' => Shift::all('id', 'code', 'start_time', 'end_time'),
             'payload' => [
                 'month' => $request->query('month'),
-                'year'  => $request->query('year'),
+                'year' => $request->query('year'),
             ],
         ]);
     }
@@ -48,11 +46,11 @@ class ScheduleController extends Controller
                     'date' => $current->toDateString(),
                     'week' => $week,
                     'day' => $current->format('l'),
-                    'shift_code' => null
+                    'shift_code' => null,
                 ];
             }
 
-            $schedules = Schedule::where('user_id',  Auth::id())->whereYear('date', $year)->where('week', $week)->get();
+            $schedules = Schedule::where('user_id', Auth::id())->whereYear('date', $year)->where('week', $week)->get();
 
             // populate the shift_code value if it matches the date
             // this will identify if the user has a current schedule on the specific day
@@ -70,13 +68,13 @@ class ScheduleController extends Controller
                 'success' => true,
                 'message' => 'proceed',
                 'schedules' => $days,
-                'id' =>  Auth::id()
+                'id' => Auth::id(),
             ]);
         } catch (\Throwable $th) {
             return response()->json([
                 'schedules' => [],
                 'success' => false,
-                'message' => "Failed to fetch schedules due to $th"
+                'message' => "Failed to fetch schedules due to $th",
             ]);
         }
     }
@@ -92,9 +90,35 @@ class ScheduleController extends Controller
 
                 foreach ($info as $item) {
 
-                    if (!empty($item['id'])) {
+                    if (! empty($item['id'])) {
                         if (empty($item['shift_code'])) {
-                            $skippedIds[] = $item['id'];
+                            $schedule = Schedule::find($item['id']);
+
+                            $hasOvertime = OvertimeRequest::where('employee_schedule_id', $item['id'])->exists();
+
+                            if ($hasOvertime) {
+                                $skippedIds[] = $item['id'];
+                                $resultSchedules[] = [
+                                    'id' => $schedule->id,
+                                    'date' => $schedule->date,
+                                    'week' => $schedule->week,
+                                    'day' => $item['day'],
+                                    'shift_code' => $schedule->shift_id,
+                                ];
+
+                                continue;
+                            }
+
+                            $schedule?->delete();
+
+                            $resultSchedules[] = [
+                                'id' => null,
+                                'date' => $item['date'],
+                                'week' => $item['week'],
+                                'day' => $item['day'],
+                                'shift_code' => null,
+                            ];
+
                             continue;
                         }
 
@@ -120,17 +144,22 @@ class ScheduleController extends Controller
                                 'date' => $item['date'],
                                 'week' => $item['week'],
                                 'day' => $item['day'],
-                                'shift_code' => null
+                                'shift_code' => null,
                             ];
+
                             continue;
                         }
 
-                        $created = Schedule::create([
-                            'user_id' => Auth::id(),
-                            'shift_id' => $item['shift_code'],
-                            'date' => $item['date'],
-                            'week' => $item['week'],
-                        ]);
+                        $created = Schedule::updateOrCreate(
+                            [
+                                'user_id' => Auth::id(),
+                                'date' => $item['date'],
+                            ],
+                            [
+                                'shift_id' => $item['shift_code'],
+                                'week' => $item['week'],
+                            ]
+                        );
 
                         $resultSchedules[] = [
                             'id' => $created->id,
@@ -144,27 +173,26 @@ class ScheduleController extends Controller
 
                 return [
                     'schedules' => $resultSchedules,
-                    'skipped_ids' => $skippedIds
+                    'skipped_ids' => $skippedIds,
                 ];
             });
 
             return response()->json([
                 'success' => true,
                 'message' => count($result['skipped_ids']) > 0
-                    ? 'Submission Successful. Note: Some shifts cannot be removed since there are already registered shifts on those days.'
+                    ? 'Submission Successful. Note: Some shifts cannot be removed because overtime requests already exist on those days.'
                     : 'Submission Successful',
                 'schedules' => $result['schedules'],
-                'skipped_ids' => $result['skipped_ids']
+                'skipped_ids' => $result['skipped_ids'],
             ]);
         } catch (\Throwable $th) {
             return response()->json([
                 'success' => false,
                 'message' => 'Submission Failed',
-                'schedules' => []
+                'schedules' => [],
             ]);
         }
     }
-
 
     public function getUserSchedule(Request $request)
     {
@@ -182,7 +210,7 @@ class ScheduleController extends Controller
                     'shift_start_time' => ($schedule->shift->start_time == null) ? null : date('h:i A', strtotime($schedule->shift?->start_time)),
                     'shift_end_time' => ($schedule->shift->end_time == null) ? null : date('h:i A', strtotime($schedule->shift?->end_time)),
                     'date' => $schedule->date,
-                    'week' => $schedule->week
+                    'week' => $schedule->week,
                 ];
             }
 
@@ -190,14 +218,14 @@ class ScheduleController extends Controller
             $message = 'Fetching Successful';
         } catch (\Throwable $th) {
             $success = false;
-            $message = 'Fetching Failed ' . $th;
+            $message = 'Fetching Failed '.$th;
             $schedule = null;
         }
 
         return response()->json([
             'success' => $success,
             'message' => $message,
-            'schedule' => $registered
+            'schedule' => $registered,
         ]);
     }
 
@@ -258,7 +286,7 @@ class ScheduleController extends Controller
                             'schedule_id' => null,
                             'date' => $day['date'],
                             'week' => $day['week'],
-                            'day' => $day['day']
+                            'day' => $day['day'],
                         ];
                     } else {
                         $employee_schedules[] = [
@@ -269,8 +297,8 @@ class ScheduleController extends Controller
                                 'schedule_id' => null,
                                 'date' => $day['date'],
                                 'week' => $day['week'],
-                                'day' => $day['day']
-                            ]]
+                                'day' => $day['day'],
+                            ]],
                         ];
                     }
                 }
@@ -323,8 +351,8 @@ class ScheduleController extends Controller
                 'week_start' => $week_start,
                 'week_end' => $week_end,
                 'week' => $week,
-                'year' => $year
-            ]
+                'year' => $year,
+            ],
         ]);
     }
 
@@ -338,7 +366,7 @@ class ScheduleController extends Controller
             if (count($req) === 0) {
                 return response()->json([
                     'success' => $success,
-                    'message' => 'invalid request'
+                    'message' => 'invalid request',
                 ]);
             }
 
@@ -381,7 +409,7 @@ class ScheduleController extends Controller
 
         return response()->json([
             'success' => $success,
-            'message' => $message
+            'message' => $message,
         ]);
     }
 }
