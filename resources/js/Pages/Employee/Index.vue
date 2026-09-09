@@ -642,7 +642,7 @@ const clickedDate = ref('')
 
 // ========== Overtime Request ==========
 const recentRequests = ref([...props.info?.recentRequestsList] ?? [])
-const monthOvertimes = ref([...props.info?.overtimelist] ?? [])
+const monthOvertimes = ref([...props.info?.monthOvertimes] ?? [])
 const holidays = ref([])
 
 
@@ -964,7 +964,7 @@ const undoEnhance = (form) => undoEnhanceReason(form)
 
 // ======== Watchers ==========
 
-watch(() => props.info?.overtimelist, (updatedRequests) => {
+watch(() => props.info?.monthOvertimes, (updatedRequests) => {
     monthOvertimes.value = [...updatedRequests]
     totalovertime.value = props?.stats?.total_overtime_hours ?? 0
     tentativeHours.value = props?.stats?.tentative_overtime_hours ?? 0
