@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\OrganizationUnit;
+use App\Models\OvertimeRequest;
 use App\Models\Schedule;
 use App\Models\Shift;
 use App\Models\User;
@@ -180,7 +181,44 @@ class ScheduleControllerTest extends TestCase
         $this->assertEquals($newShift->id, $schedule->fresh()->shift_id);
     }
 
-    public function test_submit_schedule_skips_clearing_existing_shift(): void
+    public function test_submit_schedule_skips_clearing_existing_shift_with_overtime(): void
+    {
+        $schedule = Schedule::create([
+            'user_id' => $this->employee->id,
+            'shift_id' => $this->shift->id,
+            'date' => '2026-01-04',
+            'week' => 1,
+        ]);
+
+        OvertimeRequest::create([
+            'employee_schedule_id' => $schedule->id,
+            'start_time' => '06:00:00',
+            'end_time' => '08:00:00',
+            'hours' => '2.00',
+            'reason' => 'Test reason',
+            'status' => 'PENDING',
+        ]);
+
+        $response = $this->actingAs($this->employee)->postJson('/schedule/submit', [
+            'schedule' => [
+                [
+                    'id' => $schedule->id,
+                    'date' => '2026-01-04',
+                    'week' => 1,
+                    'day' => 'Sunday',
+                    'shift_code' => null,
+                ],
+            ],
+        ]);
+
+        $response->assertSuccessful();
+        $response->assertJson(['success' => true]);
+        $response->assertJsonPath('skipped_ids', [$schedule->id]);
+        $response->assertJsonPath('schedules.0.shift_code', $this->shift->id);
+        $this->assertDatabaseHas('schedules', ['id' => $schedule->id, 'shift_id' => $this->shift->id]);
+    }
+
+    public function test_submit_schedule_allows_clearing_shift_without_overtime(): void
     {
         $schedule = Schedule::create([
             'user_id' => $this->employee->id,
@@ -203,8 +241,10 @@ class ScheduleControllerTest extends TestCase
 
         $response->assertSuccessful();
         $response->assertJson(['success' => true]);
-        $response->assertJsonPath('skipped_ids', [$schedule->id]);
-        $this->assertDatabaseHas('schedules', ['id' => $schedule->id]);
+        $response->assertJsonPath('skipped_ids', []);
+        $response->assertJsonPath('schedules.0.id', null);
+        $response->assertJsonPath('schedules.0.shift_code', null);
+        $this->assertDatabaseMissing('schedules', ['id' => $schedule->id]);
     }
 
     public function test_submit_schedule_skips_empty_shift_on_create(): void
