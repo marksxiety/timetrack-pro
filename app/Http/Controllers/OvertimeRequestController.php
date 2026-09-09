@@ -152,7 +152,7 @@ class OvertimeRequestController extends Controller
         $actualmonth = Carbon::now()->month;
         $actualday = Carbon::now()->day;
 
-        $overtimelist = [];
+        $monthOvertimes = [];
         $recentRequestsList = [];
         $message = '';
         $success = false;
@@ -234,12 +234,11 @@ class OvertimeRequestController extends Controller
                     $query->where('user_id', Auth::id())->whereYear('date', $year)->whereMonth('date', $month);
                 })
                 ->select('id', 'employee_schedule_id', 'start_time', 'end_time', 'hours', 'reason', 'remarks', 'status', 'created_at')
-                ->limit(5)
                 ->orderBy('updated_at', 'desc')
                 ->get();
 
             foreach ($overtimes as $overtime) {
-                $overtimelist[] = [
+                $monthOvertimes[] = [
                     'week' => $overtime->schedule->week ?? 'N/A',
                     'date' => $overtime->schedule->date ?? 'N/A',
                     'employee_schedule_id' => $overtime->employee_schedule_id,
@@ -270,7 +269,7 @@ class OvertimeRequestController extends Controller
 
         return inertia('Employee/Index', [
             'info' => [
-                'overtimelist' => $overtimelist,
+                'monthOvertimes' => $monthOvertimes,
                 'recentRequestsList' => $recentRequestsList
             ],
             'stats' => $stats,
