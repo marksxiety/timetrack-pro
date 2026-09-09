@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\OvertimeRequest;
 use App\Models\RequiredHours;
+use App\Models\Schedule;
 use App\Services\OvertimeCalculator;
 use App\Services\OvertimeTimeValidationService;
 use Illuminate\Support\Facades\Validator;
@@ -154,6 +155,7 @@ class OvertimeRequestController extends Controller
 
         $monthOvertimes = [];
         $recentRequestsList = [];
+        $scheduleList = [];
         $message = '';
         $success = false;
         $stats = [
@@ -260,6 +262,18 @@ class OvertimeRequestController extends Controller
                 ];
             }
 
+            $schedules = Schedule::with('shift')
+                ->where('user_id', Auth::id())
+                ->whereYear('date', $year)
+                ->whereMonth('date', $month)
+                ->get();
+
+            foreach ($schedules as $schedule) {
+                $scheduleList[] = [
+                    'date' => $schedule->date,
+                    'shift_code' => $schedule->shift?->code,
+                ];
+            }
 
             $success = true;
         } catch (\Throwable $th) {
@@ -270,6 +284,7 @@ class OvertimeRequestController extends Controller
         return inertia('Employee/Index', [
             'info' => [
                 'monthOvertimes' => $monthOvertimes,
+                'scheduleList' => $scheduleList,
                 'recentRequestsList' => $recentRequestsList
             ],
             'stats' => $stats,
