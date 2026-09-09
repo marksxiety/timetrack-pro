@@ -134,6 +134,21 @@ class FetchOvertimeRequestsBySessionTest extends TestCase
         );
     }
 
+    public function test_monthly_overtimes_are_not_limited_to_five()
+    {
+        for ($i = 0; $i < 7; $i++) {
+            $schedule = $this->createSchedule('2026-01-' . str_pad($i + 1, 2, '0', STR_PAD_LEFT));
+            $this->createOvertime($schedule, 'APPROVED');
+        }
+
+        $response = $this->get('/?month=1&year=2026');
+
+        $response->assertInertia(fn ($page) => $page
+            ->has('info.monthOvertimes', 7)
+            ->has('info.recentRequestsList', 5)
+        );
+    }
+
     public function test_monthly_filter_with_query_params()
     {
         $schedule = $this->createSchedule('2026-01-05');
@@ -142,7 +157,7 @@ class FetchOvertimeRequestsBySessionTest extends TestCase
         $response = $this->get('/?month=1&year=2026');
 
         $response->assertInertia(fn ($page) => $page
-            ->has('info.overtimelist')
+            ->has('info.monthOvertimes')
             ->where('payload.year', '2026')
             ->where('payload.month', '1')
         );
