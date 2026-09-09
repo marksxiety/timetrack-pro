@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
 use App\Models\OrganizationUnit;
 use App\Models\Schedule;
 use App\Models\Shift;
+use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ScheduleControllerTest extends TestCase
@@ -14,7 +16,9 @@ class ScheduleControllerTest extends TestCase
     use WithFaker;
 
     private User $employee;
+
     private OrganizationUnit $orgUnit;
+
     private Shift $shift;
 
     protected function setUp(): void
@@ -256,6 +260,66 @@ class ScheduleControllerTest extends TestCase
         $response->assertJson(['success' => true]);
         $schedules = $response->json('schedules');
         $this->assertCount(2, $schedules);
+    }
+
+    public function test_submit_schedule_updates_existing_date_instead_of_duplicating_when_id_is_stale(): void
+    {
+        $existing = Schedule::create([
+            'user_id' => $this->employee->id,
+            'shift_id' => $this->shift->id,
+            'date' => '2026-01-04',
+            'week' => 1,
+        ]);
+
+        $newShift = Shift::create([
+            'code' => 'NIGHT',
+            'start_time' => '22:00:00',
+            'end_time' => '06:00:00',
+        ]);
+
+        $response = $this->actingAs($this->employee)->postJson('/schedule/submit', [
+            'schedule' => [
+                [
+                    'id' => null,
+                    'date' => '2026-01-04',
+                    'week' => 1,
+                    'day' => 'Sunday',
+                    'shift_code' => $newShift->id,
+                ],
+            ],
+        ]);
+
+        $response->assertSuccessful();
+        $response->assertJson(['success' => true]);
+        $response->assertJsonPath('schedules.0.id', $existing->id);
+        $this->assertDatabaseHas('schedules', [
+            'user_id' => $this->employee->id,
+            'date' => '2026-01-04',
+            'shift_id' => $newShift->id,
+        ]);
+        $this->assertSame(1, DB::table('schedules')
+            ->where('user_id', $this->employee->id)
+            ->where('date', '2026-01-04')
+            ->count());
+    }
+
+    public function test_schedules_table_is_unique_per_user_and_date(): void
+    {
+        $this->expectException(QueryException::class);
+
+        Schedule::create([
+            'user_id' => $this->employee->id,
+            'shift_id' => $this->shift->id,
+            'date' => '2026-01-04',
+            'week' => 1,
+        ]);
+
+        Schedule::create([
+            'user_id' => $this->employee->id,
+            'shift_id' => $this->shift->id,
+            'date' => '2026-01-04',
+            'week' => 1,
+        ]);
     }
 
     // ─── Get User Schedule ───────────────────────────────────
