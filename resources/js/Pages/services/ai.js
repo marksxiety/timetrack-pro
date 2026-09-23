@@ -131,9 +131,9 @@ export async function enhanceReasonWithAI(reason, onChunk) {
  * @param {Array<{name: string, hours: number, reasons: string[]}>} employees
  * @returns {Promise<AIResult>}
  */
-export async function analyzeEmployeesWithAI(employees) {
+export async function summarizeEmployeesWithAI(employees) {
     try {
-        const response = await fetch("/ai/analyze-reasons", {
+        const response = await fetch("/ai/summarize", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
