@@ -146,14 +146,72 @@
                     &mdash; {{ selectedHours }} hour(s)
                 </template>
             </span>
-            <div class="tooltip tooltip-left" data-tip="Mark as Approved">
-                <button class="btn btn-sm btn-primary gap-1"
-                    :disabled="selectedIds.length === 0 || bulkForm.processing"
-                    @click="openBulkActionModal()">
-                    <span v-if="bulkForm.processing" class="loading loading-spinner loading-xs"></span>
-                    <Icon icon="material-symbols:check-circle-outline" width="18" height="18" />
-                    Approve Selected
-                </button>
+            <div class="flex items-center gap-2">
+                <div class="tooltip tooltip-top" data-tip="Generates an AI weekly summary of total OT hours and justification per employee for the selected week.">
+                    <button type="button" class="btn btn-sm btn-outline btn-primary gap-1"
+                        :disabled="isSummarizing || requests.length === 0" @click="handleSummarize">
+                        <span v-if="isSummarizing" class="loading loading-spinner loading-xs"></span>
+                        <Icon v-else icon="mingcute:ai-line" width="16" height="16" />
+                        {{ isSummarizing ? 'Summarizing...' : 'Summarize' }}
+                    </button>
+                </div>
+                <div class="tooltip tooltip-top" data-tip="Mark as Approved">
+                    <button class="btn btn-sm btn-primary gap-1"
+                        :disabled="selectedIds.length === 0 || bulkForm.processing"
+                        @click="openBulkActionModal()">
+                        <span v-if="bulkForm.processing" class="loading loading-spinner loading-xs"></span>
+                        <Icon icon="material-symbols:check-circle-outline" width="18" height="18" />
+                        Approve Selected
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Weekly Summary -->
+        <div v-if="isSummarizing || summaryRows.length > 0" class="card bg-base-100 shadow-xs">
+            <div class="card-body">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="card-title text-base flex items-center gap-2">
+                        <Icon icon="mingcute:ai-line" width="18" height="18" class="text-primary" />
+                        Weekly Summary
+                        <span class="text-xs font-normal text-base-content/50">Week {{ selectedWeek }}, {{ selectedYear }}</span>
+                    </h2>
+                    <div v-if="!isSummarizing" class="flex items-center gap-1">
+                        <button type="button" class="btn btn-xs btn-ghost gap-1"
+                            :disabled="summaryRows.length === 0" @click="copySummaryToClipboard">
+                            <Icon icon="material-symbols:content-copy-outline" width="13" height="13" />
+                            Copy
+                        </button>
+                        <button type="button" class="btn btn-xs btn-ghost gap-1"
+                            @click="handleSummarize">
+                            <Icon icon="material-symbols:refresh-rounded" width="13" height="13" />
+                            Regenerate
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="isSummarizing" class="space-y-2 py-2">
+                    <div v-for="n in 3" :key="n" class="skeleton h-9 w-full"></div>
+                </div>
+
+                <div v-else class="overflow-x-auto">
+                    <table class="table table-zebra table-sm w-full">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th class="text-right">OT Hours</th>
+                                <th>Purpose/Justification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="row in sortedSummaryRows" :key="row.name">
+                                <td class="whitespace-nowrap font-medium">{{ row.name }}</td>
+                                <td class="text-right font-semibold">{{ formatHours(row.hours) }}</td>
+                                <td class="whitespace-normal">{{ row.justification }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -170,6 +228,7 @@ import Breadcrumbs from '../Components/Breadcrumbs.vue'
 import { useForm, router, Link } from '@inertiajs/vue3'
 import { Icon } from '@iconify/vue'
 import OvertimeRequestDetailModal from '../Components/OvertimeRequestDetailModal.vue'
+import { summarizeEmployeesWithAI } from '../services/ai.js'
 
 const toast = inject('toast')
 
@@ -231,10 +290,77 @@ const bulkForm = useForm({
     update_status: ''
 })
 
+// ===== AI Summary =====
+
+const isSummarizing = ref(false)
+const summaryRows = ref([])
+
+const groupByEmployee = (list) => {
+    const groups = new Map()
+
+    for (const request of list) {
+        const name = request.user?.name ?? 'Unknown'
+
+        if (!groups.has(name)) {
+            groups.set(name, { name, hours: 0, reasons: [] })
+        }
+
+        const group = groups.get(name)
+        group.hours += Number(request.overtime?.hours ?? 0)
+        group.reasons.push(request.overtime?.reason ?? '')
+    }
+
+    return [...groups.values()]
+}
+
+const formatHours = (hours) => Number(Number(hours).toFixed(2))
+
+const sortedSummaryRows = computed(() =>
+    [...summaryRows.value].sort((a, b) => Number(b.hours) - Number(a.hours))
+)
+
+const sanitizeCell = (value) => String(value ?? '').replace(/[\t\r\n]+/g, ' ')
+
+const copySummaryToClipboard = async () => {
+    if (sortedSummaryRows.value.length === 0) return
+
+    const headers = ['Employee', 'OT Hours', 'Purpose/Justification']
+    const rows = sortedSummaryRows.value.map((row) =>
+        [row.name, formatHours(row.hours), row.justification].map(sanitizeCell)
+    )
+    const text = [headers, ...rows].map((cells) => cells.join('\t')).join('\n')
+
+    try {
+        await navigator.clipboard.writeText(text)
+        toast('Weekly summary copied to clipboard.', 'success')
+    } catch {
+        toast('Failed to copy weekly summary.', 'error')
+    }
+}
+
+const handleSummarize = async () => {
+    if (isSummarizing.value || requests.value.length === 0) return
+
+    isSummarizing.value = true
+    try {
+        const result = await summarizeEmployeesWithAI(groupByEmployee(requests.value))
+
+        if (!result.success) {
+            toast(result.data || 'Failed to generate summary.', 'error')
+            return
+        }
+
+        summaryRows.value = result.data
+    } finally {
+        isSummarizing.value = false
+    }
+}
+
 // ===== Watchers =====
 
 watch(() => props?.info?.requests, (updatedRequest) => {
     requests.value = [...updatedRequest]
+    summaryRows.value = []
     clearSelection()
 })
 
