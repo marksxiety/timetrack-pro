@@ -134,7 +134,7 @@ class OpenAIController extends Controller
     /**
      * Summarize each employee's overtime reasons into a single approval justification.
      */
-    public function analyzeReasons(Request $request)
+    public function summarize(Request $request)
     {
         $employees = $request->input('employees');
 
