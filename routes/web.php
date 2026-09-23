@@ -1,20 +1,19 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\OpenAIController;
+use App\Http\Controllers\OrganizationUnitController;
 use App\Http\Controllers\OvertimeRequestController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\ShiftContoller;
 use App\Http\Controllers\RequiredHoursController;
 use App\Http\Controllers\ScheduleController;
-use App\Models\OvertimeRequest;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ShiftContoller;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\OpenAIController;
-use App\Http\Controllers\OrganizationUnitController;
-use App\Http\Controllers\SettingsController;
-use App\Models\Setting;
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/register', [AuthController::class, 'directRegisterForm'])->name('register');
@@ -29,6 +28,7 @@ Route::middleware(['guest'])->group(function () {
 
 Route::get('/', function (Request $request) {
     $role = Auth::user()->role;
+
     return match ($role) {
         'admin', 'approver' => app(OvertimeRequestController::class)->fetchTotalOvertimeRequests($request),
         'employee' => app(OvertimeRequestController::class)->fetchOvertimeRequestsBySession($request),
@@ -91,11 +91,12 @@ Route::middleware('admin-approver')->group(function () {
     Route::get('/generate/report', [ReportController::class, 'fetchReport'])->name('approver.generate.report.daterange');
 });
 
-Route::get('/404', fn() => Inertia::render('Unauthorized'))->name('404');
+Route::get('/404', fn () => Inertia::render('Unauthorized'))->name('404');
 
 Route::middleware('auth')->group(function () {
     Route::post('/ai/analyze', [OpenAIController::class, 'analyze'])->name('ai.analyze');
     Route::post('/ai/enhance', [OpenAIController::class, 'enhance'])->name('ai.enhance');
+    Route::post('/ai/analyze-reasons', [OpenAIController::class, 'analyzeReasons'])->name('ai.analyze-reasons');
 });
 
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -111,9 +112,11 @@ Route::middleware('admin')->group(function () {
 Route::get('/setup/config', function () {
     $settings = Setting::all()->pluck('value', 'key')->map(function ($value) {
         $decoded = json_decode($value, true);
+
         return $decoded !== null ? $decoded : $value;
     })->toArray();
 
     $settings['ai_model'] = env('AI_MODEL', 'gpt-4o-mini');
+
     return response()->json($settings);
 });
