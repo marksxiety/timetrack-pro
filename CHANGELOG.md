@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.8.0] - 2026-09-23
+
+### Added
+
+- `summarize` endpoint (`POST /ai/summarize`), separate from the streaming `/ai/analyze` report endpoint, that synthesizes each employee's overtime reasons into a single approval justification, capped at 50 employees, with strict payload validation and a one-summary-per-employee JSON response
+- `SUMMARIZE_PROMPT` and `buildEmployeeBlocks` in `OpenAIController` formatting numbered per-employee reason blocks for the model
+- `summarizeEmployeesWithAI` service in `ai.js` posting grouped employees to `/ai/summarize`
+- Summarize button and Weekly Summary table on the approver Pending page with per-employee OT hours, justifications sorted by hours, skeleton loading, regenerate, and TSV copy to clipboard
+- `openai.model` config key read from the `AI_MODEL` env var
+- Document optional `AI_BASE_URL` env var in `.env.example` with DeepSeek provider hint
+
+### Changed
+
+- Extract enhance, analyze, and summarize system prompts into `OpenAIController` class constants
+- `enhance` and `analyze` now read the model from `config('openai.model')` instead of `env('AI_MODEL', 'gpt-4o-mini')` so no default model is silently assumed
+- `analyzeWithAI` surfaces the backend error message from the response body instead of a generic status error
+
+### Fixed
+
+- Guard `enhance` and `analyze` with a 500 `AI feature not configured` response when `openai.model` is missing
+
+### Testing
+
+- `summarize` coverage for missing/empty/invalid payloads, empty reasons, the 50-employee cap, unconfigured model, ordered per-employee summaries, summary count mismatch, and authentication
+- Enhance and analyze tests for 500 when `openai.model` is not configured
+
 ## [v1.7.2] - 2026-09-09
 
 ### Fixed
