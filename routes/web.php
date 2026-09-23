@@ -96,7 +96,7 @@ Route::get('/404', fn () => Inertia::render('Unauthorized'))->name('404');
 Route::middleware('auth')->group(function () {
     Route::post('/ai/analyze', [OpenAIController::class, 'analyze'])->name('ai.analyze');
     Route::post('/ai/enhance', [OpenAIController::class, 'enhance'])->name('ai.enhance');
-    Route::post('/ai/analyze-reasons', [OpenAIController::class, 'analyzeReasons'])->name('ai.analyze-reasons');
+    Route::post('/ai/summarize', [OpenAIController::class, 'summarize'])->name('ai.summarize');
 });
 
 Route::middleware('auth')->post('/logout', [AuthController::class, 'logout'])->name('logout');
