@@ -42,7 +42,7 @@ async function readSSEStream(response, onChunk) {
 /**
  * @typedef {Object} AIResult
  * @property {boolean} success
- * @property {string} [data]
+ * @property {string|Array} [data]
  * @property {number} [status]
  */
 
@@ -69,7 +69,12 @@ export async function analyzeWithAI(jsonData, onChunk) {
         });
 
         if (!response.ok) {
-            throw new Error(`AI analyze failed (status ${response.status})`);
+            let message = `AI analyze failed (status ${response.status})`;
+            try {
+                const body = await response.json();
+                message = body.error || message;
+            } catch { /* use default */ }
+            throw new Error(message);
         }
 
         await readSSEStream(response, onChunk);
@@ -117,6 +122,40 @@ export async function enhanceReasonWithAI(reason, onChunk) {
 
     } catch (error) {
         console.error("AI Enhancement Error:", error);
+        return { success: false, data: error.message };
+    }
+}
+
+/**
+ * Summarize each employee's overtime reasons into a single approval justification.
+ * @param {Array<{name: string, hours: number, reasons: string[]}>} employees
+ * @returns {Promise<AIResult>}
+ */
+export async function summarizeEmployeesWithAI(employees) {
+    try {
+        const response = await fetch("/ai/summarize", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-XSRF-TOKEN": getCsrfToken(),
+            },
+            body: JSON.stringify({ employees }),
+        });
+
+        if (!response.ok) {
+            let message = `AI summarize failed (status ${response.status})`;
+            try {
+                const body = await response.json();
+                message = body.error || message;
+            } catch { /* use default */ }
+            return { success: false, data: message, status: response.status };
+        }
+
+        const body = await response.json();
+        return { success: true, data: Array.isArray(body.employees) ? body.employees : [] };
+
+    } catch (error) {
+        console.error("AI Summarize Error:", error);
         return { success: false, data: error.message };
     }
 }

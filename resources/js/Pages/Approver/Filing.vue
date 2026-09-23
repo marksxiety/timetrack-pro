@@ -134,14 +134,16 @@
           &mdash; {{ selectedHours }} hour(s)
         </template>
       </span>
-      <div class="tooltip tooltip-left" data-tip="Mark as Filed">
-        <button class="btn btn-sm btn-primary gap-1"
-          :disabled="selectedIds.length === 0 || bulkForm.processing"
-          @click="openBulkActionModal()">
-          <span v-if="bulkForm.processing" class="loading loading-spinner loading-xs"></span>
-          <Icon icon="material-symbols:task-outline" width="18" height="18" />
-          File Selected
-        </button>
+      <div class="flex items-center gap-2">
+        <div class="tooltip tooltip-top" data-tip="Mark as Filed">
+          <button class="btn btn-sm btn-primary gap-1"
+            :disabled="selectedIds.length === 0 || bulkForm.processing"
+            @click="openBulkActionModal()">
+            <span v-if="bulkForm.processing" class="loading loading-spinner loading-xs"></span>
+            <Icon icon="material-symbols:task-outline" width="18" height="18" />
+            File Selected
+          </button>
+        </div>
       </div>
     </div>
   </div>
