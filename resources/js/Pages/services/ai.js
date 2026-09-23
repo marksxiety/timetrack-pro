@@ -69,7 +69,12 @@ export async function analyzeWithAI(jsonData, onChunk) {
         });
 
         if (!response.ok) {
-            throw new Error(`AI analyze failed (status ${response.status})`);
+            let message = `AI analyze failed (status ${response.status})`;
+            try {
+                const body = await response.json();
+                message = body.error || message;
+            } catch { /* use default */ }
+            throw new Error(message);
         }
 
         await readSSEStream(response, onChunk);
