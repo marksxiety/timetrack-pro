@@ -102,19 +102,19 @@ class OpenAIControllerTest extends TestCase
         $response->assertJson(['error' => 'AI feature not configured']);
     }
 
-    // ─── Analyze Reasons ────────────────────────────────────
+    // ─── Summarize ──────────────────────────────────────────
 
-    public function test_analyze_reasons_returns_400_when_employees_missing(): void
+    public function test_summarize_returns_400_when_employees_missing(): void
     {
-        $response = $this->actingAs($this->user)->postJson('/ai/analyze-reasons', []);
+        $response = $this->actingAs($this->user)->postJson('/ai/summarize', []);
 
         $response->assertStatus(400);
         $response->assertJson(['error' => 'Missing employees']);
     }
 
-    public function test_analyze_reasons_returns_400_when_employees_is_empty_array(): void
+    public function test_summarize_returns_400_when_employees_is_empty_array(): void
     {
-        $response = $this->actingAs($this->user)->postJson('/ai/analyze-reasons', [
+        $response = $this->actingAs($this->user)->postJson('/ai/summarize', [
             'employees' => [],
         ]);
 
@@ -122,9 +122,9 @@ class OpenAIControllerTest extends TestCase
         $response->assertJson(['error' => 'Missing employees']);
     }
 
-    public function test_analyze_reasons_returns_400_when_employee_payload_is_invalid(): void
+    public function test_summarize_returns_400_when_employee_payload_is_invalid(): void
     {
-        $response = $this->actingAs($this->user)->postJson('/ai/analyze-reasons', [
+        $response = $this->actingAs($this->user)->postJson('/ai/summarize', [
             'employees' => [
                 ['name' => 'Jane Cruz', 'hours' => 'not-a-number', 'reasons' => ['fixing bug']],
             ],
@@ -134,9 +134,9 @@ class OpenAIControllerTest extends TestCase
         $response->assertJson(['error' => 'Invalid employees']);
     }
 
-    public function test_analyze_reasons_returns_400_when_employee_has_no_reasons(): void
+    public function test_summarize_returns_400_when_employee_has_no_reasons(): void
     {
-        $response = $this->actingAs($this->user)->postJson('/ai/analyze-reasons', [
+        $response = $this->actingAs($this->user)->postJson('/ai/summarize', [
             'employees' => [
                 ['name' => 'Jane Cruz', 'hours' => 2, 'reasons' => []],
             ],
@@ -146,14 +146,14 @@ class OpenAIControllerTest extends TestCase
         $response->assertJson(['error' => 'Invalid employees']);
     }
 
-    public function test_analyze_reasons_returns_400_when_too_many_employees(): void
+    public function test_summarize_returns_400_when_too_many_employees(): void
     {
         $employees = [];
         for ($i = 0; $i < 51; $i++) {
             $employees[] = ['name' => "Employee {$i}", 'hours' => 1, 'reasons' => ['fixing bug']];
         }
 
-        $response = $this->actingAs($this->user)->postJson('/ai/analyze-reasons', [
+        $response = $this->actingAs($this->user)->postJson('/ai/summarize', [
             'employees' => $employees,
         ]);
 
@@ -161,11 +161,11 @@ class OpenAIControllerTest extends TestCase
         $response->assertJson(['error' => 'Too many employees']);
     }
 
-    public function test_analyze_reasons_returns_500_when_ai_model_not_configured(): void
+    public function test_summarize_returns_500_when_ai_model_not_configured(): void
     {
         config(['openai.model' => null]);
 
-        $response = $this->actingAs($this->user)->postJson('/ai/analyze-reasons', [
+        $response = $this->actingAs($this->user)->postJson('/ai/summarize', [
             'employees' => [
                 ['name' => 'Jane Cruz', 'hours' => 3, 'reasons' => ['fixing bug']],
             ],
@@ -175,7 +175,7 @@ class OpenAIControllerTest extends TestCase
         $response->assertJson(['error' => 'AI feature not configured']);
     }
 
-    public function test_analyze_reasons_returns_summaries_per_employee_in_order(): void
+    public function test_summarize_returns_summaries_per_employee_in_order(): void
     {
         config(['openai.model' => 'test-model']);
 
@@ -185,7 +185,7 @@ class OpenAIControllerTest extends TestCase
             ])),
         ]);
 
-        $response = $this->actingAs($this->user)->postJson('/ai/analyze-reasons', [
+        $response = $this->actingAs($this->user)->postJson('/ai/summarize', [
             'employees' => [
                 ['name' => 'Jane Cruz', 'hours' => 3, 'reasons' => ['asdf', 'deployment support']],
                 ['name' => 'Mark Lim', 'hours' => 5, 'reasons' => ['fixing production bug']],
@@ -204,7 +204,7 @@ class OpenAIControllerTest extends TestCase
         OpenAI::assertSent(Chat::class);
     }
 
-    public function test_analyze_reasons_returns_500_when_summary_count_mismatches(): void
+    public function test_summarize_returns_500_when_summary_count_mismatches(): void
     {
         config(['openai.model' => 'test-model']);
 
@@ -214,7 +214,7 @@ class OpenAIControllerTest extends TestCase
             ])),
         ]);
 
-        $response = $this->actingAs($this->user)->postJson('/ai/analyze-reasons', [
+        $response = $this->actingAs($this->user)->postJson('/ai/summarize', [
             'employees' => [
                 ['name' => 'Jane Cruz', 'hours' => 3, 'reasons' => ['fixing bug']],
                 ['name' => 'Mark Lim', 'hours' => 5, 'reasons' => ['deployment support']],
@@ -241,9 +241,9 @@ class OpenAIControllerTest extends TestCase
         $response->assertUnauthorized();
     }
 
-    public function test_analyze_reasons_requires_authentication(): void
+    public function test_summarize_requires_authentication(): void
     {
-        $response = $this->postJson('/ai/analyze-reasons', [
+        $response = $this->postJson('/ai/summarize', [
             'employees' => [
                 ['name' => 'Jane Cruz', 'hours' => 3, 'reasons' => ['fixing bug']],
             ],
