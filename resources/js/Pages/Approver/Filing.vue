@@ -135,13 +135,15 @@
         </template>
       </span>
       <div class="flex items-center gap-2">
-        <button type="button" class="btn btn-sm btn-outline btn-primary gap-1"
-          :disabled="isSummarizing || requests.length === 0" @click="handleSummarize">
-          <span v-if="isSummarizing" class="loading loading-spinner loading-xs"></span>
-          <Icon v-else icon="mingcute:ai-line" width="16" height="16" />
-          {{ isSummarizing ? 'Summarizing...' : 'Summarize' }}
-        </button>
-        <div class="tooltip tooltip-left" data-tip="Mark as Filed">
+        <div class="tooltip tooltip-top" data-tip="Generates an AI weekly summary of total OT hours and justification per employee for the selected week.">
+          <button type="button" class="btn btn-sm btn-outline btn-primary gap-1"
+            :disabled="isSummarizing || requests.length === 0" @click="handleSummarize">
+            <span v-if="isSummarizing" class="loading loading-spinner loading-xs"></span>
+            <Icon v-else icon="mingcute:ai-line" width="16" height="16" />
+            {{ isSummarizing ? 'Summarizing...' : 'Summarize' }}
+          </button>
+        </div>
+        <div class="tooltip tooltip-top" data-tip="Mark as Filed">
           <button class="btn btn-sm btn-primary gap-1"
             :disabled="selectedIds.length === 0 || bulkForm.processing"
             @click="openBulkActionModal()">
@@ -162,11 +164,18 @@
             Weekly Summary
             <span class="text-xs font-normal text-base-content/50">Week {{ selectedWeek }}, {{ selectedYear }}</span>
           </h2>
-          <button v-if="!isSummarizing" type="button" class="btn btn-xs btn-ghost gap-1"
-            @click="handleSummarize">
-            <Icon icon="material-symbols:refresh-rounded" width="13" height="13" />
-            Regenerate
-          </button>
+          <div v-if="!isSummarizing" class="flex items-center gap-1">
+            <button type="button" class="btn btn-xs btn-ghost gap-1"
+              :disabled="summaryRows.length === 0" @click="copySummaryToClipboard">
+              <Icon icon="material-symbols:content-copy-outline" width="13" height="13" />
+              Copy
+            </button>
+            <button type="button" class="btn btn-xs btn-ghost gap-1"
+              @click="handleSummarize">
+              <Icon icon="material-symbols:refresh-rounded" width="13" height="13" />
+              Regenerate
+            </button>
+          </div>
         </div>
 
         <div v-if="isSummarizing" class="space-y-2 py-2">
@@ -296,6 +305,25 @@ const formatHours = (hours) => Number(Number(hours).toFixed(2))
 const sortedSummaryRows = computed(() =>
   [...summaryRows.value].sort((a, b) => Number(b.hours) - Number(a.hours))
 )
+
+const sanitizeCell = (value) => String(value ?? '').replace(/[\t\r\n]+/g, ' ')
+
+const copySummaryToClipboard = async () => {
+  if (sortedSummaryRows.value.length === 0) return
+
+  const headers = ['Employee', 'OT Hours', 'Purpose/Justification']
+  const rows = sortedSummaryRows.value.map((row) =>
+    [row.name, formatHours(row.hours), row.justification].map(sanitizeCell)
+  )
+  const text = [headers, ...rows].map((cells) => cells.join('\t')).join('\n')
+
+  try {
+    await navigator.clipboard.writeText(text)
+    toast('Weekly summary copied to clipboard.', 'success')
+  } catch {
+    toast('Failed to copy weekly summary.', 'error')
+  }
+}
 
 const handleSummarize = async () => {
   if (isSummarizing.value || requests.value.length === 0) return
