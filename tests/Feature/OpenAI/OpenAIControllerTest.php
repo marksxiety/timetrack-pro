@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\OpenAI;
 
-use App\Models\User;
 use App\Models\OrganizationUnit;
+use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
@@ -12,6 +12,7 @@ class OpenAIControllerTest extends TestCase
     use WithFaker;
 
     private User $user;
+
     private OrganizationUnit $orgUnit;
 
     protected function setUp(): void
@@ -44,6 +45,18 @@ class OpenAIControllerTest extends TestCase
         $response->assertJson(['error' => 'Missing reason']);
     }
 
+    public function test_enhance_returns_500_when_ai_model_not_configured(): void
+    {
+        config(['openai.model' => null]);
+
+        $response = $this->actingAs($this->user)->postJson('/ai/enhance', [
+            'reason' => 'Fixing production bug',
+        ]);
+
+        $response->assertStatus(500);
+        $response->assertJson(['error' => 'AI feature not configured']);
+    }
+
     // ─── Analyze ─────────────────────────────────────────────
 
     public function test_analyze_returns_400_when_content_missing(): void
@@ -72,6 +85,18 @@ class OpenAIControllerTest extends TestCase
 
         $response->assertStatus(400);
         $response->assertJson(['error' => 'Missing content']);
+    }
+
+    public function test_analyze_returns_500_when_ai_model_not_configured(): void
+    {
+        config(['openai.model' => null]);
+
+        $response = $this->actingAs($this->user)->postJson('/ai/analyze', [
+            'content' => 'Some report data',
+        ]);
+
+        $response->assertStatus(500);
+        $response->assertJson(['error' => 'AI feature not configured']);
     }
 
     // ─── Auth ───────────────────────────────────────────────
