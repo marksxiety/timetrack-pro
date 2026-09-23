@@ -10,19 +10,24 @@ class OpenAIController extends Controller
     public function enhance(Request $request)
     {
         $reason = $request->input('reason');
-        if (!$reason) {
+        if (! $reason) {
             return response()->json(['error' => 'Missing reason'], 400);
         }
 
+        $model = config('openai.model');
+        if (! $model) {
+            return response()->json(['error' => 'AI feature not configured'], 500);
+        }
+
         $validator = OpenAI::chat()->create([
-            'model' => env('AI_MODEL', 'gpt-4o-mini'),
+            'model' => $model,
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => "Analyze the user's overtime reason. Determine if it is a valid, work-related task or intent. " .
-                        "If it is gibberish (e.g., 'asdf'), purely emojis, offensive, or completely unrelated to work, return 'INVALID'. " .
-                        "If it is a potential work reason, even if short, return 'VALID'. " .
-                        "Return ONLY the word VALID or INVALID."
+                    'content' => "Analyze the user's overtime reason. Determine if it is a valid, work-related task or intent. ".
+                        "If it is gibberish (e.g., 'asdf'), purely emojis, offensive, or completely unrelated to work, return 'INVALID'. ".
+                        "If it is a potential work reason, even if short, return 'VALID'. ".
+                        'Return ONLY the word VALID or INVALID.',
                 ],
                 ['role' => 'user', 'content' => $reason],
             ],
@@ -35,18 +40,18 @@ class OpenAIController extends Controller
             return response()->json(['error' => 'Please provide a valid work-related reason.'], 422);
         }
 
-        return $this->streamResponse(function () use ($reason) {
+        return $this->streamResponse(function () use ($reason, $model) {
             return OpenAI::chat()->createStreamed([
-                'model' => env('AI_MODEL', 'gpt-4o-mini'),
+                'model' => $model,
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => "You are an expert at refining work logs. " .
-                            "Rewrite the input as a professional, objective statement using an action verb. " .
-                            "Avoid personal pronouns. " .
-                            "Tone: Productive and concise. " .
-                            "Constraint: Response must not exceed 16,777,215 characters. " .
-                            "Return only the enhanced text."
+                        'content' => 'You are an expert at refining work logs. '.
+                            'Rewrite the input as a professional, objective statement using an action verb. '.
+                            'Avoid personal pronouns. '.
+                            'Tone: Productive and concise. '.
+                            'Constraint: Response must not exceed 16,777,215 characters. '.
+                            'Return only the enhanced text.',
                     ],
                     ['role' => 'user', 'content' => $reason],
                 ],
@@ -59,13 +64,18 @@ class OpenAIController extends Controller
     public function analyze(Request $request)
     {
         $content = $request->input('content');
-        if (!$content) {
+        if (! $content) {
             return response()->json(['error' => 'Missing content'], 400);
         }
 
-        return $this->streamResponse(function () use ($content) {
+        $model = config('openai.model');
+        if (! $model) {
+            return response()->json(['error' => 'AI feature not configured'], 500);
+        }
+
+        return $this->streamResponse(function () use ($content, $model) {
             return OpenAI::chat()->createStreamed([
-                'model' => env('AI_MODEL', 'gpt-4o-mini'),
+                'model' => $model,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -85,7 +95,7 @@ class OpenAIController extends Controller
                         - Use Markdown.
                         - Use bolding for key metrics.
                         - Maintain a cold, professional, data-driven tone.
-                        - Avoid flowery language; focus on efficiency and resource allocation."
+                        - Avoid flowery language; focus on efficiency and resource allocation.",
                     ],
                     [
                         'role' => 'user',
@@ -99,8 +109,8 @@ class OpenAIController extends Controller
     /**
      * Returns a clean streamed response from an OpenAI stream callback.
      *
-     * @param callable $streamCallback  Returns an OpenAI streamed response
-     * @param int      $timeLimit       Max execution time in seconds
+     * @param  callable  $streamCallback  Returns an OpenAI streamed response
+     * @param  int  $timeLimit  Max execution time in seconds
      */
     private function streamResponse(callable $streamCallback, int $timeLimit = 60): \Symfony\Component\HttpFoundation\StreamedResponse
     {
@@ -120,7 +130,7 @@ class OpenAIController extends Controller
                 $chunk = $event->choices[0]->delta->content ?? null;
                 if ($chunk !== null) {
                     // SSE format — works reliably across browsers and fetch() readers
-                    echo "data: " . json_encode(['content' => $chunk]) . "\n\n";
+                    echo 'data: '.json_encode(['content' => $chunk])."\n\n";
                     if (ob_get_level()) {
                         ob_flush();
                     }
